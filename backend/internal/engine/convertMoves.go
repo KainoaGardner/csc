@@ -6,40 +6,43 @@ import (
 	"strconv"
 )
 
+// type Move struct {
+// 	Start      [2]int
+// 	End        [2]int
+// 	StartPiece Piece
+// 	EndPiece   Piece
+// 	TakenPiece Piece
+// 	Promote    bool
+// 	Drop       bool
+// }
+//
+// type Piece struct {
+// 	Type  int
+// 	Owner int
+// 	Moved bool
+// }
+
 func ConvertStringToMove(move string, game Game) (Move, error) {
 	result := Move{}
 	var err error
-
-	moveLength := len(move)
-	if moveLength != 5 && moveLength != 6 {
-		return result, fmt.Errorf("Invalid Length")
-	}
 
 	commaIndex := utils.GetIndexFirstChar(move, ",")
 	if commaIndex == -1 {
 		return result, fmt.Errorf("Invalid Format. No ,")
 	}
 
-	result.Drop, result.DropPiece = checkDropPiece(move, game.Turn)
-	result.MovePiece = result.DropPiece
+	result.Drop, result.StartPiece = checkDropPiece(move)
 	if !result.Drop {
 		result.Start, err = getStartPosition(move, commaIndex, game.Board.Height)
 		if err != nil {
 			return result, fmt.Errorf("Invalid Start Position")
 		}
 
-		if result.Start[0] >= 0 && result.Start[0] < game.Board.Width && result.Start[1] >= 0 && result.Start[1] < game.Board.Height {
-			result.MovePiece = game.Board.Board[result.Start[1]][result.Start[0]]
-		}
-
 	}
 
-	result.Promote, result.PromotePiece = checkPromote(move, game.Turn)
+	result.Promote, result.EndPiece = checkPromote(move)
 
 	result.End, err = getEndPosition(move, commaIndex, game.Board.Height)
-	if result.End[0] >= 0 && result.End[0] < game.Board.Width && result.End[1] >= 0 && result.End[1] < game.Board.Height {
-		result.TakenPiece = game.Board.Board[result.End[1]][result.End[0]]
-	}
 
 	if err != nil {
 		return result, fmt.Errorf("Invalid End Position")
@@ -67,6 +70,7 @@ func getStartPosition(move string, commaIndex int, boardHeight int) ([2]int, err
 	if err != nil {
 		return result, err
 	}
+	startWidth-- //index base zero
 
 	startHeight, err := strconv.Atoi(startHeightStr)
 	if err != nil {
@@ -103,6 +107,7 @@ func getEndPosition(move string, commaIndex int, boardHeight int) ([2]int, error
 	if err != nil {
 		return result, err
 	}
+	endWidth-- //index base zero
 
 	result[0] = endWidth
 	result[1] = boardHeight - endHeight
@@ -110,56 +115,92 @@ func getEndPosition(move string, commaIndex int, boardHeight int) ([2]int, error
 	return result, nil
 }
 
-func checkDropPiece(move string, turn int) (bool, int) {
-	var koma int
+func checkDropPiece(move string) (bool, Piece) {
+	var koma Piece
 	if len(move) < 2 {
-		return false, 0
+		return false, koma
 	}
 
 	if move[1] != '*' {
-		return false, 0
+		return false, koma
 	}
 
 	komaChar := move[0]
-	koma, ok := shogiDropCharToPiece[komaChar]
+	komaInt, ok := shogiDropCharToPiece[komaChar]
+	koma.Type = komaInt
 	if !ok {
-		return false, 0
-	}
-
-	if turn == 1 {
-		koma += MochigomaBlackOffset
+		return false, koma
 	}
 
 	return true, koma
 }
 
-func checkPromote(move string, turn int) (bool, int) {
-	var piece int
+func checkPromote(move string) (bool, Piece) {
+	var piece Piece
+
 	moveLength := len(move)
 	if moveLength < 1 {
-		return false, 0
+		return false, piece
 	}
 
 	if move[moveLength-1] == '+' { //if shogi promotion
-		return true, 0
+		return true, piece
 	}
 
 	pieceChar := move[moveLength-1]
-	piece, ok := chessPromoteCharToPiece[pieceChar]
+	pieceInt, ok := chessPromoteCharToPiece[pieceChar]
+	piece.Type = pieceInt
 	if !ok {
-		return false, 0
-	}
-
-	if turn == 1 {
-		piece *= -1
+		return false, piece
 	}
 
 	return true, piece
 }
 
-func ConvertMoveToString(move Move) (string, error) {
-
+func ConvertMoveToString(move Move, game Game) (string, error) {
 	var result string
+
+	startStr := ""
+	endStr := ""
+	promoteStr := ""
+
+	endWidthStr, err := utils.ConvertNumberToLowercase(move.End[0] + 1)
+	if err != nil {
+		return "", err
+	}
+	endHeightStr := strconv.Itoa(game.Board.Height - move.End[1])
+	endStr = endWidthStr + endHeightStr
+
+	startWidthStr, err := utils.ConvertNumberToLowercase(move.Start[0] + 1)
+	if err != nil {
+		return "", err
+	}
+	startHeightStr := strconv.Itoa(game.Board.Height - move.Start[1])
+	startStr = startWidthStr + startHeightStr
+
+	if move.Drop {
+		dropPiece := move.StartPiece.Type
+		pieceChar, ok := shogiDropPieceToChar[dropPiece]
+		if !ok {
+			return "", fmt.Errorf("Invalid Drop Piece")
+		}
+
+		startStr = string(pieceChar) + "*"
+	}
+
+	if move.Promote {
+		if move.EndPiece.Type != 0 {
+			promotePiece, ok := chessPromotePieceToChar[move.EndPiece.Type]
+			if !ok {
+				return "", fmt.Errorf("Invalid Promote Piece")
+			}
+			promoteStr = string(promotePiece)
+		} else {
+			promoteStr = "+"
+		}
+	}
+
+	result = startStr + "," + endStr + promoteStr
 
 	return result, nil
 }

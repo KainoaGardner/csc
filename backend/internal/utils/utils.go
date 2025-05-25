@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"math"
 	"strings"
 )
 
@@ -21,13 +22,29 @@ func IsDigit(char byte) bool {
 func ConvertLowercaseToNumber(str string) (int, error) {
 	result := 0
 
-	for i := 0; i < len(str); i++ {
+	for i := len(str) - 1; i >= 0; i-- {
 		if !IsLower(str[i]) {
 			return -1, fmt.Errorf("Invalid input. Not within a-z")
 		}
 
-		amount := int(str[i] - 'a')
-		result += amount
+		amount := int(str[i]-'a') + 1
+		y := len(str) - 1 - i
+		result += amount * int(math.Pow(float64(26), float64(y)))
+	}
+
+	return result, nil
+}
+
+func ConvertNumberToLowercase(x int) (string, error) {
+	result := ""
+	if !(x >= 0) {
+		return "", fmt.Errorf("Invalid input. X lower that 0")
+	}
+	for x > 0 {
+		amount := (x - 1) % 26
+		x = (x - 1) / 26
+		char := byte(amount) + 'a'
+		result = string(char) + result
 	}
 
 	return result, nil

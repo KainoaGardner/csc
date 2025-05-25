@@ -1,9 +1,15 @@
 package engine
 
+type Piece struct {
+	Type  int
+	Owner int
+	Moved bool
+}
+
 type Board struct {
-	Width  int     `bson:"width" json:"width"`
-	Height int     `bson:"height" json:"height"`
-	Board  [][]int `bson:"board" json:"board"`
+	Width  int       `bson:"width" json:"width"`
+	Height int       `bson:"height" json:"height"`
+	Board  [][]Piece `bson:"board" json:"board"`
 }
 
 type Game struct {
@@ -11,20 +17,21 @@ type Game struct {
 	Board     Board              `bson:"board" json:"board"`
 	WhiteID   int                `bson:"white_id" json:"white_id"`
 	BlackID   int                `bson:"black_id" json:"black_id"`
-	Turn      int                `bson:"turn" json:"turn"`
 	Mochigoma [MochigomaSize]int `bson:"mochigoma" json:"mochigoma"` //turn 0=0-6  turn 1=7-13 | order 歩香桂銀金角飛
-	Moves     []string           `bson:"moves" json:"moves"`
+	Turn      int                `bson:"turn" json:"turn"`
+	MoveCount int
+	LastMove  Move
+	Moves     []string `bson:"moves" json:"moves"`
 }
 
 type Move struct {
-	Start        [2]int
-	End          [2]int
-	MovePiece    int
-	TakenPiece   int
-	Promote      bool
-	PromotePiece int
-	Drop         bool
-	DropPiece    int
+	Start      [2]int
+	End        [2]int
+	StartPiece Piece
+	EndPiece   Piece
+	TakenPiece Piece
+	Promote    bool
+	Drop       bool
 }
 
 const (
@@ -68,23 +75,23 @@ const (
 )
 
 var shogiDropCharToPiece = map[byte]int{
-	'P': MochiFu,
-	'L': MochiKyou,
-	'N': MochiKei,
-	'S': MochiGin,
-	'G': MochiKin,
-	'B': MochiKaku,
-	'R': MochiHi,
+	'P': Fu,
+	'L': Kyou,
+	'N': Kei,
+	'S': Gin,
+	'G': Kin,
+	'B': Kaku,
+	'R': Hi,
 }
 
 var shogiDropPieceToChar = map[int]byte{
-	MochiFu:   'P',
-	MochiKyou: 'L',
-	MochiKei:  'N',
-	MochiGin:  'S',
-	MochiKin:  'G',
-	MochiKaku: 'B',
-	MochiHi:   'R',
+	Fu:   'P',
+	Kyou: 'L',
+	Kei:  'N',
+	Gin:  'S',
+	Kin:  'G',
+	Kaku: 'B',
+	Hi:   'R',
 }
 
 var chessPromotePieceToChar = map[int]byte{
