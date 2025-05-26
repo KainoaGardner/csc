@@ -102,33 +102,32 @@ func RunTests() {
 	}
 
 	for i := 0; i < len(moves); i++ {
-		result, err := convertStringToMoveTest(moves[i], game)
+		err := convertStringToMoveTest(moves[i], game)
 		if err != nil {
 			fmt.Println(err)
+			fmt.Println("FAILED", moves[i])
 			return
 		}
 
-		if !result {
-			fmt.Println("FAILED", moves[i], result)
-			return
-		}
-
-		fmt.Println("Passed", moves[i], result)
+		fmt.Println("Passed", moves[i])
 	}
 }
 
-func convertStringToMoveTest(input string, game Game) (bool, error) {
+func convertStringToMoveTest(input string, game Game) error {
 	moveResult, err := ConvertStringToMove(input, game)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	stringResult, err := ConvertMoveToString(moveResult, game)
 	if err != nil {
-		return false, err
+		return err
 	}
 
 	result := input == stringResult
+	if !result {
+		return fmt.Errorf("Results do not match. %s %s", input, stringResult)
+	}
 
-	return result, nil
+	return nil
 }

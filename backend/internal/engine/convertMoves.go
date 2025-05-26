@@ -6,22 +6,6 @@ import (
 	"strconv"
 )
 
-// type Move struct {
-// 	Start      [2]int
-// 	End        [2]int
-// 	StartPiece Piece
-// 	EndPiece   Piece
-// 	TakenPiece Piece
-// 	Promote    bool
-// 	Drop       bool
-// }
-//
-// type Piece struct {
-// 	Type  int
-// 	Owner int
-// 	Moved bool
-// }
-
 func ConvertStringToMove(move string, game Game) (Move, error) {
 	result := Move{}
 	var err error
@@ -31,7 +15,7 @@ func ConvertStringToMove(move string, game Game) (Move, error) {
 		return result, fmt.Errorf("Invalid Format. No ,")
 	}
 
-	result.Drop, result.StartPiece = checkDropPiece(move)
+	result.Drop, result.StartPiece = checkDropPiece(move, game)
 	if !result.Drop {
 		result.Start, err = getStartPosition(move, commaIndex, game.Board.Height)
 		if err != nil {
@@ -40,7 +24,7 @@ func ConvertStringToMove(move string, game Game) (Move, error) {
 
 	}
 
-	result.Promote, result.EndPiece = checkPromote(move)
+	result.Promote, result.EndPiece = checkPromote(move, game)
 
 	result.End, err = getEndPosition(move, commaIndex, game.Board.Height)
 
@@ -51,7 +35,7 @@ func ConvertStringToMove(move string, game Game) (Move, error) {
 	return result, nil
 }
 
-func getStartPosition(move string, commaIndex int, boardHeight int) ([2]int, error) {
+func getStartPosition(move string, commaIndex int, boardHeight int) (Vec2, error) {
 	result := [2]int{}
 
 	startWidthStr := ""
@@ -115,7 +99,7 @@ func getEndPosition(move string, commaIndex int, boardHeight int) ([2]int, error
 	return result, nil
 }
 
-func checkDropPiece(move string) (bool, Piece) {
+func checkDropPiece(move string, game Game) (bool, Piece) {
 	var koma Piece
 	if len(move) < 2 {
 		return false, koma
@@ -128,6 +112,7 @@ func checkDropPiece(move string) (bool, Piece) {
 	komaChar := move[0]
 	komaInt, ok := shogiDropCharToPiece[komaChar]
 	koma.Type = komaInt
+	koma.Owner = game.Turn
 	if !ok {
 		return false, koma
 	}
@@ -135,7 +120,7 @@ func checkDropPiece(move string) (bool, Piece) {
 	return true, koma
 }
 
-func checkPromote(move string) (bool, Piece) {
+func checkPromote(move string, game Game) (bool, Piece) {
 	var piece Piece
 
 	moveLength := len(move)
@@ -150,6 +135,7 @@ func checkPromote(move string) (bool, Piece) {
 	pieceChar := move[moveLength-1]
 	pieceInt, ok := chessPromoteCharToPiece[pieceChar]
 	piece.Type = pieceInt
+	piece.Owner = game.Turn
 	if !ok {
 		return false, piece
 	}
