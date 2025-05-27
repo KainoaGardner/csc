@@ -36,7 +36,7 @@ func ConvertStringToMove(move string, game Game) (Move, error) {
 }
 
 func getStartPosition(move string, commaIndex int, boardHeight int) (Vec2, error) {
-	result := [2]int{}
+	result := Vec2{}
 
 	startWidthStr := ""
 	startHeightStr := ""
@@ -61,14 +61,14 @@ func getStartPosition(move string, commaIndex int, boardHeight int) (Vec2, error
 		return result, err
 	}
 
-	result[0] = startWidth
-	result[1] = boardHeight - startHeight
+	result.X = startWidth
+	result.Y = boardHeight - startHeight
 
 	return result, nil
 }
 
-func getEndPosition(move string, commaIndex int, boardHeight int) ([2]int, error) {
-	result := [2]int{}
+func getEndPosition(move string, commaIndex int, boardHeight int) (Vec2, error) {
+	result := Vec2{}
 
 	endWidthStr := ""
 	endHeightStr := ""
@@ -93,8 +93,8 @@ func getEndPosition(move string, commaIndex int, boardHeight int) ([2]int, error
 	}
 	endWidth-- //index base zero
 
-	result[0] = endWidth
-	result[1] = boardHeight - endHeight
+	result.X = endWidth
+	result.Y = boardHeight - endHeight
 
 	return result, nil
 }
@@ -150,18 +150,18 @@ func ConvertMoveToString(move Move, game Game) (string, error) {
 	endStr := ""
 	promoteStr := ""
 
-	endWidthStr, err := utils.ConvertNumberToLowercase(move.End[0] + 1)
+	endWidthStr, err := utils.ConvertNumberToLowercase(move.End.X + 1)
 	if err != nil {
 		return "", err
 	}
-	endHeightStr := strconv.Itoa(game.Board.Height - move.End[1])
+	endHeightStr := strconv.Itoa(game.Board.Height - move.End.Y)
 	endStr = endWidthStr + endHeightStr
 
-	startWidthStr, err := utils.ConvertNumberToLowercase(move.Start[0] + 1)
+	startWidthStr, err := utils.ConvertNumberToLowercase(move.Start.X + 1)
 	if err != nil {
 		return "", err
 	}
-	startHeightStr := strconv.Itoa(game.Board.Height - move.Start[1])
+	startHeightStr := strconv.Itoa(game.Board.Height - move.Start.Y)
 	startStr = startWidthStr + startHeightStr
 
 	if move.Drop {

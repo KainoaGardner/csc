@@ -7,9 +7,9 @@ type Piece struct {
 }
 
 type Board struct {
-	Width  int       `bson:"width" json:"width"`
-	Height int       `bson:"height" json:"height"`
-	Board  [][]Piece `bson:"board" json:"board"`
+	Width  int        `bson:"width" json:"width"`
+	Height int        `bson:"height" json:"height"`
+	Board  [][]*Piece `bson:"board" json:"board"`
 }
 
 type Game struct {
@@ -35,8 +35,8 @@ type Move struct {
 }
 
 type Vec2 struct {
-	x int
-	y int
+	X int
+	Y int
 }
 
 const (

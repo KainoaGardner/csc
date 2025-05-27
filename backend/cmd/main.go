@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/KainoaGardner/csc/internal/engine"
+	"strconv"
 )
 
 func main() {
@@ -10,29 +11,42 @@ func main() {
 	game.Board.Width = 8
 	game.Board.Height = 8
 
-	game.Board.Board = make([][]engine.Piece, game.Board.Height)
+	game.Board.Board = make([][]*engine.Piece, game.Board.Height)
 	for i := range game.Board.Board {
-		game.Board.Board[i] = make([]engine.Piece, game.Board.Width)
+		game.Board.Board[i] = make([]*engine.Piece, game.Board.Width)
 	}
 
 	game.Turn = 0
 
-	game.Board.Board[3][4] = engine.Piece{Type: engine.Pawn, Owner: 1}
-	game.Board.Board[4][3] = engine.Piece{Type: engine.Pawn, Owner: 0}
+	game.Board.Board[6][0] = &engine.Piece{Type: engine.Pawn, Owner: 0}
+	game.Board.Board[7][6] = &engine.Piece{Type: engine.Knight, Owner: 0}
+	game.Board.Board[4][2] = &engine.Piece{Type: engine.Bishop, Owner: 0}
+	game.Board.Board[2][4] = &engine.Piece{Type: engine.Pawn, Owner: 1}
 
 	for i := 0; i < game.Board.Height; i++ {
 		for j := 0; j < game.Board.Width; j++ {
-			sign := 1
-			if game.Board.Board[j][i].Owner == 1 {
-				sign = -1
-			}
+			piece := game.Board.Board[i][j]
+			if piece != nil {
 
-			fmt.Print(game.Board.Board[i][j].Type * sign)
+				sign := 1
+				if game.Board.Board[i][j].Owner == 1 {
+					sign = -1
+				}
+
+				pieceStr := strconv.Itoa(game.Board.Board[i][j].Type * sign)
+				if len(pieceStr) < 2 {
+					pieceStr = " " + pieceStr
+				}
+				fmt.Print(pieceStr)
+
+			} else {
+				fmt.Print("__")
+			}
 		}
 		fmt.Println()
 	}
 
-	moveStr := "d4,e5"
+	moveStr := "c4,e2"
 	move, err := engine.ConvertStringToMove(moveStr, game)
 	if err != nil {
 		fmt.Println(err)
@@ -40,7 +54,10 @@ func main() {
 	}
 
 	fmt.Println(move)
-	// engine.SetupMove(&move, game)
-	fmt.Println(move)
+
+	err = engine.CheckValidMove(&move, game)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 }

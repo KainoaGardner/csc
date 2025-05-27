@@ -19,28 +19,38 @@ import "fmt"
 // 	Drop       bool
 // }
 
-func setupMove(move *Move, game Game) {
+func setupMove(move *Move, game Game) error {
+
 	if !move.Drop {
-		move.StartPiece = game.Board.Board[move.Start[1]][move.Start[0]]
+		piece := game.Board.Board[move.Start.Y][move.Start.X]
+		if piece == nil {
+			return fmt.Errorf("Cannot move empty spaces")
+		}
+		move.StartPiece = *piece
 	}
 	if !move.Promote {
 		move.EndPiece = move.StartPiece
 	}
 
-	move.TakenPiece = game.Board.Board[move.End[1]][move.End[0]]
+	piece := game.Board.Board[move.End.Y][move.End.X]
+	if piece != nil {
+		move.TakenPiece = *piece
+	}
+
+	return nil
 }
 
 func checkMoveInBounds(move Move, game Game) error {
-	if move.Start[0] < 0 || move.Start[0] >= game.Board.Width {
+	if move.Start.X < 0 || move.Start.X >= game.Board.Width {
 		return fmt.Errorf("Start x out of board bounds")
 	}
-	if move.Start[1] < 0 || move.Start[1] >= game.Board.Height {
+	if move.Start.Y < 0 || move.Start.Y >= game.Board.Height {
 		return fmt.Errorf("Start y out of board bounds")
 	}
-	if move.End[0] < 0 || move.End[0] >= game.Board.Width {
+	if move.End.X < 0 || move.End.X >= game.Board.Width {
 		return fmt.Errorf("End x out of board bounds")
 	}
-	if move.End[1] < 0 || move.End[1] >= game.Board.Height {
+	if move.End.Y < 0 || move.End.Y >= game.Board.Height {
 		return fmt.Errorf("End y out of board bounds")
 	}
 
@@ -50,14 +60,17 @@ func checkMoveInBounds(move Move, game Game) error {
 func CheckValidMove(move *Move, game Game) error {
 	err := checkMoveInBounds(*move, game)
 	if err != nil {
-		return fmt.Errorf("Move outside board bounds")
+		return err
 	}
 
-	setupMove(move, game)
+	err = setupMove(move, game)
+	if err != nil {
+		return err
+	}
 
 	err = checkMovablePiece(*move, game)
 	if err != nil {
-		return fmt.Errorf("Cannot move this piece")
+		return err
 	}
 
 	err = checkValidPieceMoves(*move, game)
@@ -86,14 +99,24 @@ func checkValidPieceMoves(move Move, game Game) error {
 	//check valid normal move
 	//in normal moves if move has promotion check that
 
+	var result error
+	dir := getMoveDirection(game)
+
+	possibleMoves := []Vec2{}
+
 	if move.Drop {
 		//drop check
 	} else {
 		switch move.StartPiece.Type {
-		case Pawn:
-			checkPawnMove(move, game)
+		case Pawn: //add en passant
+			possibleMoves = getPawnMoves(move, game, dir)
+			result = checkEndPosInPossibleMoves(possibleMoves, move)
 		case Knight:
+			possibleMoves = getKnightMoves(move, game)
+			result = checkEndPosInPossibleMoves(possibleMoves, move)
 		case Bishop:
+			possibleMoves = getBishopMoves(move, game)
+			result = checkEndPosInPossibleMoves(possibleMoves, move)
 		case Rook:
 		case Queen:
 		case King:
@@ -115,49 +138,125 @@ func checkValidPieceMoves(move Move, game Game) error {
 		}
 	}
 
-	return nil
+	for i := 0; i < len(possibleMoves); i++ {
+		possibleMove := possibleMoves[i]
+		fmt.Println(possibleMove)
+	}
+
+	return result
 }
 
-func checkPawnMove(move Move, game Game) {
-	direction := 1
-	if game.Turn == 1 {
-		direction = -1
-	}
-
+func getPawnMoves(move Move, game Game, direction int) []Vec2 {
 	var validMovePositions []Vec2
+
 	//en passant
 
-	//first turn move
-	if !move.StartPiece.Moved {
-		newY := move.Start[1] - 2*direction
-		newPos := Vec2{x: move.Start[0], y: newY}
-		if checkPositionInbounds(newPos, game) {
-			if game.Board.Board[newPos.y][newPos.x].Type == Empty {
-				validMovePositions = append(validMovePositions, newPos)
+	//move forward
+	newY := move.Start.Y - 1*direction
+	newPos := Vec2{X: move.Start.X, Y: newY}
+	newPos2 := Vec2{X: move.Start.X, Y: newY - direction}
+	if checkPositionInbounds(newPos, game) {
+		space := game.Board.Board[newPos.Y][newPos.X]
+		if space == nil {
+			validMovePositions = append(validMovePositions, newPos)
+
+			//check starting move 2 space
+			if checkPositionInbounds(newPos2, game) {
+				space = game.Board.Board[newPos2.Y][newPos2.X]
+				if space == nil && !move.StartPiece.Moved {
+					validMovePositions = append(validMovePositions, newPos2)
+				}
 			}
 		}
 	}
 
-	//move forward
-	newY := move.Start[1] - 1*direction
-	newPos := Vec2{x: move.Start[0], y: newY}
-	if checkPositionInbounds(newPos, game) {
-		if game.Board.Board[newPos.y][newPos.x].Type == Empty {
-			validMovePositions = append(validMovePositions, newPos)
-		}
-	}
-
-	relativeMovePos := [2]Vec2{Vec2{x: -1, y: -1}, Vec2{x: 1, y: -1}}
 	//capture squares
+	relativeMovePos := []Vec2{{X: -1, Y: -1}, {X: 1, Y: -1}}
 	for i := 0; i < len(relativeMovePos); i++ {
 		newPos = relativeMovePos[i]
-		newPos.y *= direction
+		newPos.Y *= direction
+
+		newPos.X += move.Start.X
+		newPos.Y += move.Start.Y
 		if checkPositionInbounds(newPos, game) {
-			if game.Board.Board[newPos.y][newPos.x].Owner == getEnemyTurnInt(game) {
+			space := game.Board.Board[newPos.Y][newPos.X]
+			if space != nil && space.Owner == getEnemyTurnInt(game) {
 				validMovePositions = append(validMovePositions, newPos)
 			}
 		}
 	}
+
+	return validMovePositions
+}
+
+func getKnightMoves(move Move, game Game) []Vec2 {
+	var validMovePositions []Vec2
+
+	relativeMovePos := []Vec2{
+		{X: -1, Y: -2},
+		{X: 1, Y: -2},
+		{X: -2, Y: -1},
+		{X: 2, Y: -1},
+		{X: -2, Y: 1},
+		{X: 2, Y: 1},
+		{X: -1, Y: 2},
+		{X: 1, Y: 2},
+	}
+
+	for i := 0; i < len(relativeMovePos); i++ {
+		newPos := relativeMovePos[i]
+		newPos.X += move.Start.X
+		newPos.Y += move.Start.Y
+
+		if checkPositionInbounds(newPos, game) {
+			space := game.Board.Board[newPos.Y][newPos.X]
+			if space == nil || space.Owner != move.StartPiece.Owner {
+				validMovePositions = append(validMovePositions, newPos)
+			}
+		}
+	}
+
+	return validMovePositions
+}
+
+func getBishopMoves(move Move, game Game) []Vec2 {
+	var validMovePositions []Vec2
+
+	directions := []Vec2{
+		{X: -1, Y: -1},
+		{X: -1, Y: 1},
+		{X: 1, Y: -1},
+		{X: 1, Y: 1},
+	}
+
+	for i := 0; i < len(directions); i++ {
+		dir := directions[i]
+
+		j := 0
+		for j >= 0 {
+			j++
+			newPos := move.Start
+
+			newPos.X += dir.X * j
+			newPos.Y += dir.Y * j
+
+			if !checkPositionInbounds(newPos, game) {
+				break
+			}
+
+			space := game.Board.Board[newPos.Y][newPos.X]
+			if space == nil {
+				validMovePositions = append(validMovePositions, newPos)
+			} else if space.Owner != game.Turn {
+				validMovePositions = append(validMovePositions, newPos)
+				break
+			} else {
+				break
+			}
+		}
+	}
+
+	return validMovePositions
 }
 
 // const (
@@ -186,10 +285,10 @@ func checkPawnMove(move Move, game Game) {
 // )
 
 func checkPositionInbounds(pos Vec2, game Game) bool {
-	if pos.x < 0 || pos.x >= game.Board.Width {
+	if pos.X < 0 || pos.X >= game.Board.Width {
 		return false
 	}
-	if pos.y < 0 || pos.y >= game.Board.Height {
+	if pos.Y < 0 || pos.Y >= game.Board.Height {
 		return false
 	}
 
@@ -207,7 +306,19 @@ func getEnemyTurnInt(game Game) int {
 func checkEndPosInPossibleMoves(possibleMoves []Vec2, move Move) error {
 	for i := 0; i < len(possibleMoves); i++ {
 		possibleMove := possibleMoves[i]
+
+		if move.End == possibleMove {
+			return nil
+		}
 	}
 
 	return fmt.Errorf("No valid moves")
+}
+
+func getMoveDirection(game Game) int {
+	direction := 1
+	if game.Turn == 1 {
+		direction = -1
+	}
+	return direction
 }
