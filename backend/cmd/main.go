@@ -21,7 +21,15 @@ func main() {
 	game.Board.Board[6][0] = &engine.Piece{Type: engine.Pawn, Owner: 0}
 	game.Board.Board[7][6] = &engine.Piece{Type: engine.Knight, Owner: 0}
 	game.Board.Board[4][2] = &engine.Piece{Type: engine.Bishop, Owner: 0}
+	game.Board.Board[6][4] = &engine.Piece{Type: engine.Rook, Owner: 0}
+	game.Board.Board[4][6] = &engine.Piece{Type: engine.Queen, Owner: 0}
+	game.Board.Board[3][3] = &engine.Piece{Type: engine.King, Owner: 1}
+	game.Board.Board[3][4] = &engine.Piece{Type: engine.Fu, Owner: 0}
+	game.Board.Board[3][7] = &engine.Piece{Type: engine.Kyou, Owner: 0}
+	game.Board.Board[5][2] = &engine.Piece{Type: engine.Kei, Owner: 0}
 	game.Board.Board[2][4] = &engine.Piece{Type: engine.Pawn, Owner: 1}
+	game.Board.Board[3][1] = &engine.Piece{Type: engine.Pawn, Owner: 1}
+	game.Board.Board[0][7] = &engine.Piece{Type: engine.Pawn, Owner: 1}
 
 	for i := 0; i < game.Board.Height; i++ {
 		for j := 0; j < game.Board.Width; j++ {
@@ -46,7 +54,7 @@ func main() {
 		fmt.Println()
 	}
 
-	moveStr := "c4,e2"
+	moveStr := "h5,h8"
 	move, err := engine.ConvertStringToMove(moveStr, game)
 	if err != nil {
 		fmt.Println(err)
