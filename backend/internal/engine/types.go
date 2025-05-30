@@ -77,6 +77,7 @@ const (
 	Uma
 	Ryuu
 	Checker
+	CheckerKing
 )
 
 var shogiDropCharToPiece = map[byte]int{
