@@ -1,40 +1,11 @@
 package engine
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/KainoaGardner/csc/internal/utils"
 	"strconv"
 	"strings"
 )
-
-// func ConvertStringToMove(move string, game Game) (Move, error) {
-// 	result := Move{}
-// 	var err error
-//
-// 	commaIndex := utils.GetIndexFirstChar(move, ",")
-// 	if commaIndex == -1 {
-// 		return result, fmt.Errorf("Invalid Format. No ,")
-// 	}
-//
-// 	result.Drop, result.StartPiece = checkDropPiece(move, game)
-// 	if !result.Drop {
-// 		result.Start, err = getStartPosition(move, commaIndex, game.Board.Height)
-// 		if err != nil {
-// 			return result, fmt.Errorf("Invalid Start Position")
-// 		}
-//
-// 	}
-//
-// 	result.Promote, result.EndPiece = checkPromote(move, game)
-//
-// 	result.End, err = getEndPosition(move, commaIndex, game.Board.Height)
-//
-// 	if err != nil {
-// 		return result, fmt.Errorf("Invalid End Position")
-// 	}
-//
-// 	return result, nil
-// }
 
 func ConvertStringToMoves(move string, game Game) ([]Move, error) {
 	var result []Move
@@ -46,7 +17,7 @@ func ConvertStringToMoves(move string, game Game) ([]Move, error) {
 		var move Move
 
 		drop := checkDropPiece(moveStartString)
-		if drop == 0 {
+		if drop == nil {
 			start, err := convertStringToPosition(moveStartString, game.Board.Height)
 			if err != nil {
 				return result, err
@@ -68,30 +39,6 @@ func ConvertStringToMoves(move string, game Game) ([]Move, error) {
 		result = append(result, move)
 	}
 
-	// result := Move{}
-	// var err error
-
-	// commaIndex := utils.GetIndexFirstChar(move, ",")
-	// if commaIndex == -1 {
-	// 	return result, fmt.Errorf("Invalid Format. No ,")
-	// }
-
-	// result.Drop, result.StartPiece = checkDropPiece(move, game)
-	// if !result.Drop {
-	// 	result.Start, err = getStartPosition(move, commaIndex, game.Board.Height)
-	// 	if err != nil {
-	// 		return result, fmt.Errorf("Invalid Start Position")
-	// 	}
-	//
-	// }
-	//
-	// result.Promote, result.EndPiece = checkPromote(move, game)
-	//
-	// result.End, err = getEndPosition(move, commaIndex, game.Board.Height)
-	//
-	// if err != nil {
-	// 	return result, fmt.Errorf("Invalid End Position")
-	// }
 	return result, nil
 }
 
@@ -127,89 +74,128 @@ func convertStringToPosition(move string, boardHeight int) (Vec2, error) {
 	return result, nil
 }
 
-func checkDropPiece(move string) int {
+func checkDropPiece(move string) *int {
+	var result *int
+
 	if len(move) < 2 {
-		return 0
+		return nil
 	}
 
 	if move[1] != '*' {
-		return 0
+		return nil
 	}
 
 	komaChar := move[0]
 	koma, ok := shogiDropCharToPiece[komaChar]
 	if !ok {
-		return 0
+		return nil
 	}
 
-	return koma
+	result = &koma
+	return result
 }
 
-func checkPromotePiece(move string) int {
+func checkPromotePiece(move string) *int {
+	var result *int
 
 	moveLength := len(move)
 	if moveLength < 1 {
-		return 0
+		return result
 	}
 
 	if move[moveLength-1] == '+' { //if shogi promotion or chess
-		return 0
+		found := 0
+		result = &found
+		return result
 	}
 
 	pieceChar := move[moveLength-1]
 	piece, ok := chessPromoteCharToPiece[pieceChar]
 	if !ok {
-		return 0
+		return result
 	}
+	result = &piece
 
-	return piece
+	return result
 }
 
-//
-// func ConvertMoveToString(move Move, game Game) (string, error) {
-// 	var result string
-//
-// 	startStr := ""
-// 	endStr := ""
-// 	promoteStr := ""
-//
-// 	endWidthStr, err := utils.ConvertNumberToLowercase(move.End.X + 1)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	endHeightStr := strconv.Itoa(game.Board.Height - move.End.Y)
-// 	endStr = endWidthStr + endHeightStr
-//
-// 	startWidthStr, err := utils.ConvertNumberToLowercase(move.Start.X + 1)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	startHeightStr := strconv.Itoa(game.Board.Height - move.Start.Y)
-// 	startStr = startWidthStr + startHeightStr
-//
-// 	if move.Drop {
-// 		dropPiece := move.StartPiece.Type
-// 		pieceChar, ok := shogiDropPieceToChar[dropPiece]
-// 		if !ok {
-// 			return "", fmt.Errorf("Invalid Drop Piece")
-// 		}
-//
-// 		startStr = string(pieceChar) + "*"
-// 	}
-//
-// 	if move.Promote {
-// 		if move.EndPiece.Type != 0 {
-// 			promotePiece, ok := chessPromotePieceToChar[move.EndPiece.Type]
-// 			if !ok {
-// 				return "", fmt.Errorf("Invalid Promote Piece")
-// 			}
-// 			promoteStr = string(promotePiece)
-// 		} else {
-// 			promoteStr = "+"
-// 		}
-// 	}
-//
-// 	result = startStr + "," + endStr + promoteStr
-//
-// 	return result, nil
-// }
+func ConvertMovesToString(moves []Move, game Game) (string, error) {
+	result := ""
+
+	movesLength := len(moves)
+
+	//add start
+	if movesLength < 1 {
+		return result, fmt.Errorf("No moves")
+	}
+
+	startStr, err := convertStartMoveToString(moves[0], game)
+	if err != nil {
+		return result, err
+	}
+
+	result += startStr
+
+	//add ends
+	for i := 0; i < len(moves); i++ {
+		endStr, err := convertEndMoveToString(moves[i], game)
+		if err != nil {
+			return result, err
+		}
+		result += "," + endStr
+	}
+
+	return result, nil
+}
+
+func convertStartMoveToString(move Move, game Game) (string, error) {
+	result := ""
+
+	startWidthStr, err := utils.ConvertNumberToLowercase(move.Start.X + 1)
+
+	if err != nil {
+		return "", err
+	}
+
+	startHeightStr := strconv.Itoa(game.Board.Height - move.Start.Y)
+	result = startWidthStr + startHeightStr
+
+	if move.Drop != nil {
+		dropPiece := *move.Drop
+		pieceChar, ok := shogiDropPieceToChar[dropPiece]
+		if !ok {
+			return "", fmt.Errorf("Invalid Drop Piece")
+		}
+
+		result = string(pieceChar) + "*"
+	}
+
+	return result, nil
+}
+
+func convertEndMoveToString(move Move, game Game) (string, error) {
+	result := ""
+
+	endWidthStr, err := utils.ConvertNumberToLowercase(move.End.X + 1)
+
+	if err != nil {
+		return "", err
+	}
+
+	endHeightStr := strconv.Itoa(game.Board.Height - move.End.Y)
+	result = endWidthStr + endHeightStr
+
+	if move.Promote != nil {
+		if *move.Promote != 0 {
+			promotePiece, ok := chessPromotePieceToChar[*move.Promote]
+			if !ok {
+				return "", fmt.Errorf("Invalid Promote Piece")
+			}
+			result += string(promotePiece)
+		} else {
+			result += "+"
+		}
+	}
+
+	return result, nil
+}

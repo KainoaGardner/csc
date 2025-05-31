@@ -27,8 +27,8 @@ type Game struct {
 type Move struct {
 	Start   Vec2
 	End     Vec2
-	Promote int
-	Drop    int
+	Promote *int
+	Drop    *int
 }
 
 type Vec2 struct {
