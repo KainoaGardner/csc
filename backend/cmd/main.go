@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/KainoaGardner/csc/internal/engine"
-	"strconv"
+	// "strconv"
 )
 
 func main() {
@@ -30,42 +30,49 @@ func main() {
 	game.Board.Board[2][4] = &engine.Piece{Type: engine.Pawn, Owner: 1}
 	game.Board.Board[3][1] = &engine.Piece{Type: engine.Pawn, Owner: 1}
 	game.Board.Board[0][7] = &engine.Piece{Type: engine.Pawn, Owner: 1}
+	//
+	// for i := 0; i < game.Board.Height; i++ {
+	// 	for j := 0; j < game.Board.Width; j++ {
+	// 		piece := game.Board.Board[i][j]
+	// 		if piece != nil {
+	//
+	// 			sign := 1
+	// 			if game.Board.Board[i][j].Owner == 1 {
+	// 				sign = -1
+	// 			}
+	//
+	// 			pieceStr := strconv.Itoa(game.Board.Board[i][j].Type * sign)
+	// 			if len(pieceStr) < 2 {
+	// 				pieceStr = " " + pieceStr
+	// 			}
+	// 			fmt.Print(pieceStr)
+	//
+	// 		} else {
+	// 			fmt.Print("__")
+	// 		}
+	// 	}
+	// 	fmt.Println()
+	// }
+	//
+	// moveStr := "h5,h8"
+	// move, err := engine.ConvertStringToMove(moveStr, game)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// 	return
+	// }
+	//
+	// fmt.Println(move)
+	//
+	// err = engine.CheckValidMove(&move, game)
+	// if err != nil {
+	// 	fmt.Println(err)
+	// }
 
-	for i := 0; i < game.Board.Height; i++ {
-		for j := 0; j < game.Board.Width; j++ {
-			piece := game.Board.Board[i][j]
-			if piece != nil {
-
-				sign := 1
-				if game.Board.Board[i][j].Owner == 1 {
-					sign = -1
-				}
-
-				pieceStr := strconv.Itoa(game.Board.Board[i][j].Type * sign)
-				if len(pieceStr) < 2 {
-					pieceStr = " " + pieceStr
-				}
-				fmt.Print(pieceStr)
-
-			} else {
-				fmt.Print("__")
-			}
-		}
-		fmt.Println()
-	}
-
-	moveStr := "h5,h8"
-	move, err := engine.ConvertStringToMove(moveStr, game)
+	moveStr := "h5,h8,a2,c5"
+	move, err := engine.ConvertStringToMoves(moveStr, game)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-
 	fmt.Println(move)
-
-	err = engine.CheckValidMove(&move, game)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 }

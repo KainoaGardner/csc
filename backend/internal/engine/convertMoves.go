@@ -1,192 +1,215 @@
 package engine
 
 import (
-	"fmt"
+	// "fmt"
 	"github.com/KainoaGardner/csc/internal/utils"
 	"strconv"
+	"strings"
 )
 
-func ConvertStringToMove(move string, game Game) (Move, error) {
-	result := Move{}
-	var err error
+// func ConvertStringToMove(move string, game Game) (Move, error) {
+// 	result := Move{}
+// 	var err error
+//
+// 	commaIndex := utils.GetIndexFirstChar(move, ",")
+// 	if commaIndex == -1 {
+// 		return result, fmt.Errorf("Invalid Format. No ,")
+// 	}
+//
+// 	result.Drop, result.StartPiece = checkDropPiece(move, game)
+// 	if !result.Drop {
+// 		result.Start, err = getStartPosition(move, commaIndex, game.Board.Height)
+// 		if err != nil {
+// 			return result, fmt.Errorf("Invalid Start Position")
+// 		}
+//
+// 	}
+//
+// 	result.Promote, result.EndPiece = checkPromote(move, game)
+//
+// 	result.End, err = getEndPosition(move, commaIndex, game.Board.Height)
+//
+// 	if err != nil {
+// 		return result, fmt.Errorf("Invalid End Position")
+// 	}
+//
+// 	return result, nil
+// }
 
-	commaIndex := utils.GetIndexFirstChar(move, ",")
-	if commaIndex == -1 {
-		return result, fmt.Errorf("Invalid Format. No ,")
-	}
+func ConvertStringToMoves(move string, game Game) ([]Move, error) {
+	var result []Move
 
-	result.Drop, result.StartPiece = checkDropPiece(move, game)
-	if !result.Drop {
-		result.Start, err = getStartPosition(move, commaIndex, game.Board.Height)
+	moveStrings := strings.Split(move, ",")
+	for i := 0; i < len(moveStrings)-1; i++ {
+		moveStartString := moveStrings[i]
+		moveEndString := moveStrings[i+1]
+		var move Move
+
+		drop := checkDropPiece(moveStartString)
+		if drop == 0 {
+			start, err := convertStringToPosition(moveStartString, game.Board.Height)
+			if err != nil {
+				return result, err
+			}
+			move.Start = start
+		} else {
+			move.Drop = drop
+		}
+
+		promote := checkPromotePiece(moveEndString)
+		move.Promote = promote
+
+		end, err := convertStringToPosition(moveEndString, game.Board.Height)
 		if err != nil {
-			return result, fmt.Errorf("Invalid Start Position")
+			return result, err
 		}
+		move.End = end
 
+		result = append(result, move)
 	}
 
-	result.Promote, result.EndPiece = checkPromote(move, game)
+	// result := Move{}
+	// var err error
 
-	result.End, err = getEndPosition(move, commaIndex, game.Board.Height)
+	// commaIndex := utils.GetIndexFirstChar(move, ",")
+	// if commaIndex == -1 {
+	// 	return result, fmt.Errorf("Invalid Format. No ,")
+	// }
 
-	if err != nil {
-		return result, fmt.Errorf("Invalid End Position")
-	}
-
+	// result.Drop, result.StartPiece = checkDropPiece(move, game)
+	// if !result.Drop {
+	// 	result.Start, err = getStartPosition(move, commaIndex, game.Board.Height)
+	// 	if err != nil {
+	// 		return result, fmt.Errorf("Invalid Start Position")
+	// 	}
+	//
+	// }
+	//
+	// result.Promote, result.EndPiece = checkPromote(move, game)
+	//
+	// result.End, err = getEndPosition(move, commaIndex, game.Board.Height)
+	//
+	// if err != nil {
+	// 	return result, fmt.Errorf("Invalid End Position")
+	// }
 	return result, nil
 }
 
-func getStartPosition(move string, commaIndex int, boardHeight int) (Vec2, error) {
-	result := Vec2{}
+func convertStringToPosition(move string, boardHeight int) (Vec2, error) {
+	var result Vec2
 
-	startWidthStr := ""
-	startHeightStr := ""
+	xStr := ""
+	yStr := ""
 
-	for i := 0; i < commaIndex; i++ {
+	for i := 0; i < len(move); i++ {
 		char := move[i]
 		if utils.IsDigit(char) {
-			startHeightStr += string(char)
+			yStr += string(char)
 		} else if utils.IsLower(char) {
-			startWidthStr += string(char)
+			xStr += string(char)
 		}
 	}
 
-	startWidth, err := utils.ConvertLowercaseToNumber(startWidthStr)
+	x, err := utils.ConvertLowercaseToNumber(xStr)
 	if err != nil {
 		return result, err
 	}
-	startWidth-- //index base zero
+	x-- //index base zero
 
-	startHeight, err := strconv.Atoi(startHeightStr)
+	y, err := strconv.Atoi(yStr)
 	if err != nil {
 		return result, err
 	}
 
-	result.X = startWidth
-	result.Y = boardHeight - startHeight
+	result.X = x
+	result.Y = boardHeight - y
 
 	return result, nil
 }
 
-func getEndPosition(move string, commaIndex int, boardHeight int) (Vec2, error) {
-	result := Vec2{}
-
-	endWidthStr := ""
-	endHeightStr := ""
-
-	for i := commaIndex + 1; i < len(move); i++ {
-		char := move[i]
-		if utils.IsDigit(char) {
-			endHeightStr += string(char)
-		} else if utils.IsLower(char) {
-			endWidthStr += string(char)
-		}
-	}
-
-	endWidth, err := utils.ConvertLowercaseToNumber(endWidthStr)
-	if err != nil {
-		return result, err
-	}
-
-	endHeight, err := strconv.Atoi(endHeightStr)
-	if err != nil {
-		return result, err
-	}
-	endWidth-- //index base zero
-
-	result.X = endWidth
-	result.Y = boardHeight - endHeight
-
-	return result, nil
-}
-
-func checkDropPiece(move string, game Game) (bool, Piece) {
-	var koma Piece
+func checkDropPiece(move string) int {
 	if len(move) < 2 {
-		return false, koma
+		return 0
 	}
 
 	if move[1] != '*' {
-		return false, koma
+		return 0
 	}
 
 	komaChar := move[0]
-	komaInt, ok := shogiDropCharToPiece[komaChar]
-	koma.Type = komaInt
-	koma.Owner = game.Turn
+	koma, ok := shogiDropCharToPiece[komaChar]
 	if !ok {
-		return false, koma
+		return 0
 	}
 
-	return true, koma
+	return koma
 }
 
-func checkPromote(move string, game Game) (bool, Piece) {
-	var piece Piece
+func checkPromotePiece(move string) int {
 
 	moveLength := len(move)
 	if moveLength < 1 {
-		return false, piece
+		return 0
 	}
 
-	if move[moveLength-1] == '+' { //if shogi promotion
-		return true, piece
+	if move[moveLength-1] == '+' { //if shogi promotion or chess
+		return 0
 	}
 
 	pieceChar := move[moveLength-1]
-	pieceInt, ok := chessPromoteCharToPiece[pieceChar]
-	piece.Type = pieceInt
-	piece.Owner = game.Turn
+	piece, ok := chessPromoteCharToPiece[pieceChar]
 	if !ok {
-		return false, piece
+		return 0
 	}
 
-	return true, piece
+	return piece
 }
 
-func ConvertMoveToString(move Move, game Game) (string, error) {
-	var result string
-
-	startStr := ""
-	endStr := ""
-	promoteStr := ""
-
-	endWidthStr, err := utils.ConvertNumberToLowercase(move.End.X + 1)
-	if err != nil {
-		return "", err
-	}
-	endHeightStr := strconv.Itoa(game.Board.Height - move.End.Y)
-	endStr = endWidthStr + endHeightStr
-
-	startWidthStr, err := utils.ConvertNumberToLowercase(move.Start.X + 1)
-	if err != nil {
-		return "", err
-	}
-	startHeightStr := strconv.Itoa(game.Board.Height - move.Start.Y)
-	startStr = startWidthStr + startHeightStr
-
-	if move.Drop {
-		dropPiece := move.StartPiece.Type
-		pieceChar, ok := shogiDropPieceToChar[dropPiece]
-		if !ok {
-			return "", fmt.Errorf("Invalid Drop Piece")
-		}
-
-		startStr = string(pieceChar) + "*"
-	}
-
-	if move.Promote {
-		if move.EndPiece.Type != 0 {
-			promotePiece, ok := chessPromotePieceToChar[move.EndPiece.Type]
-			if !ok {
-				return "", fmt.Errorf("Invalid Promote Piece")
-			}
-			promoteStr = string(promotePiece)
-		} else {
-			promoteStr = "+"
-		}
-	}
-
-	result = startStr + "," + endStr + promoteStr
-
-	return result, nil
-}
+//
+// func ConvertMoveToString(move Move, game Game) (string, error) {
+// 	var result string
+//
+// 	startStr := ""
+// 	endStr := ""
+// 	promoteStr := ""
+//
+// 	endWidthStr, err := utils.ConvertNumberToLowercase(move.End.X + 1)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	endHeightStr := strconv.Itoa(game.Board.Height - move.End.Y)
+// 	endStr = endWidthStr + endHeightStr
+//
+// 	startWidthStr, err := utils.ConvertNumberToLowercase(move.Start.X + 1)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	startHeightStr := strconv.Itoa(game.Board.Height - move.Start.Y)
+// 	startStr = startWidthStr + startHeightStr
+//
+// 	if move.Drop {
+// 		dropPiece := move.StartPiece.Type
+// 		pieceChar, ok := shogiDropPieceToChar[dropPiece]
+// 		if !ok {
+// 			return "", fmt.Errorf("Invalid Drop Piece")
+// 		}
+//
+// 		startStr = string(pieceChar) + "*"
+// 	}
+//
+// 	if move.Promote {
+// 		if move.EndPiece.Type != 0 {
+// 			promotePiece, ok := chessPromotePieceToChar[move.EndPiece.Type]
+// 			if !ok {
+// 				return "", fmt.Errorf("Invalid Promote Piece")
+// 			}
+// 			promoteStr = string(promotePiece)
+// 		} else {
+// 			promoteStr = "+"
+// 		}
+// 	}
+//
+// 	result = startStr + "," + endStr + promoteStr
+//
+// 	return result, nil
+// }

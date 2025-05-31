@@ -25,13 +25,10 @@ type Game struct {
 }
 
 type Move struct {
-	Start      Vec2
-	End        Vec2
-	StartPiece Piece
-	EndPiece   Piece
-	TakenPiece Piece
-	Promote    bool
-	Drop       bool
+	Start   Vec2
+	End     Vec2
+	Promote int
+	Drop    int
 }
 
 type Vec2 struct {
