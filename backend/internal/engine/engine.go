@@ -9,24 +9,29 @@ import "fmt"
 // if drop check drop
 // if in check cant move unless not in check after
 
-func CheckValidMove(moves *[]Move, game Game) error {
-	moveCount := len(*moves)
-	if moveCount == 1 {
-		move := (*moves)[0]
-		err := checkMoveInBounds(move, game)
-		if err != nil {
-			return err
-		}
+func MovePiece(move Move, game Game) error {
+	err := CheckValidMove(move, game)
+	if err != nil {
+		return err
+	}
 
-		piece, err := getPiece(move, game)
-		if err != nil {
-			return err
-		}
+	return nil
+}
 
-		err = checkValidPieceMoves(move, *piece, game)
-		if err != nil {
-			return err
-		}
+func CheckValidMove(move Move, game Game) error {
+	err := checkMoveInBounds(move, game)
+	if err != nil {
+		return err
+	}
+
+	piece, err := getPiece(move, game)
+	if err != nil {
+		return err
+	}
+
+	err = checkValidPieceMoves(move, *piece, game)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -96,11 +101,10 @@ func checkValidPieceMoves(move Move, piece Piece, game Game) error {
 		if err != nil {
 			return err
 		}
-		err = checkUtifudume(move, piece, game)
+		err = checkUtifudume(move, piece, game) //NOT DONE
 		if err != nil {
 			return err
 		}
-
 	}
 
 	switch piece.Type {
@@ -165,6 +169,7 @@ func checkValidPieceMoves(move Move, piece Piece, game Game) error {
 		possibleMoves = getRyuuMoves(move, piece, game)
 		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Checker:
+	case CheckerKing:
 	}
 
 	if move.Promote != nil {
@@ -314,11 +319,21 @@ func checkPawnCheckerPromote(move Move, piece Piece, game Game) error {
 }
 
 func checkShogiPromote(move Move, piece Piece, game Game) error {
+	var rowStart, rowEnd int
 	if piece.Owner == 0 {
-
+		rowStart = 0
+		rowEnd = 2
 	} else {
-
+		rowStart = game.Board.Height - 3
+		rowEnd = game.Board.Height - 1
 	}
 
-	return nil
+	if move.Start.Y >= rowStart && move.Start.Y <= rowEnd {
+		return nil
+	}
+	if move.End.Y >= rowStart && move.End.Y <= rowEnd {
+		return nil
+	}
+
+	return fmt.Errorf("Must Move in promotion zone to promote")
 }

@@ -31,11 +31,11 @@ func (s *APIServer) Run() error {
 		MaxAge:           300, // Maximum value not ignored by any of major browsers
 	}))
 
-	// r.Route("/api/v1", func(r chi.Router) {
-	// 	handHandler := internal.NewHandler()
-	// 	handHandler.RegisterRoutes(r)
-	//
-	// })
+	r.Route("/", func(r chi.Router) {
+		handHandler := NewHandler()
+		handHandler.RegisterRoutes(r)
+
+	})
 
 	log.Println("Listening on", s.addr)
 	return http.ListenAndServe(s.addr, r)
