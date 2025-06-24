@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	// "github.com/KainoaGardner/csc/internal/engine"
 	"github.com/KainoaGardner/csc/internal/api"
 	// "github.com/KainoaGardner/csc/internal/config"
 	"log"
@@ -56,16 +55,6 @@ func main() {
 	// 	}
 	// 	fmt.Println()
 	// }
-	//
-	// // movesString := "a2,a3"
-	// movesString := "e2,a3"
-	// moves, err := engine.ConvertStringToMoves(movesString, game)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-	//
-	// engine.CheckValidMove(&moves, game)
 
 	PUBLIC_HOST := ""
 	// PUBLIC_HOST := "0.0.0.0"

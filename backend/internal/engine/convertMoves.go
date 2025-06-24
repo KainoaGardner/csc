@@ -7,37 +7,40 @@ import (
 	"strings"
 )
 
-func ConvertStringToMoves(move string, game Game) ([]Move, error) {
-	var result []Move
+func ConvertStringToMove(moveString string, game Game) (Move, error) {
+	var result Move
 
-	moveStrings := strings.Split(move, ",")
-	for i := 0; i < len(moveStrings)-1; i++ {
-		moveStartString := moveStrings[i]
-		moveEndString := moveStrings[i+1]
-		var move Move
+	moveStrings := strings.Split(moveString, ",")
+	if len(moveStrings) != 2 {
+		return result, fmt.Errorf("Must have 2 move positions. A0,A0")
+	}
 
-		drop := checkDropPiece(moveStartString)
-		if drop == nil {
-			start, err := convertStringToPosition(moveStartString, game.Board.Height)
-			if err != nil {
-				return result, err
-			}
-			move.Start = start
-		} else {
-			move.Drop = drop
-		}
+	moveStartString := moveStrings[0]
+	moveEndString := moveStrings[1]
 
-		promote := checkPromotePiece(moveEndString)
-		move.Promote = promote
-
-		end, err := convertStringToPosition(moveEndString, game.Board.Height)
+	drop := checkDropPiece(moveStartString)
+	if drop == nil {
+		start, err := convertStringToPosition(moveStartString, game.Board.Height)
 		if err != nil {
 			return result, err
 		}
-		move.End = end
-
-		result = append(result, move)
+		result.Start = start
+	} else {
+		result.Drop = drop
 	}
+
+	promote := checkPromotePiece(moveEndString)
+	result.Promote = promote
+
+	if result.Drop != nil && result.Promote != nil {
+		return result, fmt.Errorf("Can't promote when dropping")
+	}
+
+	end, err := convertStringToPosition(moveEndString, game.Board.Height)
+	if err != nil {
+		return result, err
+	}
+	result.End = end
 
 	return result, nil
 }
@@ -119,31 +122,21 @@ func checkPromotePiece(move string) *int {
 	return result
 }
 
-func ConvertMovesToString(moves []Move, game Game) (string, error) {
+func ConvertMoveToString(move Move, game Game) (string, error) {
 	result := ""
 
-	movesLength := len(moves)
-
-	//add start
-	if movesLength < 1 {
-		return result, fmt.Errorf("No moves")
-	}
-
-	startStr, err := convertStartMoveToString(moves[0], game)
+	startStr, err := convertStartMoveToString(move, game)
 	if err != nil {
 		return result, err
 	}
 
 	result += startStr
 
-	//add ends
-	for i := 0; i < len(moves); i++ {
-		endStr, err := convertEndMoveToString(moves[i], game)
-		if err != nil {
-			return result, err
-		}
-		result += "," + endStr
+	endStr, err := convertEndMoveToString(move, game)
+	if err != nil {
+		return result, err
 	}
+	result += "," + endStr
 
 	return result, nil
 }

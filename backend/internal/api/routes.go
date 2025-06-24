@@ -1,7 +1,7 @@
 package api
 
 import (
-	// "github.com/KainoaGardner/csc/internal/engine"
+	"github.com/KainoaGardner/csc/internal/engine"
 	"github.com/KainoaGardner/csc/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"net/http"
@@ -17,6 +17,7 @@ func NewHandler() *Handler {
 func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Get("/game/board", h.getBoard)
 	r.Post("/game/move", h.movePiece)
+	r.Post("/game/validMove", h.validMove)
 
 	//use ID for each game access
 	// r.Post("/game/id/create", h.getBoard)
@@ -41,4 +42,31 @@ func (h *Handler) movePiece(w http.ResponseWriter, r *http.Request) {
 	// }
 
 	utils.WriteJSON(w, http.StatusOK, "test")
+}
+
+func (h *Handler) validMove(w http.ResponseWriter, r *http.Request) {
+	game := engine.Game{}
+	game.Board.Width = 8
+	game.Board.Height = 8
+
+	var postMove PostMoveString
+	err := utils.ParseJSON(r, &postMove)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	move, err := engine.ConvertStringToMove(postMove.Move, game)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = engine.CheckValidMove(move, game)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, "Valid move")
 }

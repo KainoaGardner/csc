@@ -98,9 +98,8 @@ func RunTests() {
 		"f6,e5",
 		"b2,d4",
 		"g5,e3",
-		"d6,f4,h2",
 		"a2,c4",
-		"h5,f3,d1+",
+		"h5,f3+",
 		"e3,c5",
 		"h8,g7",
 		"c5,e3",
@@ -126,12 +125,12 @@ func RunTests() {
 }
 
 func convertStringToMoveTest(input string, game Game) error {
-	movesResult, err := ConvertStringToMoves(input, game)
+	movesResult, err := ConvertStringToMove(input, game)
 	if err != nil {
 		return err
 	}
 
-	stringResult, err := ConvertMovesToString(movesResult, game)
+	stringResult, err := ConvertMoveToString(movesResult, game)
 	if err != nil {
 		return err
 	}
