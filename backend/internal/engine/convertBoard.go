@@ -8,6 +8,7 @@ import (
 
 // Alternate FEN 2 Char
 
+// castle string not done
 func ConvertBoardToString(game Game) (string, error) {
 	result := ""
 

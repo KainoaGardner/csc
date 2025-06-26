@@ -9,6 +9,7 @@ import "fmt"
 // if drop check drop
 // if in check cant move unless not in check after
 
+// ADD other parts of move
 func MovePiece(move Move, game Game) error {
 	err := CheckValidMove(move, game)
 	if err != nil {
