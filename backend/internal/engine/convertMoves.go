@@ -89,7 +89,7 @@ func checkDropPiece(move string) *int {
 	}
 
 	komaChar := move[0]
-	koma, ok := shogiDropCharToPiece[komaChar]
+	koma, ok := shogiDropCharToMochiPiece[komaChar]
 	if !ok {
 		return nil
 	}
@@ -155,7 +155,7 @@ func convertStartMoveToString(move Move, game Game) (string, error) {
 
 	if move.Drop != nil {
 		dropPiece := *move.Drop
-		pieceChar, ok := shogiDropPieceToChar[dropPiece]
+		pieceChar, ok := shogiMochiPieceToChar[dropPiece]
 		if !ok {
 			return "", fmt.Errorf("Invalid Drop Piece")
 		}

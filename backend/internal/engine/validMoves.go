@@ -75,7 +75,11 @@ func checkValidPieceMoves(move Move, piece Piece, game Game) error {
 		possibleMoves = getRyuuMoves(move, piece, game)
 		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Checker:
+		possibleMoves = getCheckerMoves(move, piece, game, dir)
+		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case CheckerKing:
+		possibleMoves = getCheckerKingMoves(move, piece, game)
+		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	}
 
 	for i := 0; i < len(possibleMoves); i++ {
@@ -88,9 +92,6 @@ func checkValidPieceMoves(move Move, piece Piece, game Game) error {
 
 func getPawnMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
 	var validMovePositions []Vec2
-
-	//en passant
-
 	//move forward
 	newY := move.Start.Y - 1*direction
 	newPos := Vec2{X: move.Start.X, Y: newY}
@@ -275,8 +276,8 @@ func getKingMoves(move Move, piece Piece, game Game) []Vec2 {
 				validMovePositions = append(validMovePositions, newPos)
 			}
 		}
-
 	}
+
 	return validMovePositions
 }
 

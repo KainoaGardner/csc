@@ -3,10 +3,16 @@ package engine
 import "fmt"
 
 func checkValidDrop(move Move, piece Piece, game Game) error {
-	err := checkEmptySpace(move, game)
+	err := checkHaveDropPiece(move, game)
 	if err != nil {
 		return err
 	}
+
+	err = checkEmptySpace(move, game)
+	if err != nil {
+		return err
+	}
+
 	err = checkPromoteDrop(move)
 	if err != nil {
 		return err
@@ -22,6 +28,24 @@ func checkValidDrop(move Move, piece Piece, game Game) error {
 	err = checkUtifudume(move, piece, game) //NOT DONE
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func checkHaveDropPiece(move Move, game Game) error {
+	offset := 0
+	if game.Turn == 1 {
+		offset = 7
+	}
+
+	if move.Drop == nil {
+		return fmt.Errorf("Drop not set")
+	}
+
+	komaCount := game.Mochigoma[*move.Drop+offset]
+	if komaCount <= 0 {
+		return fmt.Errorf("Not enough mochigoma")
 	}
 
 	return nil
@@ -94,4 +118,3 @@ func checkUtifudume(move Move, piece Piece, game Game) error {
 
 	return nil
 }
-

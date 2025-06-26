@@ -15,6 +15,35 @@ func MovePiece(move Move, game Game) error {
 		return err
 	}
 
+	piece, err := getPiece(move, game)
+	if err != nil {
+		return err
+	}
+
+	takePiece := game.Board.Board[move.End.Y][move.End.X]
+	game.Board.Board[move.End.Y][move.End.X] = piece
+
+	offset := 0
+	if game.Turn == 1 {
+		offset = 7
+	}
+
+	if move.Drop != nil {
+		game.Mochigoma[*move.Drop+offset]--
+	} else {
+		game.Board.Board[move.Start.Y][move.Start.X] = nil
+	}
+
+	if takePiece.Type >= Fu && takePiece.Type <= Ryuu {
+		mochigoma, ok := shogiDropPieceToMochiPiece[takePiece.Type]
+		if !ok {
+			return fmt.Errorf("Error converting taken piece to mochigoma")
+		}
+		game.Mochigoma[mochigoma+offset]++
+	}
+
+	game.Turn = getEnemyTurnInt(game)
+
 	return nil
 }
 
@@ -77,7 +106,13 @@ func getPiece(move Move, game Game) (*Piece, error) {
 	var piece *Piece
 	if move.Drop != nil {
 		var dropPiece Piece
-		dropPiece.Type = *move.Drop
+		mochigoma := *move.Drop
+		koma, ok := shogiMochiPieceToDropPiece[mochigoma]
+		if !ok {
+			return piece, fmt.Errorf("Could not fight correct piece from drop mochigoma")
+		}
+
+		dropPiece.Type = koma
 		dropPiece.Owner = game.Turn
 		piece = &dropPiece
 
