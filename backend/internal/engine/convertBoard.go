@@ -24,9 +24,6 @@ func ConvertBoardToString(game Game) (string, error) {
 	turnString := getTurnString(game)
 	result += turnString + " "
 
-	castleString := getCastleString(game)
-	result += castleString + " "
-
 	enPassantString := getEnPassantString(game)
 	result += enPassantString + " "
 
@@ -67,6 +64,12 @@ func convertPiecePositionToString(game Game) (string, error) {
 				}
 
 				result += pieceString
+
+				if !piece.Moved {
+					result += "*"
+				} else {
+					result += "-"
+				}
 			}
 		}
 
@@ -99,12 +102,6 @@ func getTurnString(game Game) string {
 
 		return "w"
 	}
-}
-
-func getCastleString(game Game) string {
-	// NOT DONE
-
-	return "-"
 }
 
 func getEnPassantString(game Game) string {

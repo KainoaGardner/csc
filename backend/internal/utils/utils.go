@@ -49,3 +49,11 @@ func ConvertNumberToLowercase(x int) (string, error) {
 
 	return result, nil
 }
+
+func AbsoluteValueInt(x int) int {
+	if x < 0 {
+		return -x
+	}
+
+	return x
+}

@@ -3,91 +3,62 @@ package engine
 import "fmt"
 
 func checkValidPieceMoves(move Move, piece Piece, game Game) error {
-	//check valid drop
-
-	//check valid normal move
-	//in normal moves if move has promotion check that
-
-	var result error
 	dir := getMoveDirection(game)
+	possibleMoves := getPieceMoves(move, piece, game, dir)
+	return checkEndPosInPossibleMoves(possibleMoves, move)
+}
 
-	possibleMoves := []Vec2{}
-
+func getPieceMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
+	var possibleMoves []Vec2
 	switch piece.Type {
-	case Pawn: //add en passant
+	case Pawn:
 		possibleMoves = getPawnMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Knight:
 		possibleMoves = getKnightMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Bishop:
 		possibleMoves = getBishopMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Rook:
 		possibleMoves = getRookMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Queen:
 		possibleMoves = getQueenMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case King:
 		possibleMoves = getKingMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
+		possibleMoves = append(possibleMoves, getCastleMoves(move, piece, game)...)
 	case Fu:
 		possibleMoves = getFuMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Kyou:
 		possibleMoves = getKyouMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Kei:
 		possibleMoves = getKeiMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Gin:
 		possibleMoves = getGinMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Kin:
 		possibleMoves = getKinMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Kaku:
 		possibleMoves = getBishopMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Hi:
 		possibleMoves = getRookMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Ou:
 		possibleMoves = getKingMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case To:
 		possibleMoves = getKinMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case NariKyou:
 		possibleMoves = getKinMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case NariKei:
 		possibleMoves = getKinMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case NariGin:
 		possibleMoves = getKinMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Uma:
 		possibleMoves = getUmaMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Ryuu:
 		possibleMoves = getRyuuMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case Checker:
 		possibleMoves = getCheckerMoves(move, piece, game, dir)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	case CheckerKing:
 		possibleMoves = getCheckerKingMoves(move, piece, game)
-		result = checkEndPosInPossibleMoves(possibleMoves, move)
 	}
 
-	for i := 0; i < len(possibleMoves); i++ {
-		possibleMove := possibleMoves[i]
-		fmt.Println(possibleMove)
-	}
-
-	return result
+	return possibleMoves
 }
 
 func getPawnMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
@@ -122,6 +93,8 @@ func getPawnMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
 		if checkPositionInbounds(newPos, game) {
 			space := game.Board.Board[newPos.Y][newPos.X]
 			if space != nil && space.Owner == getEnemyTurnInt(game) {
+				validMovePositions = append(validMovePositions, newPos)
+			} else if space == nil && newPos == *game.EnPassant {
 				validMovePositions = append(validMovePositions, newPos)
 			}
 		}
@@ -560,4 +533,31 @@ func getMoveDirection(game Game) int {
 		direction = -1
 	}
 	return direction
+}
+
+func getCastleMoves(move Move, piece Piece, game Game) []Vec2 {
+	var validMovePositions []Vec2
+
+	//left
+	for i := move.Start.X - 1; i >= 0; i-- {
+		targetPiece := game.Board.Board[move.Start.Y][i]
+		if targetPiece != nil {
+			if targetPiece.Type == Rook && targetPiece.Owner == piece.Owner {
+				validMovePositions = append(validMovePositions, Vec2{X: i, Y: move.Start.Y})
+			}
+			break
+		}
+	}
+
+	for i := move.Start.X + 1; i < game.Board.Width; i++ {
+		targetPiece := game.Board.Board[move.Start.Y][i]
+		if targetPiece != nil {
+			if targetPiece.Type == Rook && targetPiece.Owner == piece.Owner {
+				validMovePositions = append(validMovePositions, Vec2{X: i, Y: move.Start.Y})
+			}
+			break
+		}
+	}
+
+	return validMovePositions
 }

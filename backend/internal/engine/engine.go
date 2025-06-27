@@ -1,11 +1,10 @@
 package engine
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/KainoaGardner/csc/internal/utils"
+)
 
-// in bounds
-// moving your piece
-// correct piece movement
-// if promotiion check correct promotion
 // if drop check drop
 // if in check cant move unless not in check after
 
@@ -22,7 +21,33 @@ func MovePiece(move Move, game Game) error {
 	}
 
 	takePiece := game.Board.Board[move.End.Y][move.End.X]
-	game.Board.Board[move.End.Y][move.End.X] = piece
+
+	validCastle := takePiece != nil && piece.Type == King && takePiece.Type == Rook && takePiece.Owner == piece.Owner
+	if validCastle {
+		//do castle move
+
+		var dir int
+		if move.Start.X < move.End.X {
+			dir = 1
+		} else {
+			dir = -1
+		}
+
+		dx := utils.AbsoluteValueInt(move.End.X-move.Start.X) - 1
+		kingX := (dx/2 + 1) * dir
+		rookX := (dx / 2) * dir
+
+		game.Board.Board[move.End.Y][kingX] = piece
+		game.Board.Board[move.End.Y][rookX] = takePiece
+	} else {
+		game.Board.Board[move.End.Y][move.End.X] = piece
+	}
+
+	//enPassant move
+	if game.EnPassant != nil && move.End == *game.EnPassant {
+		dir := getMoveDirection(game)
+		game.Board.Board[move.End.Y-dir][move.End.X] = nil
+	}
 
 	offset := 0
 	if game.Turn == 1 {
@@ -31,11 +56,11 @@ func MovePiece(move Move, game Game) error {
 
 	if move.Drop != nil {
 		game.Mochigoma[*move.Drop+offset]--
-	} else {
+	} else if !validCastle {
 		game.Board.Board[move.Start.Y][move.Start.X] = nil
 	}
 
-	if takePiece.Type >= Fu && takePiece.Type <= Ryuu {
+	if takePiece != nil && takePiece.Type >= Fu && takePiece.Type <= Ryuu {
 		mochigoma, ok := shogiDropPieceToMochiPiece[takePiece.Type]
 		if !ok {
 			return fmt.Errorf("Error converting taken piece to mochigoma")
@@ -43,9 +68,35 @@ func MovePiece(move Move, game Game) error {
 		game.Mochigoma[mochigoma+offset]++
 	}
 
+	//update enPassant position
+
+	//half move
+	if checkHalfMoveReset(piece, takePiece) {
+		game.HalfMoveCount = 0
+	} else {
+		game.HalfMoveCount++
+	}
+
+	//move Count
+	if game.Turn == 1 {
+		game.MoveCount++
+	}
+
 	game.Turn = getEnemyTurnInt(game)
 
 	return nil
+}
+
+func checkHalfMoveReset(piece *Piece, takePiece *Piece) bool {
+	if takePiece != nil {
+		return true
+	}
+
+	if piece != nil && (piece.Type == Pawn || piece.Type == Fu) {
+		return true
+	}
+
+	return false
 }
 
 func CheckValidMove(move Move, game Game) error {
