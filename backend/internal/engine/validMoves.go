@@ -1,72 +1,77 @@
 package engine
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/KainoaGardner/csc/internal/utils"
+)
 
 func checkValidPieceMoves(move Move, piece Piece, game Game) error {
 	dir := getMoveDirection(game)
-	possibleMoves := getPieceMoves(move, piece, game, dir)
+	possibleMoves := getPieceMoves(move.Start, piece, game, dir)
 	return checkEndPosInPossibleMoves(possibleMoves, move)
 }
 
-func getPieceMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
+// change move to Start Vec2
+func getPieceMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
 	var possibleMoves []Vec2
 	switch piece.Type {
 	case Pawn:
-		possibleMoves = getPawnMoves(move, piece, game, dir)
+		possibleMoves = getPawnMoves(pos, piece, game, dir)
 	case Knight:
-		possibleMoves = getKnightMoves(move, piece, game)
+		possibleMoves = getKnightMoves(pos, piece, game)
 	case Bishop:
-		possibleMoves = getBishopMoves(move, piece, game)
+		possibleMoves = getBishopMoves(pos, piece, game)
 	case Rook:
-		possibleMoves = getRookMoves(move, piece, game)
+		possibleMoves = getRookMoves(pos, piece, game)
 	case Queen:
-		possibleMoves = getQueenMoves(move, piece, game)
+		possibleMoves = getQueenMoves(pos, piece, game)
 	case King:
-		possibleMoves = getKingMoves(move, piece, game)
-		possibleMoves = append(possibleMoves, getCastleMoves(move, piece, game)...)
+		possibleMoves = getKingMoves(pos, piece, game)
+		possibleMoves = append(possibleMoves, getCastleMoves(pos, piece, game)...)
 	case Fu:
-		possibleMoves = getFuMoves(move, piece, game, dir)
+		possibleMoves = getFuMoves(pos, piece, game, dir)
 	case Kyou:
-		possibleMoves = getKyouMoves(move, piece, game, dir)
+		possibleMoves = getKyouMoves(pos, piece, game, dir)
 	case Kei:
-		possibleMoves = getKeiMoves(move, piece, game, dir)
+		possibleMoves = getKeiMoves(pos, piece, game, dir)
 	case Gin:
-		possibleMoves = getGinMoves(move, piece, game, dir)
+		possibleMoves = getGinMoves(pos, piece, game, dir)
 	case Kin:
-		possibleMoves = getKinMoves(move, piece, game, dir)
+		possibleMoves = getKinMoves(pos, piece, game, dir)
 	case Kaku:
-		possibleMoves = getBishopMoves(move, piece, game)
+		possibleMoves = getBishopMoves(pos, piece, game)
 	case Hi:
-		possibleMoves = getRookMoves(move, piece, game)
+		possibleMoves = getRookMoves(pos, piece, game)
 	case Ou:
-		possibleMoves = getKingMoves(move, piece, game)
+		possibleMoves = getKingMoves(pos, piece, game)
 	case To:
-		possibleMoves = getKinMoves(move, piece, game, dir)
+		possibleMoves = getKinMoves(pos, piece, game, dir)
 	case NariKyou:
-		possibleMoves = getKinMoves(move, piece, game, dir)
+		possibleMoves = getKinMoves(pos, piece, game, dir)
 	case NariKei:
-		possibleMoves = getKinMoves(move, piece, game, dir)
+		possibleMoves = getKinMoves(pos, piece, game, dir)
 	case NariGin:
-		possibleMoves = getKinMoves(move, piece, game, dir)
+		possibleMoves = getKinMoves(pos, piece, game, dir)
 	case Uma:
-		possibleMoves = getUmaMoves(move, piece, game)
+		possibleMoves = getUmaMoves(pos, piece, game)
 	case Ryuu:
-		possibleMoves = getRyuuMoves(move, piece, game)
+		possibleMoves = getRyuuMoves(pos, piece, game)
 	case Checker:
-		possibleMoves = getCheckerMoves(move, piece, game, dir)
+		possibleMoves = getCheckerMoves(pos, piece, game, dir)
 	case CheckerKing:
-		possibleMoves = getCheckerKingMoves(move, piece, game)
+		possibleMoves = getCheckerKingMoves(pos, piece, game)
 	}
 
 	return possibleMoves
 }
 
-func getPawnMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
+func getPawnMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
 	var validMovePositions []Vec2
 	//move forward
-	newY := move.Start.Y - 1*direction
-	newPos := Vec2{X: move.Start.X, Y: newY}
-	newPos2 := Vec2{X: move.Start.X, Y: newY - direction}
+	newY := pos.Y - 1*direction
+	newPos := Vec2{X: pos.X, Y: newY}
+	newPos2 := Vec2{X: pos.X, Y: newY - direction}
 	if checkPositionInbounds(newPos, game) {
 		space := game.Board.Board[newPos.Y][newPos.X]
 		if space == nil {
@@ -88,8 +93,8 @@ func getPawnMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
 		newPos = relativeMovePos[i]
 		newPos.Y *= direction
 
-		newPos.X += move.Start.X
-		newPos.Y += move.Start.Y
+		newPos.X += pos.X
+		newPos.Y += pos.Y
 		if checkPositionInbounds(newPos, game) {
 			space := game.Board.Board[newPos.Y][newPos.X]
 			if space != nil && space.Owner == getEnemyTurnInt(game) {
@@ -103,7 +108,7 @@ func getPawnMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
 	return validMovePositions
 }
 
-func getKnightMoves(move Move, piece Piece, game Game) []Vec2 {
+func getKnightMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	var validMovePositions []Vec2
 
 	relativeMovePos := []Vec2{
@@ -119,8 +124,8 @@ func getKnightMoves(move Move, piece Piece, game Game) []Vec2 {
 
 	for i := 0; i < len(relativeMovePos); i++ {
 		newPos := relativeMovePos[i]
-		newPos.X += move.Start.X
-		newPos.Y += move.Start.Y
+		newPos.X += pos.X
+		newPos.Y += pos.Y
 
 		if checkPositionInbounds(newPos, game) {
 			space := game.Board.Board[newPos.Y][newPos.X]
@@ -133,7 +138,7 @@ func getKnightMoves(move Move, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getBishopMoves(move Move, piece Piece, game Game) []Vec2 {
+func getBishopMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	var validMovePositions []Vec2
 
 	directions := []Vec2{
@@ -149,7 +154,7 @@ func getBishopMoves(move Move, piece Piece, game Game) []Vec2 {
 		j := 0
 		for j >= 0 {
 			j++
-			newPos := move.Start
+			newPos := pos
 
 			newPos.X += dir.X * j
 			newPos.Y += dir.Y * j
@@ -173,7 +178,7 @@ func getBishopMoves(move Move, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getRookMoves(move Move, piece Piece, game Game) []Vec2 {
+func getRookMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	var validMovePositions []Vec2
 
 	directions := []Vec2{
@@ -189,7 +194,7 @@ func getRookMoves(move Move, piece Piece, game Game) []Vec2 {
 		j := 0
 		for j >= 0 {
 			j++
-			newPos := move.Start
+			newPos := pos
 
 			newPos.X += dir.X * j
 			newPos.Y += dir.Y * j
@@ -212,17 +217,17 @@ func getRookMoves(move Move, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getQueenMoves(move Move, piece Piece, game Game) []Vec2 {
+func getQueenMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	var validMovePositions []Vec2
 
-	bishopMoves := getBishopMoves(move, piece, game)
-	rookMoves := getRookMoves(move, piece, game)
+	bishopMoves := getBishopMoves(pos, piece, game)
+	rookMoves := getRookMoves(pos, piece, game)
 	validMovePositions = append(bishopMoves, rookMoves...)
 
 	return validMovePositions
 }
 
-func getKingMoves(move Move, piece Piece, game Game) []Vec2 {
+func getKingMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	var validMovePositions []Vec2
 
 	directions := []Vec2{
@@ -239,7 +244,7 @@ func getKingMoves(move Move, piece Piece, game Game) []Vec2 {
 	for i := 0; i < len(directions); i++ {
 		dir := directions[i]
 
-		newPos := move.Start
+		newPos := pos
 		newPos.X += dir.X
 		newPos.Y += dir.Y
 
@@ -254,10 +259,10 @@ func getKingMoves(move Move, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getFuMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
+func getFuMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
 	var validMovePositions []Vec2
 
-	newPos := move.Start
+	newPos := pos
 	newPos.Y += -1 * direction
 
 	if checkPositionInbounds(newPos, game) {
@@ -270,13 +275,13 @@ func getFuMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
 	return validMovePositions
 }
 
-func getKyouMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
+func getKyouMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
 	var validMovePositions []Vec2
 
 	i := 0
 	for i >= 0 {
 		i++
-		newPos := move.Start
+		newPos := pos
 
 		newPos.Y += -i * dir
 
@@ -298,7 +303,7 @@ func getKyouMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
 	return validMovePositions
 }
 
-func getKeiMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
+func getKeiMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
 	var validMovePositions []Vec2
 
 	directions := []Vec2{
@@ -309,7 +314,7 @@ func getKeiMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
 	for i := 0; i < len(directions); i++ {
 		dir := directions[i]
 
-		newPos := move.Start
+		newPos := pos
 		newPos.X += dir.X
 		newPos.Y += dir.Y
 
@@ -324,7 +329,7 @@ func getKeiMoves(move Move, piece Piece, game Game, direction int) []Vec2 {
 	return validMovePositions
 }
 
-func getGinMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
+func getGinMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
 	var validMovePositions []Vec2
 
 	directions := []Vec2{
@@ -338,7 +343,7 @@ func getGinMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
 	for i := 0; i < len(directions); i++ {
 		dir := directions[i]
 
-		newPos := move.Start
+		newPos := pos
 		newPos.X += dir.X
 		newPos.Y += dir.Y
 
@@ -353,7 +358,7 @@ func getGinMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
 	return validMovePositions
 }
 
-func getKinMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
+func getKinMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
 	var validMovePositions []Vec2
 
 	directions := []Vec2{
@@ -368,7 +373,7 @@ func getKinMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
 	for i := 0; i < len(directions); i++ {
 		dir := directions[i]
 
-		newPos := move.Start
+		newPos := pos
 		newPos.X += dir.X
 		newPos.Y += dir.Y
 
@@ -383,7 +388,7 @@ func getKinMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
 	return validMovePositions
 }
 
-func getUmaMoves(move Move, piece Piece, game Game) []Vec2 {
+func getUmaMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	var validMovePositions []Vec2
 
 	directions := []Vec2{
@@ -396,7 +401,7 @@ func getUmaMoves(move Move, piece Piece, game Game) []Vec2 {
 	for i := 0; i < len(directions); i++ {
 		dir := directions[i]
 
-		newPos := move.Start
+		newPos := pos
 		newPos.X += dir.X
 		newPos.Y += dir.Y
 
@@ -408,12 +413,12 @@ func getUmaMoves(move Move, piece Piece, game Game) []Vec2 {
 		}
 	}
 
-	bishopMoves := getBishopMoves(move, piece, game)
+	bishopMoves := getBishopMoves(pos, piece, game)
 	validMovePositions = append(validMovePositions, bishopMoves...)
 	return validMovePositions
 }
 
-func getRyuuMoves(move Move, piece Piece, game Game) []Vec2 {
+func getRyuuMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	var validMovePositions []Vec2
 
 	directions := []Vec2{
@@ -426,7 +431,7 @@ func getRyuuMoves(move Move, piece Piece, game Game) []Vec2 {
 	for i := 0; i < len(directions); i++ {
 		dir := directions[i]
 
-		newPos := move.Start
+		newPos := pos
 		newPos.X += dir.X
 		newPos.Y += dir.Y
 
@@ -438,12 +443,12 @@ func getRyuuMoves(move Move, piece Piece, game Game) []Vec2 {
 		}
 	}
 
-	rookMoves := getRookMoves(move, piece, game)
+	rookMoves := getRookMoves(pos, piece, game)
 	validMovePositions = append(validMovePositions, rookMoves...)
 	return validMovePositions
 }
 
-func getCheckerMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
+func getCheckerMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
 	var validMovePositions []Vec2
 
 	directions := []Vec2{
@@ -454,8 +459,8 @@ func getCheckerMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
 	for i := 0; i < len(directions); i++ {
 		dir := directions[i]
 
-		jumpPos := move.Start
-		landPos := move.Start
+		jumpPos := pos
+		landPos := pos
 
 		jumpPos.X += dir.X
 		jumpPos.Y += dir.Y
@@ -463,22 +468,26 @@ func getCheckerMoves(move Move, piece Piece, game Game, dir int) []Vec2 {
 		landPos.X += dir.X * 2
 		landPos.Y += dir.Y * 2
 
-		if !checkPositionInbounds(jumpPos, game) || !checkPositionInbounds(landPos, game) {
-			break
-		}
+		if checkPositionInbounds(jumpPos, game) {
+			jumpSpace := game.Board.Board[jumpPos.Y][jumpPos.X]
+			if jumpSpace == nil {
+				validMovePositions = append(validMovePositions, jumpPos)
+			}
 
-		landSpace := game.Board.Board[landPos.Y][landPos.X]
-		jumpSpace := game.Board.Board[jumpPos.Y][jumpPos.X]
+			if checkPositionInbounds(landPos, game) {
+				landSpace := game.Board.Board[landPos.Y][landPos.X]
+				if landSpace == nil && (jumpSpace != nil && jumpSpace.Owner != piece.Owner) {
+					validMovePositions = append(validMovePositions, landPos)
+				}
 
-		if landSpace == nil && (jumpSpace != nil && jumpSpace.Owner != piece.Owner) {
-			validMovePositions = append(validMovePositions, landPos)
+			}
 		}
 	}
 
 	return validMovePositions
 }
 
-func getCheckerKingMoves(move Move, piece Piece, game Game) []Vec2 {
+func getCheckerKingMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	var validMovePositions []Vec2
 
 	directions := []Vec2{
@@ -490,9 +499,8 @@ func getCheckerKingMoves(move Move, piece Piece, game Game) []Vec2 {
 
 	for i := 0; i < len(directions); i++ {
 		dir := directions[i]
-
-		jumpPos := move.Start
-		landPos := move.Start
+		jumpPos := pos
+		landPos := pos
 
 		jumpPos.X += dir.X
 		jumpPos.Y += dir.Y
@@ -500,15 +508,18 @@ func getCheckerKingMoves(move Move, piece Piece, game Game) []Vec2 {
 		landPos.X += dir.X * 2
 		landPos.Y += dir.Y * 2
 
-		if !checkPositionInbounds(jumpPos, game) || !checkPositionInbounds(landPos, game) {
-			break
-		}
+		if checkPositionInbounds(jumpPos, game) {
+			jumpSpace := game.Board.Board[jumpPos.Y][jumpPos.X]
+			if jumpSpace == nil {
+				validMovePositions = append(validMovePositions, jumpPos)
+			}
 
-		landSpace := game.Board.Board[landPos.Y][landPos.X]
-		jumpSpace := game.Board.Board[jumpPos.Y][jumpPos.X]
-
-		if landSpace == nil && (jumpSpace != nil && jumpSpace.Owner != piece.Owner) {
-			validMovePositions = append(validMovePositions, landPos)
+			if checkPositionInbounds(landPos, game) {
+				landSpace := game.Board.Board[landPos.Y][landPos.X]
+				if landSpace == nil && (jumpSpace != nil && jumpSpace.Owner != piece.Owner) {
+					validMovePositions = append(validMovePositions, landPos)
+				}
+			}
 		}
 	}
 
@@ -535,29 +546,65 @@ func getMoveDirection(game Game) int {
 	return direction
 }
 
-func getCastleMoves(move Move, piece Piece, game Game) []Vec2 {
+func getCastleMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	var validMovePositions []Vec2
 
 	//left
-	for i := move.Start.X - 1; i >= 0; i-- {
-		targetPiece := game.Board.Board[move.Start.Y][i]
+	for i := pos.X - 1; i >= 0; i-- {
+		targetPiece := game.Board.Board[pos.Y][i]
 		if targetPiece != nil {
 			if targetPiece.Type == Rook && targetPiece.Owner == piece.Owner {
-				validMovePositions = append(validMovePositions, Vec2{X: i, Y: move.Start.Y})
+				validMovePositions = append(validMovePositions, Vec2{X: i, Y: pos.Y})
 			}
 			break
 		}
 	}
 
-	for i := move.Start.X + 1; i < game.Board.Width; i++ {
-		targetPiece := game.Board.Board[move.Start.Y][i]
+	for i := pos.X + 1; i < game.Board.Width; i++ {
+		targetPiece := game.Board.Board[pos.Y][i]
 		if targetPiece != nil {
 			if targetPiece.Type == Rook && targetPiece.Owner == piece.Owner {
-				validMovePositions = append(validMovePositions, Vec2{X: i, Y: move.Start.Y})
+				validMovePositions = append(validMovePositions, Vec2{X: i, Y: pos.Y})
 			}
 			break
 		}
 	}
 
 	return validMovePositions
+}
+
+func checkCheckerNextJumps(move Move, piece Piece, game Game) bool {
+	if !checkCheckerTake(move.Start, move.End) {
+		return false
+	}
+
+	dir := getMoveDirection(game)
+	var possibleMoves []Vec2
+	switch piece.Type {
+	case Checker:
+		possibleMoves = getCheckerMoves(move.End, piece, game, dir)
+	case CheckerKing:
+		possibleMoves = getCheckerKingMoves(move.End, piece, game)
+	default:
+		return false
+	}
+
+	for i := len(possibleMoves) - 1; i >= 0; i-- {
+		if !checkCheckerTake(move.End, possibleMoves[i]) {
+			possibleMoves = append(possibleMoves[:i], possibleMoves[i+1:]...)
+		}
+	}
+
+	return len(possibleMoves) > 0
+}
+
+func checkCheckerTake(startPos Vec2, endPos Vec2) bool {
+	dx := utils.AbsoluteValueInt(startPos.X - endPos.X)
+	dy := utils.AbsoluteValueInt(startPos.Y - endPos.Y)
+
+	if dx == 2 && dy == 2 {
+		return true
+	}
+
+	return false
 }

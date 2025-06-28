@@ -9,57 +9,70 @@ import (
 // if in check cant move unless not in check after
 
 // ADD other parts of move
-func MovePiece(move Move, game Game) error {
-	err := CheckValidMove(move, game)
+func MovePiece(move Move, game *Game) error {
+	err := CheckValidMove(move, *game)
 	if err != nil {
 		return err
 	}
 
-	piece, err := getPiece(move, game)
+	piece, err := getPiece(move, *game)
 	if err != nil {
 		return err
 	}
 
 	takePiece := game.Board.Board[move.End.Y][move.End.X]
-
 	validCastle := takePiece != nil && piece.Type == King && takePiece.Type == Rook && takePiece.Owner == piece.Owner
-	if validCastle {
-		//do castle move
 
-		var dir int
-		if move.Start.X < move.End.X {
-			dir = 1
-		} else {
-			dir = -1
-		}
+	dir := getMoveDirection(*game)
 
-		dx := utils.AbsoluteValueInt(move.End.X-move.Start.X) - 1
-		kingX := (dx/2 + 1) * dir
-		rookX := (dx / 2) * dir
+	updateEndPosition(move, game, piece, takePiece, dir, validCastle)
 
-		game.Board.Board[move.End.Y][kingX] = piece
-		game.Board.Board[move.End.Y][rookX] = takePiece
+	updateEnPassantTakePosition(move, game, dir)
+	updateEnPassantPosition(piece, move, game, dir)
+
+	offset := getMochigomaOffset(*game)
+	updateRemoveStartPosition(move, game, offset, validCastle)
+
+	err = updateMochigoma(takePiece, game, offset)
+	if err != nil {
+		return err
+	}
+
+	if checkCheckerNextJumps(move, *piece, *game) {
+		game.CheckerJump = true
 	} else {
-		game.Board.Board[move.End.Y][move.End.X] = piece
+		updateHalfMoveCount(piece, takePiece, game)
+		updateMoveCount(game)
+		game.Turn = getEnemyTurnInt(*game)
 	}
 
-	//enPassant move
-	if game.EnPassant != nil && move.End == *game.EnPassant {
-		dir := getMoveDirection(game)
-		game.Board.Board[move.End.Y-dir][move.End.X] = nil
-	}
+	return nil
+}
 
-	offset := 0
+func updateHalfMoveCount(piece *Piece, takePiece *Piece, game *Game) {
+	if checkHalfMoveReset(piece, takePiece) {
+		game.HalfMoveCount = 0
+	} else {
+		game.HalfMoveCount++
+	}
+}
+
+func updateMoveCount(game *Game) {
 	if game.Turn == 1 {
-		offset = 7
+		game.MoveCount++
 	}
+}
 
-	if move.Drop != nil {
-		game.Mochigoma[*move.Drop+offset]--
-	} else if !validCastle {
-		game.Board.Board[move.Start.Y][move.Start.X] = nil
+func updateEnPassantPosition(piece *Piece, move Move, game *Game, dir int) {
+	//update enPassant position
+	if piece.Type == Pawn && utils.AbsoluteValueInt(move.Start.Y-move.End.Y) == 2 {
+		game.EnPassant = &Vec2{X: move.Start.X, Y: move.Start.Y - dir}
+	} else {
+		game.EnPassant = nil
 	}
+}
 
+func updateMochigoma(takePiece *Piece, game *Game, offset int) error {
 	if takePiece != nil && takePiece.Type >= Fu && takePiece.Type <= Ryuu {
 		mochigoma, ok := shogiDropPieceToMochiPiece[takePiece.Type]
 		if !ok {
@@ -67,24 +80,40 @@ func MovePiece(move Move, game Game) error {
 		}
 		game.Mochigoma[mochigoma+offset]++
 	}
-
-	//update enPassant position
-
-	//half move
-	if checkHalfMoveReset(piece, takePiece) {
-		game.HalfMoveCount = 0
-	} else {
-		game.HalfMoveCount++
-	}
-
-	//move Count
-	if game.Turn == 1 {
-		game.MoveCount++
-	}
-
-	game.Turn = getEnemyTurnInt(game)
-
 	return nil
+}
+
+func updateRemoveStartPosition(move Move, game *Game, offset int, validCastle bool) {
+	if move.Drop != nil {
+		game.Mochigoma[*move.Drop+offset]--
+	} else if !validCastle {
+		game.Board.Board[move.Start.Y][move.Start.X] = nil
+	}
+}
+
+func updateEnPassantTakePosition(move Move, game *Game, dir int) {
+	if game.EnPassant != nil && move.End == *game.EnPassant {
+		game.Board.Board[move.End.Y-dir][move.End.X] = nil
+	}
+}
+
+func updateEndPosition(move Move, game *Game, piece *Piece, takePiece *Piece, dir int, validCastle bool) {
+	if validCastle {
+		dx := utils.AbsoluteValueInt(move.End.X-move.Start.X) - 1
+		kingX := (dx/2 + 1) * dir
+		rookX := (dx / 2) * dir
+
+		game.Board.Board[move.End.Y][kingX] = piece
+		game.Board.Board[move.End.Y][rookX] = takePiece
+		takePiece.Moved = true
+	} else {
+		game.Board.Board[move.End.Y][move.End.X] = piece
+	}
+	piece.Moved = true
+}
+
+func UpdateMoveHistory(move string, game *Game) {
+	game.Moves = append(game.Moves, move)
 }
 
 func checkHalfMoveReset(piece *Piece, takePiece *Piece) bool {

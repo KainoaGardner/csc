@@ -34,10 +34,7 @@ func checkValidDrop(move Move, piece Piece, game Game) error {
 }
 
 func checkHaveDropPiece(move Move, game Game) error {
-	offset := 0
-	if game.Turn == 1 {
-		offset = 7
-	}
+	offset := getMochigomaOffset(game)
 
 	if move.Drop == nil {
 		return fmt.Errorf("Drop not set")
@@ -117,4 +114,13 @@ func checkUtifudume(move Move, piece Piece, game Game) error {
 	}
 
 	return nil
+}
+
+func getMochigomaOffset(game Game) int {
+	offset := 0
+	if game.Turn == 1 {
+		offset = 7
+	}
+
+	return offset
 }
