@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"github.com/KainoaGardner/csc/internal/types"
 	"github.com/KainoaGardner/csc/internal/utils"
 	"strconv"
 	"strings"
@@ -45,8 +46,8 @@ func ConvertStringToMove(moveString string, game Game) (Move, error) {
 	return result, nil
 }
 
-func convertStringToPosition(move string, boardHeight int) (Vec2, error) {
-	var result Vec2
+func convertStringToPosition(move string, boardHeight int) (types.Vec2, error) {
+	var result types.Vec2
 
 	xStr := ""
 	yStr := ""

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"strings"
+
+	"github.com/KainoaGardner/csc/internal/types"
 )
 
 func GetIndexFirstChar(str string, char string) int {
@@ -56,4 +58,8 @@ func AbsoluteValueInt(x int) int {
 	}
 
 	return x
+}
+
+func CheckVec2Equal(x types.Vec2, y types.Vec2) bool {
+	return x.X == y.X && x.Y == y.Y
 }

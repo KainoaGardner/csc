@@ -1,5 +1,9 @@
 package engine
 
+import (
+	"github.com/KainoaGardner/csc/internal/types"
+)
+
 type Piece struct {
 	Type  int
 	Owner int
@@ -22,20 +26,15 @@ type Game struct {
 	MoveCount     int
 	HalfMoveCount int
 	Moves         []string `bson:"moves" json:"moves"`
-	EnPassant     *Vec2
+	EnPassant     *types.Vec2
 	CheckerJump   bool
 }
 
 type Move struct {
-	Start   Vec2
-	End     Vec2
+	Start   types.Vec2
+	End     types.Vec2
 	Promote *int
 	Drop    *int
-}
-
-type Vec2 struct {
-	X int
-	Y int
 }
 
 const (

@@ -3,6 +3,7 @@ package engine
 import (
 	"fmt"
 
+	"github.com/KainoaGardner/csc/internal/types"
 	"github.com/KainoaGardner/csc/internal/utils"
 )
 
@@ -12,9 +13,9 @@ func checkValidPieceMoves(move Move, piece Piece, game Game) error {
 	return checkEndPosInPossibleMoves(possibleMoves, move)
 }
 
-// change move to Start Vec2
-func getPieceMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
-	var possibleMoves []Vec2
+// change move to Start types.Vec2
+func getPieceMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
+	var possibleMoves []types.Vec2
 	switch piece.Type {
 	case Pawn:
 		possibleMoves = getPawnMoves(pos, piece, game, dir)
@@ -66,12 +67,12 @@ func getPieceMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
 	return possibleMoves
 }
 
-func getPawnMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
-	var validMovePositions []Vec2
+func getPawnMoves(pos types.Vec2, piece Piece, game Game, direction int) []types.Vec2 {
+	var validMovePositions []types.Vec2
 	//move forward
 	newY := pos.Y - 1*direction
-	newPos := Vec2{X: pos.X, Y: newY}
-	newPos2 := Vec2{X: pos.X, Y: newY - direction}
+	newPos := types.Vec2{X: pos.X, Y: newY}
+	newPos2 := types.Vec2{X: pos.X, Y: newY - direction}
 	if checkPositionInbounds(newPos, game) {
 		space := game.Board.Board[newPos.Y][newPos.X]
 		if space == nil {
@@ -88,7 +89,7 @@ func getPawnMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
 	}
 
 	//capture squares
-	relativeMovePos := []Vec2{{X: -1, Y: -1}, {X: 1, Y: -1}}
+	relativeMovePos := []types.Vec2{{X: -1, Y: -1}, {X: 1, Y: -1}}
 	for i := 0; i < len(relativeMovePos); i++ {
 		newPos = relativeMovePos[i]
 		newPos.Y *= direction
@@ -99,7 +100,7 @@ func getPawnMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
 			space := game.Board.Board[newPos.Y][newPos.X]
 			if space != nil && space.Owner == getEnemyTurnInt(game) {
 				validMovePositions = append(validMovePositions, newPos)
-			} else if space == nil && newPos == *game.EnPassant {
+			} else if space == nil && utils.CheckVec2Equal(newPos, *game.EnPassant) {
 				validMovePositions = append(validMovePositions, newPos)
 			}
 		}
@@ -108,10 +109,10 @@ func getPawnMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
 	return validMovePositions
 }
 
-func getKnightMoves(pos Vec2, piece Piece, game Game) []Vec2 {
-	var validMovePositions []Vec2
+func getKnightMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	relativeMovePos := []Vec2{
+	relativeMovePos := []types.Vec2{
 		{X: -1, Y: -2},
 		{X: 1, Y: -2},
 		{X: -2, Y: -1},
@@ -138,10 +139,10 @@ func getKnightMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getBishopMoves(pos Vec2, piece Piece, game Game) []Vec2 {
-	var validMovePositions []Vec2
+func getBishopMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	directions := []Vec2{
+	directions := []types.Vec2{
 		{X: -1, Y: -1},
 		{X: -1, Y: 1},
 		{X: 1, Y: -1},
@@ -178,10 +179,10 @@ func getBishopMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getRookMoves(pos Vec2, piece Piece, game Game) []Vec2 {
-	var validMovePositions []Vec2
+func getRookMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	directions := []Vec2{
+	directions := []types.Vec2{
 		{X: -1, Y: 0},
 		{X: 1, Y: 0},
 		{X: 0, Y: -1},
@@ -217,8 +218,8 @@ func getRookMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getQueenMoves(pos Vec2, piece Piece, game Game) []Vec2 {
-	var validMovePositions []Vec2
+func getQueenMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
 	bishopMoves := getBishopMoves(pos, piece, game)
 	rookMoves := getRookMoves(pos, piece, game)
@@ -227,10 +228,10 @@ func getQueenMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getKingMoves(pos Vec2, piece Piece, game Game) []Vec2 {
-	var validMovePositions []Vec2
+func getKingMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	directions := []Vec2{
+	directions := []types.Vec2{
 		{X: -1, Y: -1},
 		{X: 0, Y: -1},
 		{X: 1, Y: -1},
@@ -259,8 +260,8 @@ func getKingMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getFuMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
-	var validMovePositions []Vec2
+func getFuMoves(pos types.Vec2, piece Piece, game Game, direction int) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
 	newPos := pos
 	newPos.Y += -1 * direction
@@ -275,8 +276,8 @@ func getFuMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
 	return validMovePositions
 }
 
-func getKyouMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
-	var validMovePositions []Vec2
+func getKyouMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
 	i := 0
 	for i >= 0 {
@@ -303,10 +304,10 @@ func getKyouMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
 	return validMovePositions
 }
 
-func getKeiMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
-	var validMovePositions []Vec2
+func getKeiMoves(pos types.Vec2, piece Piece, game Game, direction int) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	directions := []Vec2{
+	directions := []types.Vec2{
 		{X: -1, Y: -2 * direction},
 		{X: 1, Y: -2 * direction},
 	}
@@ -329,10 +330,10 @@ func getKeiMoves(pos Vec2, piece Piece, game Game, direction int) []Vec2 {
 	return validMovePositions
 }
 
-func getGinMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
-	var validMovePositions []Vec2
+func getGinMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	directions := []Vec2{
+	directions := []types.Vec2{
 		{X: -1, Y: -1 * dir},
 		{X: 0, Y: -1 * dir},
 		{X: 1, Y: -1 * dir},
@@ -358,10 +359,10 @@ func getGinMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
 	return validMovePositions
 }
 
-func getKinMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
-	var validMovePositions []Vec2
+func getKinMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	directions := []Vec2{
+	directions := []types.Vec2{
 		{X: -1, Y: -1 * dir},
 		{X: 0, Y: -1 * dir},
 		{X: 1, Y: -1 * dir},
@@ -388,10 +389,10 @@ func getKinMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
 	return validMovePositions
 }
 
-func getUmaMoves(pos Vec2, piece Piece, game Game) []Vec2 {
-	var validMovePositions []Vec2
+func getUmaMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	directions := []Vec2{
+	directions := []types.Vec2{
 		{X: -1, Y: 0},
 		{X: 1, Y: 0},
 		{X: 0, Y: -1},
@@ -418,10 +419,10 @@ func getUmaMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getRyuuMoves(pos Vec2, piece Piece, game Game) []Vec2 {
-	var validMovePositions []Vec2
+func getRyuuMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	directions := []Vec2{
+	directions := []types.Vec2{
 		{X: -1, Y: -1},
 		{X: 1, Y: -1},
 		{X: -1, Y: 1},
@@ -448,10 +449,10 @@ func getRyuuMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func getCheckerMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
-	var validMovePositions []Vec2
+func getCheckerMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	directions := []Vec2{
+	directions := []types.Vec2{
 		{X: -1, Y: -1 * dir},
 		{X: 1, Y: -1 * dir},
 	}
@@ -487,10 +488,10 @@ func getCheckerMoves(pos Vec2, piece Piece, game Game, dir int) []Vec2 {
 	return validMovePositions
 }
 
-func getCheckerKingMoves(pos Vec2, piece Piece, game Game) []Vec2 {
-	var validMovePositions []Vec2
+func getCheckerKingMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
-	directions := []Vec2{
+	directions := []types.Vec2{
 		{X: -1, Y: -1},
 		{X: 1, Y: -1},
 		{X: -1, Y: 1},
@@ -526,7 +527,7 @@ func getCheckerKingMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 	return validMovePositions
 }
 
-func checkEndPosInPossibleMoves(possibleMoves []Vec2, move Move) error {
+func checkEndPosInPossibleMoves(possibleMoves []types.Vec2, move Move) error {
 	for i := 0; i < len(possibleMoves); i++ {
 		possibleMove := possibleMoves[i]
 
@@ -546,15 +547,15 @@ func getMoveDirection(game Game) int {
 	return direction
 }
 
-func getCastleMoves(pos Vec2, piece Piece, game Game) []Vec2 {
-	var validMovePositions []Vec2
+func getCastleMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+	var validMovePositions []types.Vec2
 
 	//left
 	for i := pos.X - 1; i >= 0; i-- {
 		targetPiece := game.Board.Board[pos.Y][i]
 		if targetPiece != nil {
 			if targetPiece.Type == Rook && targetPiece.Owner == piece.Owner {
-				validMovePositions = append(validMovePositions, Vec2{X: i, Y: pos.Y})
+				validMovePositions = append(validMovePositions, types.Vec2{X: i, Y: pos.Y})
 			}
 			break
 		}
@@ -564,7 +565,7 @@ func getCastleMoves(pos Vec2, piece Piece, game Game) []Vec2 {
 		targetPiece := game.Board.Board[pos.Y][i]
 		if targetPiece != nil {
 			if targetPiece.Type == Rook && targetPiece.Owner == piece.Owner {
-				validMovePositions = append(validMovePositions, Vec2{X: i, Y: pos.Y})
+				validMovePositions = append(validMovePositions, types.Vec2{X: i, Y: pos.Y})
 			}
 			break
 		}
@@ -579,7 +580,7 @@ func checkCheckerNextJumps(move Move, piece Piece, game Game) bool {
 	}
 
 	dir := getMoveDirection(game)
-	var possibleMoves []Vec2
+	var possibleMoves []types.Vec2
 	switch piece.Type {
 	case Checker:
 		possibleMoves = getCheckerMoves(move.End, piece, game, dir)
@@ -598,7 +599,7 @@ func checkCheckerNextJumps(move Move, piece Piece, game Game) bool {
 	return len(possibleMoves) > 0
 }
 
-func checkCheckerTake(startPos Vec2, endPos Vec2) bool {
+func checkCheckerTake(startPos types.Vec2, endPos types.Vec2) bool {
 	dx := utils.AbsoluteValueInt(startPos.X - endPos.X)
 	dy := utils.AbsoluteValueInt(startPos.Y - endPos.Y)
 

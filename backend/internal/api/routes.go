@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/KainoaGardner/csc/internal/engine"
 	"github.com/KainoaGardner/csc/internal/utils"
 	"github.com/go-chi/chi/v5"
@@ -18,6 +19,8 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Get("/test/move", h.moveTest)
 	r.Get("/game/board", h.getBoard)
 	r.Post("/game/move", h.movePiece)
+	r.Get("/game/check", h.getCheck)
+	r.Get("/game/checkmate", h.getCheck)
 	r.Post("/game/validMove", h.validMove)
 
 	//use ID for each game access
@@ -28,6 +31,29 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 func (h *Handler) moveTest(w http.ResponseWriter, r *http.Request) {
 	engine.RunTests()
 	w.Write([]byte("Test Finished"))
+}
+
+func (h *Handler) getCheck(w http.ResponseWriter, r *http.Request) {
+	game := engine.Game{}
+	game.Board.Width = 8
+	game.Board.Height = 8
+
+	game.Board.Board = make([][]*engine.Piece, game.Board.Height)
+	for i := range game.Board.Board {
+		game.Board.Board[i] = make([]*engine.Piece, game.Board.Width)
+	}
+
+	game.Turn = 0
+	game.Board.Board[7][4] = &engine.Piece{Type: engine.King, Owner: 0}
+	game.Board.Board[3][4] = &engine.Piece{Type: engine.Rook, Owner: 1}
+	game.Board.Board[0][4] = &engine.Piece{Type: engine.King, Owner: 1}
+
+	result := engine.GetInCheck(game)
+	if result {
+		w.Write([]byte("Check"))
+	} else {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("Not Check"))
+	}
 }
 
 func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
