@@ -25,7 +25,7 @@ func checkValidDrop(move Move, piece Piece, game Game) error {
 	if err != nil {
 		return err
 	}
-	err = checkUtifudume(move, piece, game) //NOT DONE
+	err = checkUtifudume(move, piece, game)
 	if err != nil {
 		return err
 	}
@@ -108,8 +108,13 @@ func checkUtifudume(move Move, piece Piece, game Game) error {
 		return nil
 	}
 
-	//CHANGE DO if move makes a checkmate
-	if 0 == 1 {
+	gameCopy := copyGame(game)
+	gameCopy.Board.Board[move.End.Y][move.End.X] = &piece
+
+	gameCopy.Turn = getEnemyTurnInt(*gameCopy)
+	result := GetInCheckmate(*gameCopy)
+
+	if result == 1 {
 		return fmt.Errorf("Cant checkmate with fu drop")
 	}
 

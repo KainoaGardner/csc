@@ -143,16 +143,10 @@ func ConvertMoveToString(move Move, game Game) (string, error) {
 }
 
 func convertStartMoveToString(move Move, game Game) (string, error) {
-	result := ""
-
-	startWidthStr, err := utils.ConvertNumberToLowercase(move.Start.X + 1)
-
+	result, err := convertPositionToString(move.Start, game)
 	if err != nil {
-		return "", err
+		return result, err
 	}
-
-	startHeightStr := strconv.Itoa(game.Board.Height - move.Start.Y)
-	result = startWidthStr + startHeightStr
 
 	if move.Drop != nil {
 		dropPiece := *move.Drop
@@ -163,6 +157,21 @@ func convertStartMoveToString(move Move, game Game) (string, error) {
 
 		result = string(pieceChar) + "*"
 	}
+
+	return result, nil
+}
+
+func convertPositionToString(pos types.Vec2, game Game) (string, error) {
+	result := ""
+
+	startWidthStr, err := utils.ConvertNumberToLowercase(pos.X + 1)
+
+	if err != nil {
+		return "", err
+	}
+
+	startHeightStr := strconv.Itoa(game.Board.Height - pos.Y)
+	result = startWidthStr + startHeightStr
 
 	return result, nil
 }

@@ -27,7 +27,8 @@ type Game struct {
 	HalfMoveCount int
 	Moves         []string `bson:"moves" json:"moves"`
 	EnPassant     *types.Vec2
-	CheckerJump   bool
+	CheckerJump   *types.Vec2
+	Winner        *int
 }
 
 type Move struct {
@@ -45,6 +46,12 @@ const (
 	MochiKin
 	MochiKaku
 	MochiHi
+)
+
+const (
+	White = iota
+	Black
+	Tie
 )
 
 const (

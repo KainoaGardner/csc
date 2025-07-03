@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"fmt"
 	"github.com/KainoaGardner/csc/internal/types"
 )
 
@@ -53,93 +54,95 @@ func checkUnderAttack(pos types.Vec2, game Game) bool {
 	return ok
 }
 
-func GetInCheckmate(game Game) bool {
+func GetInCheckmate(game Game) int {
 	if !GetInCheck(game) {
-		return false
+		possibleMoves := getAllPossibleMovesCheckmate(game)
+
+		fmt.Println(possibleMoves)
+		if len(possibleMoves) > 0 {
+			return 0
+		} else {
+			possibleDrops := getAllPossibleDrops(game)
+			if len(possibleDrops) > 0 {
+				return 0
+			} else {
+				return 2
+			}
+		}
 	}
 
-	//check normal moves and promotions
+	possibleMoves := getAllPossibleMovesCheckmate(game)
+	if len(possibleMoves) > 0 {
+		return 0
+	}
+
+	possibleDrops := getAllPossibleDrops(game)
+	for i := 0; i < len(possibleDrops); i++ {
+		movePos := possibleDrops[i]
+		move := Move{}
+		move.End = movePos
+		piece := Piece{}
+		piece.Owner = game.Turn
+		piece.Type = Fu
+		gameCopy := copyGame(game)
+		gameCopy.Board.Board[movePos.Y][movePos.X] = &piece
+		if !GetInCheck(*gameCopy) {
+			return 0
+		}
+	}
+
+	return 1
+}
+
+func getValidPieceMovesForCheckmate(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+	dir := getMoveDirection(game)
+	possibleMoves := []types.Vec2{}
+	if piece.Type == King {
+		possibleMoves = getKingMoves(pos, piece, game)
+	} else {
+		possibleMoves = getPieceMoves(pos, piece, game, dir)
+	}
+
+	filterPossibleMoves(pos, &possibleMoves, game)
+
+	return possibleMoves
+}
+
+func getAllPossibleMovesCheckmate(game Game) []types.Vec2 {
+	var possibleMoves []types.Vec2
+	//check normal moves
 	for i := 0; i < game.Board.Height; i++ {
 		for j := 0; j < game.Board.Width; j++ {
 			space := game.Board.Board[i][j]
 			if space != nil && space.Owner == game.Turn {
-
+				possibleMoves = append(possibleMoves, getValidPieceMovesForCheckmate(types.Vec2{X: j, Y: i}, *space, game)...)
 			}
 		}
 	}
 
-	//check all drops
-
-	return false
+	return possibleMoves
 }
 
-func checkMovePieceOutOfCheck(pos types.Vec2, piece Piece, game Game) bool {
-	dir := getMoveDirection(game)
+func getAllPossibleDrops(game Game) []types.Vec2 {
+	var possibleDrops []types.Vec2
 
-	if piece.Type >= Pawn && piece.Type <= Ryuu {
-		possibleMoves := []types.Vec2{}
-		switch piece.Type {
-		case Pawn:
-			possibleMoves = getPawnMoves(pos, piece, game, dir)
-		case Knight:
-			possibleMoves = getKnightMoves(pos, piece, game)
-		case Bishop:
-			possibleMoves = getBishopMoves(pos, piece, game)
-		case Rook:
-			possibleMoves = getRookMoves(pos, piece, game)
-		case Queen:
-			possibleMoves = getQueenMoves(pos, piece, game)
-		case King:
-			possibleMoves = getKingMoves(pos, piece, game)
-		case Fu:
-			possibleMoves = getFuMoves(pos, piece, game, dir)
-		case Kyou:
-			possibleMoves = getKyouMoves(pos, piece, game, dir)
-		case Kei:
-			possibleMoves = getKeiMoves(pos, piece, game, dir)
-		case Gin:
-			possibleMoves = getGinMoves(pos, piece, game, dir)
-		case Kin:
-			possibleMoves = getKinMoves(pos, piece, game, dir)
-		case Kaku:
-			possibleMoves = getBishopMoves(pos, piece, game)
-		case Hi:
-			possibleMoves = getRookMoves(pos, piece, game)
-		case Ou:
-			possibleMoves = getKingMoves(pos, piece, game)
-		case To:
-			possibleMoves = getKinMoves(pos, piece, game, dir)
-		case NariKyou:
-			possibleMoves = getKinMoves(pos, piece, game, dir)
-		case NariKei:
-			possibleMoves = getKinMoves(pos, piece, game, dir)
-		case NariGin:
-			possibleMoves = getKinMoves(pos, piece, game, dir)
-		case Uma:
-			possibleMoves = getUmaMoves(pos, piece, game)
-		case Ryuu:
-			possibleMoves = getRyuuMoves(pos, piece, game)
-		case Checker:
-		}
-
-		for _, move := range possibleMoves {
-			if chessShogiOutOfCheck(piece, pos, move, game) {
-				return true
+	for i := 0; i < game.Board.Height; i++ {
+		for j := 0; j < game.Board.Width; j++ {
+			for k := 0; k < 7; k++ {
+				move := Move{}
+				move.End.X = j
+				move.End.Y = i
+				move.Drop = &k
+				piece := Piece{}
+				piece.Owner = game.Turn
+				piece.Type = Fu + k
+				err := checkValidDrop(move, piece, game)
+				if err == nil {
+					possibleDrops = append(possibleDrops, move.End)
+				}
 			}
 		}
-
-	} else if piece.Type >= Checker && piece.Type <= CheckerKing {
-
 	}
 
-	return false
-}
-
-func chessShogiOutOfCheck(piece Piece, startPos types.Vec2, endPos types.Vec2, game Game) bool {
-	game.Board.Board[startPos.Y][startPos.X] = nil
-	game.Board.Board[endPos.Y][endPos.X] = &piece
-	if !GetInCheck(game) {
-		return true
-	}
-	return false
+	return possibleDrops
 }

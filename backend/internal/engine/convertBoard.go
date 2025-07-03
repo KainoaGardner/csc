@@ -7,8 +7,6 @@ import (
 )
 
 // Alternate FEN 2 Char
-
-// castle string not done
 func ConvertBoardToString(game Game) (string, error) {
 	result := ""
 
@@ -24,10 +22,16 @@ func ConvertBoardToString(game Game) (string, error) {
 	turnString := getTurnString(game)
 	result += turnString + " "
 
-	enPassantString := getEnPassantString(game)
+	enPassantString, err := getEnPassantString(game)
+	if err != nil {
+		return result, err
+	}
 	result += enPassantString + " "
 
-	checkerJumpString := getCheckerJumpString(game)
+	checkerJumpString, err := getCheckerJumpString(game)
+	if err != nil {
+		return result, err
+	}
 	result += checkerJumpString + " "
 
 	halfMoveCountString := getHalfMoveCountString(game)
@@ -104,22 +108,28 @@ func getTurnString(game Game) string {
 	}
 }
 
-func getEnPassantString(game Game) string {
-	if game.EnPassant != nil {
-		result := ""
-		result += strconv.Itoa(game.EnPassant.Y) + strconv.Itoa(game.EnPassant.X)
-		return result
+func getEnPassantString(game Game) (string, error) {
+	if game.EnPassant == nil {
+		return "-", nil
+	}
+	result, err := convertPositionToString(*game.EnPassant, game)
+	if err != nil {
+		return result, err
 	}
 
-	return "-"
+	return result, nil
 }
 
-func getCheckerJumpString(game Game) string {
-	if game.CheckerJump {
-		return "t"
-	} else {
-		return "f"
+func getCheckerJumpString(game Game) (string, error) {
+	if game.CheckerJump == nil {
+		return "-", nil
 	}
+	result, err := convertPositionToString(*game.CheckerJump, game)
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
 
 func getHalfMoveCountString(game Game) string {

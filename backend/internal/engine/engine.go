@@ -3,13 +3,25 @@ package engine
 import (
 	"fmt"
 	"github.com/KainoaGardner/csc/internal/types"
+	"github.com/KainoaGardner/csc/internal/utils"
 )
+
+func TestGame(game Game) int {
+	game.Board.Board[0][0] = &Piece{Type: Ryuu, Owner: 1, Moved: true}
+
+	return game.Board.Board[0][0].Type
+}
 
 // if in check cant move unless not in check after
 
 // ADD other parts of move
 func MovePiece(move Move, game *Game) error {
-	err := CheckValidMove(move, *game)
+	err := checkGameOver(*game)
+	if err != nil {
+		return err
+	}
+
+	err = CheckValidMove(move, *game)
 	if err != nil {
 		return err
 	}
@@ -37,12 +49,21 @@ func MovePiece(move Move, game *Game) error {
 		return err
 	}
 
-	if checkCheckerNextJumps(move, *piece, *game) {
-		game.CheckerJump = true
+	if checkCheckerNextJumps(move.Start, move.End, *piece, *game) {
+		game.CheckerJump = &move.End
 	} else {
 		updateHalfMoveCount(piece, takePiece, game)
 		updateMoveCount(game)
 		game.Turn = getEnemyTurnInt(*game)
+
+		checkmate := GetInCheckmate(*game)
+		if checkmate == 1 {
+			moveTurn := getEnemyTurnInt(*game)
+			game.Winner = &moveTurn
+		} else if checkmate == 2 {
+			tie := Tie
+			game.Winner = &tie
+		}
 	}
 
 	return nil
@@ -55,6 +76,11 @@ func CheckValidMove(move Move, game Game) error {
 	}
 
 	piece, err := getPiece(move, game)
+	if err != nil {
+		return err
+	}
+
+	err = checkCheckerJumpMove(move, game)
 	if err != nil {
 		return err
 	}
@@ -148,4 +174,24 @@ func getEnemyTurnInt(game Game) int {
 	} else {
 		return 0
 	}
+}
+
+func checkCheckerJumpMove(move Move, game Game) error {
+	if game.CheckerJump == nil {
+		return nil
+	}
+
+	if !utils.CheckVec2Equal(move.Start, *game.CheckerJump) {
+		return fmt.Errorf("Most complete all checker jumps")
+	}
+
+	return nil
+}
+
+func checkGameOver(game Game) error {
+	if game.Winner != nil {
+		return fmt.Errorf("Game is over")
+	}
+
+	return nil
 }

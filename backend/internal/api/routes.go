@@ -20,7 +20,7 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	r.Get("/game/board", h.getBoard)
 	r.Post("/game/move", h.movePiece)
 	r.Get("/game/check", h.getCheck)
-	r.Get("/game/checkmate", h.getCheck)
+	r.Get("/game/checkmate", h.getCheckmate)
 	r.Post("/game/validMove", h.validMove)
 
 	//use ID for each game access
@@ -53,6 +53,32 @@ func (h *Handler) getCheck(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Check"))
 	} else {
 		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("Not Check"))
+	}
+}
+
+func (h *Handler) getCheckmate(w http.ResponseWriter, r *http.Request) {
+	game := engine.Game{}
+	game.Board.Width = 8
+	game.Board.Height = 8
+
+	game.Board.Board = make([][]*engine.Piece, game.Board.Height)
+	for i := range game.Board.Board {
+		game.Board.Board[i] = make([]*engine.Piece, game.Board.Width)
+	}
+
+	game.Turn = 0
+	game.Board.Board[7][4] = &engine.Piece{Type: engine.King, Owner: 0}
+	game.Board.Board[6][4] = &engine.Piece{Type: engine.To, Owner: 1}
+	game.Board.Board[0][4] = &engine.Piece{Type: engine.Hi, Owner: 1}
+
+	result := engine.GetInCheckmate(game)
+
+	if result == 1 {
+		w.Write([]byte("Checkmate"))
+	} else if result == 2 {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("Draw"))
+	} else {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("Not Checkmate"))
 	}
 }
 
