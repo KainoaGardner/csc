@@ -4,8 +4,8 @@ import (
 	"github.com/KainoaGardner/csc/internal/types"
 )
 
-func copyFullGame(game Game) *Game {
-	gameCopy := Game{}
+func copyFullGame(game types.Game) *types.Game {
+	gameCopy := types.Game{}
 
 	gameCopy.ID = game.ID
 	gameCopy.WhiteID = game.WhiteID
@@ -14,20 +14,20 @@ func copyFullGame(game Game) *Game {
 	gameCopy.MoveCount = game.MoveCount
 	gameCopy.HalfMoveCount = game.HalfMoveCount
 
-	boardCopy := Board{}
+	boardCopy := types.Board{}
 	boardCopy.Width = game.Board.Width
 	boardCopy.Height = game.Board.Height
 
-	boardCopy.Board = make([][]*Piece, game.Board.Height)
+	boardCopy.Board = make([][]*types.Piece, game.Board.Height)
 	for i := range game.Board.Board {
-		boardCopy.Board[i] = make([]*Piece, game.Board.Width)
+		boardCopy.Board[i] = make([]*types.Piece, game.Board.Width)
 	}
 
 	for i := range game.Board.Height {
 		for j := range game.Board.Width {
 			piece := game.Board.Board[i][j]
 			if piece != nil {
-				pieceCopy := Piece{}
+				pieceCopy := types.Piece{}
 				pieceCopy.Type = piece.Type
 				pieceCopy.Owner = piece.Owner
 				pieceCopy.Moved = piece.Moved
@@ -59,25 +59,25 @@ func copyFullGame(game Game) *Game {
 	return &gameCopy
 }
 
-func copyGame(game Game) *Game {
-	gameCopy := Game{}
+func copyGame(game types.Game) *types.Game {
+	gameCopy := types.Game{}
 
 	gameCopy.Turn = game.Turn
 
-	boardCopy := Board{}
+	boardCopy := types.Board{}
 	boardCopy.Width = game.Board.Width
 	boardCopy.Height = game.Board.Height
 
-	boardCopy.Board = make([][]*Piece, game.Board.Height)
+	boardCopy.Board = make([][]*types.Piece, game.Board.Height)
 	for i := range game.Board.Board {
-		boardCopy.Board[i] = make([]*Piece, game.Board.Width)
+		boardCopy.Board[i] = make([]*types.Piece, game.Board.Width)
 	}
 
 	for i := range game.Board.Height {
 		for j := range game.Board.Width {
 			piece := game.Board.Board[i][j]
 			if piece != nil {
-				pieceCopy := Piece{}
+				pieceCopy := types.Piece{}
 				pieceCopy.Type = piece.Type
 				pieceCopy.Owner = piece.Owner
 				pieceCopy.Moved = piece.Moved

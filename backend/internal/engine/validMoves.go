@@ -7,7 +7,7 @@ import (
 	"github.com/KainoaGardner/csc/internal/utils"
 )
 
-func checkValidPieceMoves(move Move, piece Piece, game Game) error {
+func checkValidPieceMoves(move types.Move, piece types.Piece, game types.Game) error {
 	dir := getMoveDirection(game)
 	possibleMoves := getPieceMoves(move.Start, piece, game, dir)
 	filterPossibleMoves(move.Start, &possibleMoves, game)
@@ -15,60 +15,60 @@ func checkValidPieceMoves(move Move, piece Piece, game Game) error {
 }
 
 // change move to Start types.Vec2
-func getPieceMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
+func getPieceMoves(pos types.Vec2, piece types.Piece, game types.Game, dir int) []types.Vec2 {
 	var possibleMoves []types.Vec2
 	switch piece.Type {
-	case Pawn:
+	case types.Pawn:
 		possibleMoves = getPawnMoves(pos, piece, game, dir)
-	case Knight:
+	case types.Knight:
 		possibleMoves = getKnightMoves(pos, piece, game)
-	case Bishop:
+	case types.Bishop:
 		possibleMoves = getBishopMoves(pos, piece, game)
-	case Rook:
+	case types.Rook:
 		possibleMoves = getRookMoves(pos, piece, game)
-	case Queen:
+	case types.Queen:
 		possibleMoves = getQueenMoves(pos, piece, game)
-	case King:
+	case types.King:
 		possibleMoves = getKingMoves(pos, piece, game)
 		possibleMoves = append(possibleMoves, getCastleMoves(pos, piece, game)...)
-	case Fu:
+	case types.Fu:
 		possibleMoves = getFuMoves(pos, piece, game, dir)
-	case Kyou:
+	case types.Kyou:
 		possibleMoves = getKyouMoves(pos, piece, game, dir)
-	case Kei:
+	case types.Kei:
 		possibleMoves = getKeiMoves(pos, piece, game, dir)
-	case Gin:
+	case types.Gin:
 		possibleMoves = getGinMoves(pos, piece, game, dir)
-	case Kin:
+	case types.Kin:
 		possibleMoves = getKinMoves(pos, piece, game, dir)
-	case Kaku:
+	case types.Kaku:
 		possibleMoves = getBishopMoves(pos, piece, game)
-	case Hi:
+	case types.Hi:
 		possibleMoves = getRookMoves(pos, piece, game)
-	case Ou:
+	case types.Ou:
 		possibleMoves = getKingMoves(pos, piece, game)
-	case To:
+	case types.To:
 		possibleMoves = getKinMoves(pos, piece, game, dir)
-	case NariKyou:
+	case types.NariKyou:
 		possibleMoves = getKinMoves(pos, piece, game, dir)
-	case NariKei:
+	case types.NariKei:
 		possibleMoves = getKinMoves(pos, piece, game, dir)
-	case NariGin:
+	case types.NariGin:
 		possibleMoves = getKinMoves(pos, piece, game, dir)
-	case Uma:
+	case types.Uma:
 		possibleMoves = getUmaMoves(pos, piece, game)
-	case Ryuu:
+	case types.Ryuu:
 		possibleMoves = getRyuuMoves(pos, piece, game)
-	case Checker:
+	case types.Checker:
 		possibleMoves = getCheckerMoves(pos, piece, game, dir)
-	case CheckerKing:
+	case types.CheckerKing:
 		possibleMoves = getCheckerKingMoves(pos, piece, game)
 	}
 
 	return possibleMoves
 }
 
-func getPawnMoves(pos types.Vec2, piece Piece, game Game, direction int) []types.Vec2 {
+func getPawnMoves(pos types.Vec2, piece types.Piece, game types.Game, direction int) []types.Vec2 {
 	var validMovePositions []types.Vec2
 	//move forward
 	newY := pos.Y - 1*direction
@@ -110,7 +110,7 @@ func getPawnMoves(pos types.Vec2, piece Piece, game Game, direction int) []types
 	return validMovePositions
 }
 
-func getKnightMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+func getKnightMoves(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	relativeMovePos := []types.Vec2{
@@ -140,7 +140,7 @@ func getKnightMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
 	return validMovePositions
 }
 
-func getBishopMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+func getBishopMoves(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	directions := []types.Vec2{
@@ -180,7 +180,7 @@ func getBishopMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
 	return validMovePositions
 }
 
-func getRookMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+func getRookMoves(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	directions := []types.Vec2{
@@ -219,7 +219,7 @@ func getRookMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
 	return validMovePositions
 }
 
-func getQueenMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+func getQueenMoves(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	bishopMoves := getBishopMoves(pos, piece, game)
@@ -229,7 +229,7 @@ func getQueenMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
 	return validMovePositions
 }
 
-func getKingMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+func getKingMoves(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	directions := []types.Vec2{
@@ -261,7 +261,7 @@ func getKingMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
 	return validMovePositions
 }
 
-func getFuMoves(pos types.Vec2, piece Piece, game Game, direction int) []types.Vec2 {
+func getFuMoves(pos types.Vec2, piece types.Piece, game types.Game, direction int) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	newPos := pos
@@ -277,7 +277,7 @@ func getFuMoves(pos types.Vec2, piece Piece, game Game, direction int) []types.V
 	return validMovePositions
 }
 
-func getKyouMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
+func getKyouMoves(pos types.Vec2, piece types.Piece, game types.Game, dir int) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	i := 0
@@ -305,7 +305,7 @@ func getKyouMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 
 	return validMovePositions
 }
 
-func getKeiMoves(pos types.Vec2, piece Piece, game Game, direction int) []types.Vec2 {
+func getKeiMoves(pos types.Vec2, piece types.Piece, game types.Game, direction int) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	directions := []types.Vec2{
@@ -331,7 +331,7 @@ func getKeiMoves(pos types.Vec2, piece Piece, game Game, direction int) []types.
 	return validMovePositions
 }
 
-func getGinMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
+func getGinMoves(pos types.Vec2, piece types.Piece, game types.Game, dir int) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	directions := []types.Vec2{
@@ -360,7 +360,7 @@ func getGinMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
 	return validMovePositions
 }
 
-func getKinMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
+func getKinMoves(pos types.Vec2, piece types.Piece, game types.Game, dir int) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	directions := []types.Vec2{
@@ -390,7 +390,7 @@ func getKinMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
 	return validMovePositions
 }
 
-func getUmaMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+func getUmaMoves(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	directions := []types.Vec2{
@@ -420,7 +420,7 @@ func getUmaMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
 	return validMovePositions
 }
 
-func getRyuuMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+func getRyuuMoves(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	directions := []types.Vec2{
@@ -450,7 +450,7 @@ func getRyuuMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
 	return validMovePositions
 }
 
-func getCheckerMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Vec2 {
+func getCheckerMoves(pos types.Vec2, piece types.Piece, game types.Game, dir int) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	directions := []types.Vec2{
@@ -489,7 +489,7 @@ func getCheckerMoves(pos types.Vec2, piece Piece, game Game, dir int) []types.Ve
 	return validMovePositions
 }
 
-func getCheckerKingMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+func getCheckerKingMoves(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	directions := []types.Vec2{
@@ -528,7 +528,7 @@ func getCheckerKingMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
 	return validMovePositions
 }
 
-func checkEndPosInPossibleMoves(possibleMoves []types.Vec2, move Move) error {
+func checkEndPosInPossibleMoves(possibleMoves []types.Vec2, move types.Move) error {
 	for i := 0; i < len(possibleMoves); i++ {
 		possibleMove := possibleMoves[i]
 
@@ -540,7 +540,7 @@ func checkEndPosInPossibleMoves(possibleMoves []types.Vec2, move Move) error {
 	return fmt.Errorf("No valid moves")
 }
 
-func getMoveDirection(game Game) int {
+func getMoveDirection(game types.Game) int {
 	direction := 1
 	if game.Turn == 1 {
 		direction = -1
@@ -548,14 +548,14 @@ func getMoveDirection(game Game) int {
 	return direction
 }
 
-func getCastleMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+func getCastleMoves(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {
 	var validMovePositions []types.Vec2
 
 	//left
 	for i := pos.X - 1; i >= 0; i-- {
 		targetPiece := game.Board.Board[pos.Y][i]
 		if targetPiece != nil {
-			if targetPiece.Type == Rook && targetPiece.Owner == piece.Owner {
+			if targetPiece.Type == types.Rook && targetPiece.Owner == piece.Owner {
 				validMovePositions = append(validMovePositions, types.Vec2{X: i, Y: pos.Y})
 			}
 			break
@@ -565,7 +565,7 @@ func getCastleMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
 	for i := pos.X + 1; i < game.Board.Width; i++ {
 		targetPiece := game.Board.Board[pos.Y][i]
 		if targetPiece != nil {
-			if targetPiece.Type == Rook && targetPiece.Owner == piece.Owner {
+			if targetPiece.Type == types.Rook && targetPiece.Owner == piece.Owner {
 				validMovePositions = append(validMovePositions, types.Vec2{X: i, Y: pos.Y})
 			}
 			break
@@ -575,7 +575,7 @@ func getCastleMoves(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
 	return validMovePositions
 }
 
-func checkCheckerNextJumps(startPos types.Vec2, endPos types.Vec2, piece Piece, game Game) bool {
+func checkCheckerNextJumps(startPos types.Vec2, endPos types.Vec2, piece types.Piece, game types.Game) bool {
 	if !checkCheckerTake(startPos, endPos) {
 		return false
 	}
@@ -583,9 +583,9 @@ func checkCheckerNextJumps(startPos types.Vec2, endPos types.Vec2, piece Piece, 
 	dir := getMoveDirection(game)
 	var possibleMoves []types.Vec2
 	switch piece.Type {
-	case Checker:
+	case types.Checker:
 		possibleMoves = getCheckerMoves(endPos, piece, game, dir)
-	case CheckerKing:
+	case types.CheckerKing:
 		possibleMoves = getCheckerKingMoves(endPos, piece, game)
 	default:
 		return false
@@ -611,18 +611,18 @@ func checkCheckerTake(startPos types.Vec2, endPos types.Vec2) bool {
 	return false
 }
 
-func filterPossibleMoves(startPos types.Vec2, possibleMoves *[]types.Vec2, game Game) {
+func filterPossibleMoves(startPos types.Vec2, possibleMoves *[]types.Vec2, game types.Game) {
 	for i := len(*possibleMoves) - 1; i >= 0; i-- {
 		movePos := (*possibleMoves)[i]
 		gameCopy := copyGame(game)
 		piece := gameCopy.Board.Board[startPos.Y][startPos.X]
-		if piece != nil && piece.Type >= Pawn && piece.Type <= Ryuu {
+		if piece != nil && piece.Type >= types.Pawn && piece.Type <= types.Ryuu {
 			gameCopy.Board.Board[startPos.Y][startPos.X] = nil
 			gameCopy.Board.Board[movePos.Y][movePos.X] = piece
 			if GetInCheck(*gameCopy) {
 				*possibleMoves = append((*possibleMoves)[:i], (*possibleMoves)[i+1:]...)
 			}
-		} else if piece != nil && piece.Type >= Checker && piece.Type <= CheckerKing {
+		} else if piece != nil && piece.Type >= types.Checker && piece.Type <= types.CheckerKing {
 			if checkerMovesInCheck(startPos, movePos, piece, *gameCopy) {
 				*possibleMoves = append((*possibleMoves)[:i], (*possibleMoves)[i+1:]...)
 			}
@@ -630,7 +630,7 @@ func filterPossibleMoves(startPos types.Vec2, possibleMoves *[]types.Vec2, game 
 	}
 }
 
-func checkerMovesInCheck(startPos types.Vec2, endPos types.Vec2, piece *Piece, game Game) bool {
+func checkerMovesInCheck(startPos types.Vec2, endPos types.Vec2, piece *types.Piece, game types.Game) bool {
 	if !checkCheckerNextJumps(startPos, endPos, *piece, game) {
 		game.Board.Board[startPos.Y][startPos.X] = nil
 		game.Board.Board[endPos.Y][endPos.X] = piece
@@ -644,9 +644,9 @@ func checkerMovesInCheck(startPos types.Vec2, endPos types.Vec2, piece *Piece, g
 		dir := getMoveDirection(game)
 		var possibleMoves []types.Vec2
 		switch piece.Type {
-		case Checker:
+		case types.Checker:
 			possibleMoves = getCheckerMoves(endPos, *piece, game, dir)
-		case CheckerKing:
+		case types.CheckerKing:
 			possibleMoves = getCheckerKingMoves(endPos, *piece, game)
 		}
 		for i := len(possibleMoves) - 1; i >= 0; i-- {

@@ -2,12 +2,13 @@ package engine
 
 import (
 	"fmt"
+	"github.com/KainoaGardner/csc/internal/types"
 	"strconv"
 	"strings"
 )
 
 // Alternate FEN 2 Char
-func ConvertBoardToString(game Game) (string, error) {
+func ConvertBoardToString(game types.Game) (string, error) {
 	result := ""
 
 	piecePositionString, err := convertPiecePositionToString(game)
@@ -43,7 +44,7 @@ func ConvertBoardToString(game Game) (string, error) {
 	return result, nil
 }
 
-func convertPiecePositionToString(game Game) (string, error) {
+func convertPiecePositionToString(game types.Game) (string, error) {
 	result := ""
 
 	for i := 0; i < game.Board.Height; i++ {
@@ -58,7 +59,7 @@ func convertPiecePositionToString(game Game) (string, error) {
 					emptyCount = 0
 				}
 
-				pieceString, ok := fenPieceToString[piece.Type]
+				pieceString, ok := types.FenPieceToString[piece.Type]
 				if !ok {
 					return result, fmt.Errorf("Could not convert piece to fen string")
 				}
@@ -90,7 +91,7 @@ func convertPiecePositionToString(game Game) (string, error) {
 	return result, nil
 }
 
-func convertMochigomaToString(game Game) string {
+func convertMochigomaToString(game types.Game) string {
 	result := ""
 	for i := 0; i < len(game.Mochigoma); i++ {
 		result += strconv.Itoa(game.Mochigoma[i]) + "/"
@@ -99,7 +100,7 @@ func convertMochigomaToString(game Game) string {
 	return result[:len(result)-1]
 }
 
-func getTurnString(game Game) string {
+func getTurnString(game types.Game) string {
 	if game.Turn == 1 {
 		return "b"
 	} else {
@@ -108,7 +109,7 @@ func getTurnString(game Game) string {
 	}
 }
 
-func getEnPassantString(game Game) (string, error) {
+func getEnPassantString(game types.Game) (string, error) {
 	if game.EnPassant == nil {
 		return "-", nil
 	}
@@ -120,7 +121,7 @@ func getEnPassantString(game Game) (string, error) {
 	return result, nil
 }
 
-func getCheckerJumpString(game Game) (string, error) {
+func getCheckerJumpString(game types.Game) (string, error) {
 	if game.CheckerJump == nil {
 		return "-", nil
 	}
@@ -132,10 +133,10 @@ func getCheckerJumpString(game Game) (string, error) {
 	return result, nil
 }
 
-func getHalfMoveCountString(game Game) string {
+func getHalfMoveCountString(game types.Game) string {
 	return strconv.Itoa(game.HalfMoveCount)
 }
 
-func getMoveCountString(game Game) string {
+func getMoveCountString(game types.Game) string {
 	return strconv.Itoa(game.MoveCount)
 }

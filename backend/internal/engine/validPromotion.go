@@ -1,15 +1,18 @@
 package engine
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/KainoaGardner/csc/internal/types"
+)
 
-func checkValidPromote(move Move, piece Piece, game Game) error {
+func checkValidPromote(move types.Move, piece types.Piece, game types.Game) error {
 	switch piece.Type {
-	case Pawn:
+	case types.Pawn:
 		err := checkPawnCheckerPromote(move, piece, game)
 		if err != nil {
 			return err
 		}
-	case Checker:
+	case types.Checker:
 		err := checkPawnCheckerPromote(move, piece, game)
 		if err != nil {
 			return err
@@ -24,7 +27,7 @@ func checkValidPromote(move Move, piece Piece, game Game) error {
 	return nil
 }
 
-func checkPawnCheckerPromote(move Move, piece Piece, game Game) error {
+func checkPawnCheckerPromote(move types.Move, piece types.Piece, game types.Game) error {
 	var row int
 	if piece.Owner == 0 {
 		row = 0
@@ -39,7 +42,7 @@ func checkPawnCheckerPromote(move Move, piece Piece, game Game) error {
 	return nil
 }
 
-func checkShogiPromote(move Move, piece Piece, game Game) error {
+func checkShogiPromote(move types.Move, piece types.Piece, game types.Game) error {
 	var rowStart, rowEnd int
 	if piece.Owner == 0 {
 		rowStart = 0
@@ -59,14 +62,13 @@ func checkShogiPromote(move Move, piece Piece, game Game) error {
 	return fmt.Errorf("Must Move in promotion zone to promote")
 }
 
-func checkMustPromote(move Move, piece Piece, game Game) error {
-
-	if piece.Type == Pawn || piece.Type == Checker || piece.Type == Fu || piece.Type == Kyou {
+func checkMustPromote(move types.Move, piece types.Piece, game types.Game) error {
+	if piece.Type == types.Pawn || piece.Type == types.Checker || piece.Type == types.Fu || piece.Type == types.Kyou {
 		err := checkMustPromoteLastLine(move, piece, game)
 		if err != nil {
 			return err
 		}
-	} else if piece.Type == Kei {
+	} else if piece.Type == types.Kei {
 		err := checkMustPromoteLastTwoLines(move, piece, game)
 		if err != nil {
 			return err
@@ -75,7 +77,7 @@ func checkMustPromote(move Move, piece Piece, game Game) error {
 	return nil
 }
 
-func checkMustPromoteLastLine(move Move, piece Piece, game Game) error {
+func checkMustPromoteLastLine(move types.Move, piece types.Piece, game types.Game) error {
 	var row0 int
 	if piece.Owner == 0 {
 		row0 = 0
@@ -90,7 +92,7 @@ func checkMustPromoteLastLine(move Move, piece Piece, game Game) error {
 	return nil
 }
 
-func checkMustPromoteLastTwoLines(move Move, piece Piece, game Game) error {
+func checkMustPromoteLastTwoLines(move types.Move, piece types.Piece, game types.Game) error {
 	var row0 int
 	var row1 int
 	if piece.Owner == 0 {

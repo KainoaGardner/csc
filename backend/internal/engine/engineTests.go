@@ -1,15 +1,18 @@
 package engine
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/KainoaGardner/csc/internal/types"
+)
 
 func RunTests() {
-	game := Game{}
+	game := types.Game{}
 	game.Board.Width = 8
 	game.Board.Height = 8
 
-	game.Board.Board = make([][]*Piece, game.Board.Height)
+	game.Board.Board = make([][]*types.Piece, game.Board.Height)
 	for i := range game.Board.Board {
-		game.Board.Board[i] = make([]*Piece, game.Board.Width)
+		game.Board.Board[i] = make([]*types.Piece, game.Board.Width)
 	}
 
 	game.Turn = 0
@@ -124,7 +127,7 @@ func RunTests() {
 	}
 }
 
-func convertStringToMoveTest(input string, game Game) error {
+func convertStringToMoveTest(input string, game types.Game) error {
 	movesResult, err := ConvertStringToMove(input, game)
 	if err != nil {
 		return err

@@ -1,8 +1,11 @@
 package engine
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/KainoaGardner/csc/internal/types"
+)
 
-func checkValidDrop(move Move, piece Piece, game Game) error {
+func checkValidDrop(move types.Move, piece types.Piece, game types.Game) error {
 	err := checkHaveDropPiece(move, game)
 	if err != nil {
 		return err
@@ -33,7 +36,7 @@ func checkValidDrop(move Move, piece Piece, game Game) error {
 	return nil
 }
 
-func checkHaveDropPiece(move Move, game Game) error {
+func checkHaveDropPiece(move types.Move, game types.Game) error {
 	offset := getMochigomaOffset(game)
 
 	if move.Drop == nil {
@@ -48,7 +51,7 @@ func checkHaveDropPiece(move Move, game Game) error {
 	return nil
 }
 
-func checkEmptySpace(move Move, game Game) error {
+func checkEmptySpace(move types.Move, game types.Game) error {
 	space := game.Board.Board[move.End.Y][move.End.X]
 	if space != nil {
 		return fmt.Errorf("Cant drop on non empty space")
@@ -57,21 +60,21 @@ func checkEmptySpace(move Move, game Game) error {
 	return nil
 }
 
-func checkPromoteDrop(move Move) error {
+func checkPromoteDrop(move types.Move) error {
 	if move.Drop != nil && move.Promote != nil {
 		return fmt.Errorf("Cant promote when dropping")
 	}
 	return nil
 }
 
-func checkNifu(move Move, piece Piece, game Game) error {
-	if piece.Type != Fu {
+func checkNifu(move types.Move, piece types.Piece, game types.Game) error {
+	if piece.Type != types.Fu {
 		return nil
 	}
 
 	for i := 0; i < game.Board.Height; i++ {
 		space := game.Board.Board[i][move.End.X]
-		if space != nil && space.Type == Fu && space.Owner == piece.Owner {
+		if space != nil && space.Type == types.Fu && space.Owner == piece.Owner {
 			return fmt.Errorf("Cant place Fu in row with Fu. Nifu")
 		}
 	}
@@ -79,7 +82,7 @@ func checkNifu(move Move, piece Piece, game Game) error {
 	return nil
 }
 
-func checkIkidokoronoNaiKoma(move Move, piece Piece, game Game) error {
+func checkIkidokoronoNaiKoma(move types.Move, piece types.Piece, game types.Game) error {
 	var row0 int
 	var row1 int
 	if piece.Owner == 0 {
@@ -90,11 +93,11 @@ func checkIkidokoronoNaiKoma(move Move, piece Piece, game Game) error {
 		row1 = game.Board.Height - 2
 	}
 
-	if piece.Type == Fu || piece.Type == Kyou {
+	if piece.Type == types.Fu || piece.Type == types.Kyou {
 		if move.End.Y == row0 {
 			return fmt.Errorf("Can drop piece with no move")
 		}
-	} else if piece.Type == Kei {
+	} else if piece.Type == types.Kei {
 		if move.End.Y == row0 || move.End.Y == row1 {
 			return fmt.Errorf("Can drop piece with no move")
 		}
@@ -103,8 +106,8 @@ func checkIkidokoronoNaiKoma(move Move, piece Piece, game Game) error {
 	return nil
 }
 
-func checkUtifudume(move Move, piece Piece, game Game) error {
-	if piece.Type != Fu {
+func checkUtifudume(move types.Move, piece types.Piece, game types.Game) error {
+	if piece.Type != types.Fu {
 		return nil
 	}
 
@@ -121,7 +124,7 @@ func checkUtifudume(move Move, piece Piece, game Game) error {
 	return nil
 }
 
-func getMochigomaOffset(game Game) int {
+func getMochigomaOffset(game types.Game) int {
 	offset := 0
 	if game.Turn == 1 {
 		offset = 7

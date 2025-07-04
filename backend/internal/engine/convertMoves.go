@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-func ConvertStringToMove(moveString string, game Game) (Move, error) {
-	var result Move
+func ConvertStringToMove(moveString string, game types.Game) (types.Move, error) {
+	var result types.Move
 
 	moveStrings := strings.Split(moveString, ",")
 	if len(moveStrings) != 2 {
@@ -90,7 +90,7 @@ func checkDropPiece(move string) *int {
 	}
 
 	komaChar := move[0]
-	koma, ok := shogiDropCharToMochiPiece[komaChar]
+	koma, ok := types.ShogiDropCharToMochiPiece[komaChar]
 	if !ok {
 		return nil
 	}
@@ -114,7 +114,7 @@ func checkPromotePiece(move string) *int {
 	}
 
 	pieceChar := move[moveLength-1]
-	piece, ok := chessPromoteCharToPiece[pieceChar]
+	piece, ok := types.ChessPromoteCharToPiece[pieceChar]
 	if !ok {
 		return result
 	}
@@ -123,7 +123,7 @@ func checkPromotePiece(move string) *int {
 	return result
 }
 
-func ConvertMoveToString(move Move, game Game) (string, error) {
+func ConvertMoveToString(move types.Move, game types.Game) (string, error) {
 	result := ""
 
 	startStr, err := convertStartMoveToString(move, game)
@@ -142,7 +142,7 @@ func ConvertMoveToString(move Move, game Game) (string, error) {
 	return result, nil
 }
 
-func convertStartMoveToString(move Move, game Game) (string, error) {
+func convertStartMoveToString(move types.Move, game types.Game) (string, error) {
 	result, err := convertPositionToString(move.Start, game)
 	if err != nil {
 		return result, err
@@ -150,7 +150,7 @@ func convertStartMoveToString(move Move, game Game) (string, error) {
 
 	if move.Drop != nil {
 		dropPiece := *move.Drop
-		pieceChar, ok := shogiMochiPieceToChar[dropPiece]
+		pieceChar, ok := types.ShogiMochiPieceToChar[dropPiece]
 		if !ok {
 			return "", fmt.Errorf("Invalid Drop Piece")
 		}
@@ -161,7 +161,7 @@ func convertStartMoveToString(move Move, game Game) (string, error) {
 	return result, nil
 }
 
-func convertPositionToString(pos types.Vec2, game Game) (string, error) {
+func convertPositionToString(pos types.Vec2, game types.Game) (string, error) {
 	result := ""
 
 	startWidthStr, err := utils.ConvertNumberToLowercase(pos.X + 1)
@@ -176,7 +176,7 @@ func convertPositionToString(pos types.Vec2, game Game) (string, error) {
 	return result, nil
 }
 
-func convertEndMoveToString(move Move, game Game) (string, error) {
+func convertEndMoveToString(move types.Move, game types.Game) (string, error) {
 	result := ""
 
 	endWidthStr, err := utils.ConvertNumberToLowercase(move.End.X + 1)
@@ -190,7 +190,7 @@ func convertEndMoveToString(move Move, game Game) (string, error) {
 
 	if move.Promote != nil {
 		if *move.Promote != 0 {
-			promotePiece, ok := chessPromotePieceToChar[*move.Promote]
+			promotePiece, ok := types.ChessPromotePieceToChar[*move.Promote]
 			if !ok {
 				return "", fmt.Errorf("Invalid Promote Piece")
 			}

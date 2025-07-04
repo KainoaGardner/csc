@@ -5,7 +5,7 @@ import (
 	"github.com/KainoaGardner/csc/internal/types"
 )
 
-func GetInCheck(game Game) bool {
+func GetInCheck(game types.Game) bool {
 	kings := getKingPos(game)
 	for _, king := range kings {
 		if checkUnderAttack(king, game) {
@@ -16,14 +16,14 @@ func GetInCheck(game Game) bool {
 	return false
 }
 
-func getKingPos(game Game) []types.Vec2 {
+func getKingPos(game types.Game) []types.Vec2 {
 	var result []types.Vec2
 
 	for i := 0; i < game.Board.Height; i++ {
 		for j := 0; j < game.Board.Width; j++ {
 			space := game.Board.Board[i][j]
 
-			if space != nil && space.Owner == game.Turn && (space.Type == King || space.Type == Ou) {
+			if space != nil && space.Owner == game.Turn && (space.Type == types.King || space.Type == types.Ou) {
 				result = append(result, types.Vec2{X: j, Y: i})
 			}
 		}
@@ -32,7 +32,7 @@ func getKingPos(game Game) []types.Vec2 {
 	return result
 }
 
-func checkUnderAttack(pos types.Vec2, game Game) bool {
+func checkUnderAttack(pos types.Vec2, game types.Game) bool {
 	attackSpace := map[types.Vec2]bool{}
 
 	game.Turn = getEnemyTurnInt(game)
@@ -54,7 +54,7 @@ func checkUnderAttack(pos types.Vec2, game Game) bool {
 	return ok
 }
 
-func GetInCheckmate(game Game) int {
+func GetInCheckmate(game types.Game) int {
 	if !GetInCheck(game) {
 		possibleMoves := getAllPossibleMovesCheckmate(game)
 
@@ -79,11 +79,11 @@ func GetInCheckmate(game Game) int {
 	possibleDrops := getAllPossibleDrops(game)
 	for i := 0; i < len(possibleDrops); i++ {
 		movePos := possibleDrops[i]
-		move := Move{}
+		move := types.Move{}
 		move.End = movePos
-		piece := Piece{}
+		piece := types.Piece{}
 		piece.Owner = game.Turn
-		piece.Type = Fu
+		piece.Type = types.Fu
 		gameCopy := copyGame(game)
 		gameCopy.Board.Board[movePos.Y][movePos.X] = &piece
 		if !GetInCheck(*gameCopy) {
@@ -94,10 +94,10 @@ func GetInCheckmate(game Game) int {
 	return 1
 }
 
-func getValidPieceMovesForCheckmate(pos types.Vec2, piece Piece, game Game) []types.Vec2 {
+func getValidPieceMovesForCheckmate(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {
 	dir := getMoveDirection(game)
 	possibleMoves := []types.Vec2{}
-	if piece.Type == King {
+	if piece.Type == types.King {
 		possibleMoves = getKingMoves(pos, piece, game)
 	} else {
 		possibleMoves = getPieceMoves(pos, piece, game, dir)
@@ -108,7 +108,7 @@ func getValidPieceMovesForCheckmate(pos types.Vec2, piece Piece, game Game) []ty
 	return possibleMoves
 }
 
-func getAllPossibleMovesCheckmate(game Game) []types.Vec2 {
+func getAllPossibleMovesCheckmate(game types.Game) []types.Vec2 {
 	var possibleMoves []types.Vec2
 	//check normal moves
 	for i := 0; i < game.Board.Height; i++ {
@@ -123,19 +123,19 @@ func getAllPossibleMovesCheckmate(game Game) []types.Vec2 {
 	return possibleMoves
 }
 
-func getAllPossibleDrops(game Game) []types.Vec2 {
+func getAllPossibleDrops(game types.Game) []types.Vec2 {
 	var possibleDrops []types.Vec2
 
 	for i := 0; i < game.Board.Height; i++ {
 		for j := 0; j < game.Board.Width; j++ {
 			for k := 0; k < 7; k++ {
-				move := Move{}
+				move := types.Move{}
 				move.End.X = j
 				move.End.Y = i
 				move.Drop = &k
-				piece := Piece{}
+				piece := types.Piece{}
 				piece.Owner = game.Turn
-				piece.Type = Fu + k
+				piece.Type = types.Fu + k
 				err := checkValidDrop(move, piece, game)
 				if err == nil {
 					possibleDrops = append(possibleDrops, move.End)

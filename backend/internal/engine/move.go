@@ -6,7 +6,7 @@ import (
 	"github.com/KainoaGardner/csc/internal/utils"
 )
 
-func updateHalfMoveCount(piece *Piece, takePiece *Piece, game *Game) {
+func updateHalfMoveCount(piece *types.Piece, takePiece *types.Piece, game *types.Game) {
 	if checkHalfMoveReset(piece, takePiece) {
 		game.HalfMoveCount = 0
 	} else {
@@ -14,24 +14,24 @@ func updateHalfMoveCount(piece *Piece, takePiece *Piece, game *Game) {
 	}
 }
 
-func updateMoveCount(game *Game) {
+func updateMoveCount(game *types.Game) {
 	if game.Turn == 1 {
 		game.MoveCount++
 	}
 }
 
-func updateEnPassantPosition(piece *Piece, move Move, game *Game, dir int) {
+func updateEnPassantPosition(piece *types.Piece, move types.Move, game *types.Game, dir int) {
 	//update enPassant position
-	if piece.Type == Pawn && utils.AbsoluteValueInt(move.Start.Y-move.End.Y) == 2 {
+	if piece.Type == types.Pawn && utils.AbsoluteValueInt(move.Start.Y-move.End.Y) == 2 {
 		game.EnPassant = &types.Vec2{X: move.Start.X, Y: move.Start.Y - dir}
 	} else {
 		game.EnPassant = nil
 	}
 }
 
-func updateMochigoma(takePiece *Piece, game *Game, offset int) error {
-	if takePiece != nil && takePiece.Type >= Fu && takePiece.Type <= Ryuu {
-		mochigoma, ok := shogiDropPieceToMochiPiece[takePiece.Type]
+func updateMochigoma(takePiece *types.Piece, game *types.Game, offset int) error {
+	if takePiece != nil && takePiece.Type >= types.Fu && takePiece.Type <= types.Ryuu {
+		mochigoma, ok := types.ShogiDropPieceToMochiPiece[takePiece.Type]
 		if !ok {
 			return fmt.Errorf("Error converting taken piece to mochigoma")
 		}
@@ -40,7 +40,7 @@ func updateMochigoma(takePiece *Piece, game *Game, offset int) error {
 	return nil
 }
 
-func updateRemoveStartPosition(move Move, game *Game, offset int, validCastle bool) {
+func updateRemoveStartPosition(move types.Move, game *types.Game, offset int, validCastle bool) {
 	if move.Drop != nil {
 		game.Mochigoma[*move.Drop+offset]--
 	} else if !validCastle {
@@ -48,13 +48,13 @@ func updateRemoveStartPosition(move Move, game *Game, offset int, validCastle bo
 	}
 }
 
-func updateEnPassantTakePosition(move Move, game *Game, dir int) {
+func updateEnPassantTakePosition(move types.Move, game *types.Game, dir int) {
 	if game.EnPassant != nil && move.End == *game.EnPassant {
 		game.Board.Board[move.End.Y-dir][move.End.X] = nil
 	}
 }
 
-func updateEndPosition(move Move, game *Game, piece *Piece, takePiece *Piece, dir int, validCastle bool) {
+func updateEndPosition(move types.Move, game *types.Game, piece *types.Piece, takePiece *types.Piece, dir int, validCastle bool) {
 	if validCastle {
 		dx := utils.AbsoluteValueInt(move.End.X-move.Start.X) - 1
 		kingX := (dx/2 + 1) * dir
@@ -69,16 +69,16 @@ func updateEndPosition(move Move, game *Game, piece *Piece, takePiece *Piece, di
 	piece.Moved = true
 }
 
-func UpdateMoveHistory(move string, game *Game) {
+func UpdateMoveHistory(move string, game *types.Game) {
 	game.Moves = append(game.Moves, move)
 }
 
-func checkHalfMoveReset(piece *Piece, takePiece *Piece) bool {
+func checkHalfMoveReset(piece *types.Piece, takePiece *types.Piece) bool {
 	if takePiece != nil {
 		return true
 	}
 
-	if piece != nil && (piece.Type == Pawn || piece.Type == Fu) {
+	if piece != nil && (piece.Type == types.Pawn || piece.Type == types.Fu) {
 		return true
 	}
 

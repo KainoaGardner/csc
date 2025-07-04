@@ -6,8 +6,8 @@ import (
 	"github.com/KainoaGardner/csc/internal/utils"
 )
 
-func TestGame(game Game) int {
-	game.Board.Board[0][0] = &Piece{Type: Ryuu, Owner: 1, Moved: true}
+func TestGame(game types.Game) int {
+	game.Board.Board[0][0] = &types.Piece{Type: types.Ryuu, Owner: 1, Moved: true}
 
 	return game.Board.Board[0][0].Type
 }
@@ -15,7 +15,7 @@ func TestGame(game Game) int {
 // if in check cant move unless not in check after
 
 // ADD other parts of move
-func MovePiece(move Move, game *Game) error {
+func MovePiece(move types.Move, game *types.Game) error {
 	err := checkGameOver(*game)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func MovePiece(move Move, game *Game) error {
 	}
 
 	takePiece := game.Board.Board[move.End.Y][move.End.X]
-	validCastle := takePiece != nil && piece.Type == King && takePiece.Type == Rook && takePiece.Owner == piece.Owner
+	validCastle := takePiece != nil && piece.Type == types.King && takePiece.Type == types.Rook && takePiece.Owner == piece.Owner
 
 	dir := getMoveDirection(*game)
 
@@ -61,7 +61,7 @@ func MovePiece(move Move, game *Game) error {
 			moveTurn := getEnemyTurnInt(*game)
 			game.Winner = &moveTurn
 		} else if checkmate == 2 {
-			tie := Tie
+			tie := types.Tie
 			game.Winner = &tie
 		}
 	}
@@ -69,7 +69,7 @@ func MovePiece(move Move, game *Game) error {
 	return nil
 }
 
-func CheckValidMove(move Move, game Game) error {
+func CheckValidMove(move types.Move, game types.Game) error {
 	err := checkMoveInBounds(move, game)
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func CheckValidMove(move Move, game Game) error {
 	return nil
 }
 
-func checkMoveInBounds(move Move, game Game) error {
+func checkMoveInBounds(move types.Move, game types.Game) error {
 	if move.Start.X < 0 || move.Start.X >= game.Board.Width {
 		return fmt.Errorf("Start x out of board bounds")
 	}
@@ -129,12 +129,12 @@ func checkMoveInBounds(move Move, game Game) error {
 	return nil
 }
 
-func getPiece(move Move, game Game) (*Piece, error) {
-	var piece *Piece
+func getPiece(move types.Move, game types.Game) (*types.Piece, error) {
+	var piece *types.Piece
 	if move.Drop != nil {
-		var dropPiece Piece
+		var dropPiece types.Piece
 		mochigoma := *move.Drop
-		koma, ok := shogiMochiPieceToDropPiece[mochigoma]
+		koma, ok := types.ShogiMochiPieceToDropPiece[mochigoma]
 		if !ok {
 			return piece, fmt.Errorf("Could not fight correct piece from drop mochigoma")
 		}
@@ -157,7 +157,7 @@ func getPiece(move Move, game Game) (*Piece, error) {
 	return piece, nil
 }
 
-func checkPositionInbounds(pos types.Vec2, game Game) bool {
+func checkPositionInbounds(pos types.Vec2, game types.Game) bool {
 	if pos.X < 0 || pos.X >= game.Board.Width {
 		return false
 	}
@@ -168,7 +168,7 @@ func checkPositionInbounds(pos types.Vec2, game Game) bool {
 	return true
 }
 
-func getEnemyTurnInt(game Game) int {
+func getEnemyTurnInt(game types.Game) int {
 	if game.Turn == 0 {
 		return 1
 	} else {
@@ -176,7 +176,7 @@ func getEnemyTurnInt(game Game) int {
 	}
 }
 
-func checkCheckerJumpMove(move Move, game Game) error {
+func checkCheckerJumpMove(move types.Move, game types.Game) error {
 	if game.CheckerJump == nil {
 		return nil
 	}
@@ -188,7 +188,7 @@ func checkCheckerJumpMove(move Move, game Game) error {
 	return nil
 }
 
-func checkGameOver(game Game) error {
+func checkGameOver(game types.Game) error {
 	if game.Winner != nil {
 		return fmt.Errorf("Game is over")
 	}

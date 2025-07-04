@@ -1,8 +1,4 @@
-package engine
-
-import (
-	"github.com/KainoaGardner/csc/internal/types"
-)
+package types
 
 type Piece struct {
 	Type  int
@@ -26,14 +22,19 @@ type Game struct {
 	MoveCount     int
 	HalfMoveCount int
 	Moves         []string `bson:"moves" json:"moves"`
-	EnPassant     *types.Vec2
-	CheckerJump   *types.Vec2
+	EnPassant     *Vec2
+	CheckerJump   *Vec2
 	Winner        *int
 }
 
+const (
+	MochigomaSize        = 14
+	MochigomaBlackOffset = 7
+)
+
 type Move struct {
-	Start   types.Vec2
-	End     types.Vec2
+	Start   Vec2
+	End     Vec2
 	Promote *int
 	Drop    *int
 }
@@ -52,11 +53,6 @@ const (
 	White = iota
 	Black
 	Tie
-)
-
-const (
-	MochigomaSize        = 14
-	MochigomaBlackOffset = 7
 )
 
 const (
@@ -85,7 +81,7 @@ const (
 	CheckerKing
 )
 
-var shogiDropCharToPiece = map[byte]int{
+var ShogiDropCharToPiece = map[byte]int{
 	'P': Fu,
 	'L': Kyou,
 	'N': Kei,
@@ -95,7 +91,7 @@ var shogiDropCharToPiece = map[byte]int{
 	'R': Hi,
 }
 
-var shogiDropPieceToChar = map[int]byte{
+var ShogiDropPieceToChar = map[int]byte{
 	Fu:   'P',
 	Kyou: 'L',
 	Kei:  'N',
@@ -105,7 +101,7 @@ var shogiDropPieceToChar = map[int]byte{
 	Hi:   'R',
 }
 
-var shogiDropPieceToMochiPiece = map[int]int{
+var ShogiDropPieceToMochiPiece = map[int]int{
 	Fu:       MochiFu,
 	Kyou:     MochiKyou,
 	Kei:      MochiKei,
@@ -121,7 +117,7 @@ var shogiDropPieceToMochiPiece = map[int]int{
 	Ryuu:     MochiHi,
 }
 
-var shogiMochiPieceToDropPiece = map[int]int{
+var ShogiMochiPieceToDropPiece = map[int]int{
 	MochiFu:   Fu,
 	MochiKyou: Kyou,
 	MochiKei:  Kei,
@@ -131,7 +127,7 @@ var shogiMochiPieceToDropPiece = map[int]int{
 	MochiHi:   Hi,
 }
 
-var shogiDropCharToMochiPiece = map[byte]int{
+var ShogiDropCharToMochiPiece = map[byte]int{
 	'P': MochiFu,
 	'L': MochiKyou,
 	'N': MochiKei,
@@ -141,7 +137,7 @@ var shogiDropCharToMochiPiece = map[byte]int{
 	'R': MochiHi,
 }
 
-var shogiMochiPieceToChar = map[int]byte{
+var ShogiMochiPieceToChar = map[int]byte{
 	MochiFu:   'P',
 	MochiKyou: 'L',
 	MochiKei:  'N',
@@ -151,7 +147,7 @@ var shogiMochiPieceToChar = map[int]byte{
 	MochiHi:   'R',
 }
 
-var chessPromotePieceToChar = map[int]byte{
+var ChessPromotePieceToChar = map[int]byte{
 	Pawn:   'P',
 	Knight: 'N',
 	Bishop: 'B',
@@ -159,7 +155,7 @@ var chessPromotePieceToChar = map[int]byte{
 	Queen:  'Q',
 }
 
-var chessPromoteCharToPiece = map[byte]int{
+var ChessPromoteCharToPiece = map[byte]int{
 	'P': Pawn,
 	'N': Knight,
 	'B': Bishop,
@@ -167,7 +163,7 @@ var chessPromoteCharToPiece = map[byte]int{
 	'Q': Queen,
 }
 
-var fenPieceToString = map[int]string{
+var FenPieceToString = map[int]string{
 	Pawn:        "CP",
 	Knight:      "CN",
 	Bishop:      "CB",
