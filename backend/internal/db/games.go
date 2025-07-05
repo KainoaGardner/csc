@@ -91,3 +91,39 @@ func PlaceUpdate(client *mongo.Client, db config.DB, gameID string, place types.
 
 	return nil
 }
+
+func MoveUpdate(client *mongo.Client, db config.DB, gameID string, game types.Game) error {
+	id, err := primitive.ObjectIDFromHex(gameID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": game}
+
+	collection := client.Database(db.Name).Collection(db.Collections.Games)
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func StateUpdate(client *mongo.Client, db config.DB, gameID string, game types.Game) error {
+	id, err := primitive.ObjectIDFromHex(gameID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{"state": game.State}}
+
+	collection := client.Database(db.Name).Collection(db.Collections.Games)
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

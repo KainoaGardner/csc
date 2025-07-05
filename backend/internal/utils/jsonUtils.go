@@ -3,6 +3,7 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/KainoaGardner/csc/internal/types"
 	"net/http"
 )
 
@@ -22,4 +23,14 @@ func WriteJSON(w http.ResponseWriter, status int, v any) error {
 
 func WriteError(w http.ResponseWriter, status int, err error) {
 	WriteJSON(w, status, map[string]string{"error": err.Error()})
+}
+
+func WriteResponse(w http.ResponseWriter, status int, message string, data any) error {
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(status)
+
+	var response types.APIRespone
+	response.Message = message
+	response.Data = data
+	return json.NewEncoder(w).Encode(response)
 }

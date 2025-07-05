@@ -7,7 +7,6 @@ import (
 	"strings"
 )
 
-// Alternate FEN 2 Char
 func ConvertBoardToString(game types.Game) (string, error) {
 	result := ""
 
@@ -40,7 +39,10 @@ func ConvertBoardToString(game types.Game) (string, error) {
 	result += halfMoveCountString + " "
 
 	moveCountString := getMoveCountString(game)
-	result += moveCountString
+	result += moveCountString + " "
+
+	timeString := getTimeString(game)
+	result += timeString
 
 	return result, nil
 }
@@ -140,4 +142,13 @@ func getHalfMoveCountString(game types.Game) string {
 
 func getMoveCountString(game types.Game) string {
 	return strconv.Itoa(game.MoveCount)
+}
+
+func getTimeString(game types.Game) string {
+	result := ""
+
+	result += strconv.Itoa(game.Time[0]) + "/"
+	result += strconv.Itoa(game.Time[1])
+
+	return result
 }

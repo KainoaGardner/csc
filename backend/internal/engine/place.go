@@ -5,6 +5,48 @@ import (
 	"github.com/KainoaGardner/csc/internal/types"
 )
 
+func PlacePiece(place types.Place, game *types.Game) error {
+	err := checkGameState(types.PlaceState, game.State)
+	if err != nil {
+		return err
+	}
+
+	err = checkValidPlace(place, *game)
+	if err != nil {
+		return err
+	}
+
+	updatePlacePiece(place, game)
+	return nil
+}
+
+func PlacePieceDelete(place types.Place, game *types.Game) error {
+	err := checkGameState(types.PlaceState, game.State)
+	if err != nil {
+		return err
+	}
+
+	err = checkValidPlaceDelete(place, *game)
+	if err != nil {
+		return err
+	}
+
+	updateDeletePlacePiece(place, game)
+
+	return nil
+}
+
+func updatePlacePiece(place types.Place, game *types.Game) {
+	piece := types.Piece{}
+	piece.Owner = place.Turn
+	piece.Type = place.Type
+
+	game.Board.Board[place.Pos.Y][place.Pos.X] = &piece
+
+	//set to actual cost
+	game.Money[place.Turn] -= place.Cost
+}
+
 func checkValidPlace(place types.Place, game types.Game) error {
 	err := checkEnoughMoney(place, game)
 	if err != nil {
@@ -24,6 +66,53 @@ func checkValidPlace(place types.Place, game types.Game) error {
 	err = checkEmptyPlaceSpace(place, game)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func updateDeletePlacePiece(place types.Place, game *types.Game) error {
+	piece := game.Board.Board[place.Pos.Y][place.Pos.X]
+	if piece == nil {
+		return fmt.Errorf("Cannot delete empty piece")
+	}
+
+	place.Type = piece.Type
+
+	cost, ok := types.PieceToCost[place.Type]
+	if !ok {
+		return fmt.Errorf("Could not get cost of piece")
+	}
+
+	place.Cost = cost
+
+	game.Board.Board[place.Pos.Y][place.Pos.X] = nil
+	game.Money[place.Turn] += place.Cost
+	return nil
+}
+
+func checkValidPlaceDelete(place types.Place, game types.Game) error {
+	err := checkPlaceInBounds(place, game)
+	if err != nil {
+		return err
+	}
+
+	err = checkPlayerPiece(place, game)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func checkPlayerPiece(place types.Place, game types.Game) error {
+	piece := game.Board.Board[place.Pos.Y][place.Pos.X]
+	if piece == nil {
+		return fmt.Errorf("Cannot delete empty piece")
+	}
+
+	if piece.Owner != place.Turn {
+		return fmt.Errorf("Cannot delete opponents piece")
 	}
 
 	return nil
@@ -81,13 +170,50 @@ func checkValidPlaceType(place types.PostPlace) error {
 	return fmt.Errorf("Invalid place type")
 }
 
-func updatePlacePiece(place types.Place, game *types.Game) {
-	piece := types.Piece{}
-	piece.Owner = place.Turn
-	piece.Type = place.Type
+func SetupPlace(placeConfig types.PostPlace, userID string, game types.Game) (types.Place, error) {
+	var result types.Place
 
-	game.Board.Board[place.Pos.Y][place.Pos.X] = &piece
+	turn, err := GetTurnFromID(userID, game) //USE id
+	if err != nil {
+		return result, fmt.Errorf("Could not get turn from player ID")
+	}
+	result.Turn = turn
 
-	//set to actual cost
-	game.Money[place.Turn] -= place.Cost
+	err = checkValidPlaceType(placeConfig)
+	if err != nil {
+		return result, err
+	}
+	result.Type = placeConfig.Type
+
+	position, err := convertStringToPosition(placeConfig.Position, game.Board.Height)
+	if err != nil {
+		return result, err
+	}
+	result.Pos = position
+
+	cost, ok := types.PieceToCost[result.Type]
+	if !ok {
+		return result, fmt.Errorf("Could not get cost of piece")
+	}
+	result.Cost = cost
+
+	return result, nil
+}
+
+func SetupDeletePlace(placeConfig types.DeletePlace, userID string, game types.Game) (types.Place, error) {
+	var result types.Place
+
+	turn, err := GetTurnFromID(userID, game) //USE id
+	if err != nil {
+		return result, fmt.Errorf("Could not get turn from player ID")
+	}
+	result.Turn = turn
+
+	position, err := convertStringToPosition(placeConfig.Position, game.Board.Height)
+	if err != nil {
+		return result, err
+	}
+	result.Pos = position
+
+	return result, nil
 }

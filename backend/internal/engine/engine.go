@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/KainoaGardner/csc/internal/types"
 	"github.com/KainoaGardner/csc/internal/utils"
+	"strconv"
 )
 
 func TestGame(game types.Game) int {
@@ -16,11 +17,12 @@ func TestGame(game types.Game) int {
 
 // ADD other parts of move
 func MovePiece(move types.Move, game *types.Game) error {
-	if game.State != 1 {
-		return fmt.Errorf("Not play state")
+	err := checkGameState(types.MoveState, game.State)
+	if err != nil {
+		return err
 	}
 
-	err := checkGameOver(*game)
+	err = checkGameOver(*game)
 	if err != nil {
 		return err
 	}
@@ -220,7 +222,7 @@ func SetupNewGame(gameConfig types.PostGame) (*types.Game, error) {
 	game.Board.PlaceLine = gameConfig.PlaceLine
 
 	//REMOVE LATER
-	game.State = 1
+	game.State = 0
 
 	return &game, nil
 }
@@ -241,60 +243,34 @@ func checkSetupConfig(gameConfig types.PostGame) error {
 	return nil
 }
 
-func PlacePiece(place types.Place, game *types.Game) error {
-	if game.State != 1 {
-		return fmt.Errorf("Not place state")
+func GetTurnFromID(id string, game types.Game) (int, error) {
+	var result int
+
+	// if id == game.WhiteID {
+	// 	result = 0
+	// } else if id == game.BlackID {
+	// 	result = 1
+	// } else {
+	// 	return 0, fmt.Errorf("Invalid ID")
+	// }
+
+	result, _ = strconv.Atoi(id) //TEMP
+
+	return result, nil
+}
+
+func checkGameState(mode int, state int) error {
+	if state != mode {
+		return fmt.Errorf("Incorrect state")
 	}
 
-	err := checkValidPlace(place, *game)
-	if err != nil {
-		return err
-	}
-
-	updatePlacePiece(place, game)
 	return nil
 }
 
-func getTurnFromID(id string, game types.Game) (int, error) {
-	var result int
-
-	if id == game.WhiteID {
-		result = 0
-	} else if id == game.BlackID {
-		result = 1
-	} else {
-		return 0, fmt.Errorf("Invalid ID")
+func CheckTurn(turn int, gameTurn int) error {
+	if turn != gameTurn {
+		return fmt.Errorf("Not your turn")
 	}
 
-	return result, nil
-}
-
-func SetupPlace(placeConfig types.PostPlace, userID string, game types.Game) (types.Place, error) {
-	var result types.Place
-
-	turn, err := getTurnFromID(userID, game)
-	if err != nil {
-		return result, fmt.Errorf("Could not get turn from player ID")
-	}
-	result.Turn = turn
-
-	err = checkValidPlaceType(placeConfig)
-	if err != nil {
-		return result, err
-	}
-	result.Type = placeConfig.Type
-
-	position, err := convertStringToPosition(placeConfig.Position, game.Board.Height)
-	if err != nil {
-		return result, err
-	}
-	result.Pos = position
-
-	cost, ok := types.PieceToCost[result.Type]
-	if !ok {
-		return result, fmt.Errorf("Could not get cost of piece")
-	}
-	result.Cost = cost
-
-	return result, nil
+	return nil
 }

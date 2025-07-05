@@ -31,10 +31,20 @@ type Game struct {
 	CheckerJump   *Vec2              `bson:"checkerJump" json:"checkerJump"`
 	Winner        *int               `bson:"winner" json:"winner"`
 	State         int                `bson:"state" json:"state"` //0 place,1 move,2 over
-	Time          [2]int64           `bson:"time" json:"time"`
+	Time          [2]int             `bson:"time" json:"time"`
 	LastMoveTime  time.Time          `bson:"lastMoveTime" json:"lastMoveTime"`
 	Money         [2]int             `bson:"money" json:"money"`
 }
+
+/*
+board
+mochigoma
+turn
+moveCount
+enPassant
+CheckerJump
+time
+*/
 
 type GameLogs struct {
 	ID          primitive.ObjectID `bson:"_id.omitempty" json:"_id.omitempty"`
@@ -74,6 +84,13 @@ const (
 	White = iota
 	Black
 	Tie
+)
+
+const ( //states
+	ConnectState = iota
+	PlaceState
+	MoveState
+	OverState
 )
 
 const (
