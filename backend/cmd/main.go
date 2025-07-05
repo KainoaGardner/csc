@@ -26,10 +26,8 @@ func main() {
 		}
 	}()
 
-	fmt.Println(client)
-
 	server := api.NewAPIServer(fmt.Sprintf("%s:%s", config.PublicHost, config.Port))
-	if err := server.Run(); err != nil {
+	if err := server.Run(client, config.DB); err != nil {
 		log.Fatal(err)
 	}
 }

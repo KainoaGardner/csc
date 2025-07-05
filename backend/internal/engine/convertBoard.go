@@ -15,6 +15,7 @@ func ConvertBoardToString(game types.Game) (string, error) {
 	if err != nil {
 		return result, err
 	}
+
 	result += piecePositionString + " "
 
 	mochigomaString := convertMochigomaToString(game)

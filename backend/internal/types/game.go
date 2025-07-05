@@ -1,30 +1,44 @@
 package types
 
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"time"
+)
+
 type Piece struct {
-	Type  int
-	Owner int
-	Moved bool
+	Type  int  `bson:"type" json:"type"`
+	Owner int  `bson:"owner" json:"owner"`
+	Moved bool `bson:"moved" json:"moved"`
 }
 
 type Board struct {
-	Width  int        `bson:"width" json:"width"`
-	Height int        `bson:"height" json:"height"`
-	Board  [][]*Piece `bson:"board" json:"board"`
+	Width     int        `bson:"width" json:"width"`
+	Height    int        `bson:"height" json:"height"`
+	PlaceLine int        `bson:"placeLine" json:"placeLine"`
+	Board     [][]*Piece `bson:"board" json:"board"`
 }
 
 type Game struct {
-	ID            int                `bson:"_id.omitempty" json:"id"`
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
 	Board         Board              `bson:"board" json:"board"`
-	WhiteID       int                `bson:"white_id" json:"white_id"`
-	BlackID       int                `bson:"black_id" json:"black_id"`
+	WhiteID       string             `bson:"whiteID" json:"whiteID"`
+	BlackID       string             `bson:"blackID" json:"blackID"`
 	Mochigoma     [MochigomaSize]int `bson:"mochigoma" json:"mochigoma"` //turn 0=0-6  turn 1=7-13 | order 歩香桂銀金角飛
 	Turn          int                `bson:"turn" json:"turn"`
-	MoveCount     int
-	HalfMoveCount int
-	Moves         []string `bson:"moves" json:"moves"`
-	EnPassant     *Vec2
-	CheckerJump   *Vec2
-	Winner        *int
+	MoveCount     int                `bson:"moveCount" json:"moveCount"`
+	HalfMoveCount int                `bson:"halfMoveCount" json:"halfMoveCount"`
+	EnPassant     *Vec2              `bson:"enPassant" json:"enPassant"`
+	CheckerJump   *Vec2              `bson:"checkerJump" json:"checkerJump"`
+	Winner        *int               `bson:"winner" json:"winner"`
+	State         int                `bson:"state" json:"state"` //0 place,1 move,2 over
+	Time          [2]int64           `bson:"time" json:"time"`
+	LastMoveTime  time.Time          `bson:"lastMoveTime" json:"lastMoveTime"`
+	Money         [2]int             `bson:"money" json:"money"`
+}
+
+type GameLogs struct {
+	ID          primitive.ObjectID `bson:"_id.omitempty" json:"_id.omitempty"`
+	BoardStates []string           `bson:"boardStates" json:"boardStates"`
 }
 
 const (
@@ -37,6 +51,13 @@ type Move struct {
 	End     Vec2
 	Promote *int
 	Drop    *int
+}
+
+type Place struct {
+	Pos  Vec2
+	Type int
+	Turn int
+	Cost int
 }
 
 const (
@@ -186,4 +207,25 @@ var FenPieceToString = map[int]string{
 	Ryuu:        "NR",
 	Checker:     "KC",
 	CheckerKing: "KK",
+}
+
+var PieceToCost = map[int]int{
+	King: 50,
+	Ou:   45,
+
+	Pawn:   3,
+	Knight: 20,
+	Bishop: 25,
+	Rook:   30,
+	Queen:  50,
+
+	Fu:   3,
+	Kyou: 8,
+	Kei:  12,
+	Gin:  15,
+	Kin:  20,
+	Kaku: 28,
+	Hi:   35,
+
+	Checker: 10,
 }

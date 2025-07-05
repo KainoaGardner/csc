@@ -69,10 +69,6 @@ func updateEndPosition(move types.Move, game *types.Game, piece *types.Piece, ta
 	piece.Moved = true
 }
 
-func UpdateMoveHistory(move string, game *types.Game) {
-	game.Moves = append(game.Moves, move)
-}
-
 func checkHalfMoveReset(piece *types.Piece, takePiece *types.Piece) bool {
 	if takePiece != nil {
 		return true

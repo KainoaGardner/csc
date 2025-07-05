@@ -4,6 +4,10 @@ import (
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/cors"
+
+	"github.com/KainoaGardner/csc/internal/config"
+	"go.mongodb.org/mongo-driver/mongo"
+
 	"log"
 	"net/http"
 )
@@ -18,7 +22,7 @@ func NewAPIServer(addr string) *APIServer {
 	}
 }
 
-func (s *APIServer) Run() error {
+func (s *APIServer) Run(client *mongo.Client, dbConfig config.DB) error {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
@@ -32,7 +36,7 @@ func (s *APIServer) Run() error {
 	}))
 
 	r.Route("/", func(r chi.Router) {
-		handHandler := NewHandler()
+		handHandler := NewHandler(client, dbConfig)
 		handHandler.RegisterRoutes(r)
 
 	})

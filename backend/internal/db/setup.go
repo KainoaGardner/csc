@@ -20,6 +20,6 @@ func ConnectToDB(context context.Context, db config.DB) (*mongo.Client, error) {
 		return nil, err
 	}
 
-	log.Println("Connect to MongoDB")
+	log.Println("Connected to MongoDB")
 	return client, nil
 }

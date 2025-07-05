@@ -16,12 +16,16 @@ func TestGame(game types.Game) int {
 
 // ADD other parts of move
 func MovePiece(move types.Move, game *types.Game) error {
+	if game.State != 1 {
+		return fmt.Errorf("Not play state")
+	}
+
 	err := checkGameOver(*game)
 	if err != nil {
 		return err
 	}
 
-	err = CheckValidMove(move, *game)
+	err = checkValidMove(move, *game)
 	if err != nil {
 		return err
 	}
@@ -69,7 +73,7 @@ func MovePiece(move types.Move, game *types.Game) error {
 	return nil
 }
 
-func CheckValidMove(move types.Move, game types.Game) error {
+func checkValidMove(move types.Move, game types.Game) error {
 	err := checkMoveInBounds(move, game)
 	if err != nil {
 		return err
@@ -194,4 +198,103 @@ func checkGameOver(game types.Game) error {
 	}
 
 	return nil
+}
+
+func SetupNewGame(gameConfig types.PostGame) (*types.Game, error) {
+	err := checkSetupConfig(gameConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	game := types.Game{}
+	game.Time = gameConfig.StartTime
+	game.Money = gameConfig.Money
+
+	game.Board.Width = gameConfig.Width
+	game.Board.Height = gameConfig.Height
+	game.Board.Board = make([][]*types.Piece, game.Board.Height)
+	for i := range game.Board.Board {
+		game.Board.Board[i] = make([]*types.Piece, game.Board.Width)
+	}
+
+	game.Board.PlaceLine = gameConfig.PlaceLine
+
+	//REMOVE LATER
+	game.State = 1
+
+	return &game, nil
+}
+
+func checkSetupConfig(gameConfig types.PostGame) error {
+	if gameConfig.StartTime[0] < 0 || gameConfig.StartTime[1] < 0 {
+		return fmt.Errorf("Cannot have negative start time")
+	}
+
+	if gameConfig.Money[0] < 0 || gameConfig.Money[1] < 0 {
+		return fmt.Errorf("Cannot have negative money")
+	}
+
+	if gameConfig.Width <= 0 || gameConfig.Height <= 0 {
+		return fmt.Errorf("Cannot have negative or 0 Width or Height")
+	}
+
+	return nil
+}
+
+func PlacePiece(place types.Place, game *types.Game) error {
+	if game.State != 1 {
+		return fmt.Errorf("Not place state")
+	}
+
+	err := checkValidPlace(place, *game)
+	if err != nil {
+		return err
+	}
+
+	updatePlacePiece(place, game)
+	return nil
+}
+
+func getTurnFromID(id string, game types.Game) (int, error) {
+	var result int
+
+	if id == game.WhiteID {
+		result = 0
+	} else if id == game.BlackID {
+		result = 1
+	} else {
+		return 0, fmt.Errorf("Invalid ID")
+	}
+
+	return result, nil
+}
+
+func SetupPlace(placeConfig types.PostPlace, userID string, game types.Game) (types.Place, error) {
+	var result types.Place
+
+	turn, err := getTurnFromID(userID, game)
+	if err != nil {
+		return result, fmt.Errorf("Could not get turn from player ID")
+	}
+	result.Turn = turn
+
+	err = checkValidPlaceType(placeConfig)
+	if err != nil {
+		return result, err
+	}
+	result.Type = placeConfig.Type
+
+	position, err := convertStringToPosition(placeConfig.Position, game.Board.Height)
+	if err != nil {
+		return result, err
+	}
+	result.Pos = position
+
+	cost, ok := types.PieceToCost[result.Type]
+	if !ok {
+		return result, fmt.Errorf("Could not get cost of piece")
+	}
+	result.Cost = cost
+
+	return result, nil
 }

@@ -5,18 +5,12 @@ import (
 )
 
 func copyFullGame(game types.Game) *types.Game {
-	gameCopy := types.Game{}
-
-	gameCopy.ID = game.ID
-	gameCopy.WhiteID = game.WhiteID
-	gameCopy.BlackID = game.BlackID
-	gameCopy.Turn = game.Turn
-	gameCopy.MoveCount = game.MoveCount
-	gameCopy.HalfMoveCount = game.HalfMoveCount
+	gameCopy := game
 
 	boardCopy := types.Board{}
 	boardCopy.Width = game.Board.Width
 	boardCopy.Height = game.Board.Height
+	boardCopy.PlaceLine = game.Board.PlaceLine
 
 	boardCopy.Board = make([][]*types.Piece, game.Board.Height)
 	for i := range game.Board.Board {
@@ -39,8 +33,6 @@ func copyFullGame(game types.Game) *types.Game {
 	}
 
 	gameCopy.Board = boardCopy
-	gameCopy.Mochigoma = game.Mochigoma
-	gameCopy.Moves = game.Moves
 
 	if game.EnPassant != nil {
 		enPassantPos := types.Vec2{X: game.EnPassant.X, Y: game.EnPassant.Y}
@@ -60,9 +52,7 @@ func copyFullGame(game types.Game) *types.Game {
 }
 
 func copyGame(game types.Game) *types.Game {
-	gameCopy := types.Game{}
-
-	gameCopy.Turn = game.Turn
+	gameCopy := game
 
 	boardCopy := types.Board{}
 	boardCopy.Width = game.Board.Width
@@ -90,8 +80,6 @@ func copyGame(game types.Game) *types.Game {
 	}
 
 	gameCopy.Board = boardCopy
-
-	gameCopy.Mochigoma = game.Mochigoma
 
 	if game.EnPassant != nil {
 		enPassantPos := types.Vec2{X: game.EnPassant.X, Y: game.EnPassant.Y}
