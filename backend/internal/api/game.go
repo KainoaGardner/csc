@@ -40,7 +40,7 @@ func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
 		ids = append(ids, idString)
 	}
 
-	utils.WriteJSON(w, http.StatusOK, ids)
+	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("%d games found", len(ids)), ids)
 }
 
 func (h *Handler) deleteAllGames(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +50,9 @@ func (h *Handler) deleteAllGames(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, fmt.Sprintf("%d games deleted", amount))
+	data := map[string]interface{}{"count": amount}
+
+	utils.WriteResponse(w, http.StatusOK, "Games deleted", data)
 }
 
 func (h *Handler) postCreateGame(w http.ResponseWriter, r *http.Request) {
@@ -73,7 +75,18 @@ func (h *Handler) postCreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, gameID)
+	data := types.PostGameResponse{
+		ID:        gameID,
+		WhiteID:   game.WhiteID,
+		BlackID:   game.BlackID,
+		Color:     "w",
+		Width:     game.Board.Width,
+		Height:    game.Board.Height,
+		Money:     game.Money,
+		PlaceLine: game.Board.PlaceLine,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Game created"), data)
 }
 
 func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
@@ -90,8 +103,11 @@ func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(result)
-	utils.WriteJSON(w, http.StatusOK, result)
+	data := map[string]interface{}{
+		"fen": result,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, "Board", data)
 }
 
 func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
@@ -143,9 +159,7 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 		FEN:  fen,
 		Move: postMove.Move,
 	}
-
-	utils.WriteResponse(w, http.StatusOK, "Piece Moved", data)
-
+	utils.WriteResponse(w, http.StatusOK, "Piece moved", data)
 }
 
 func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
@@ -181,7 +195,21 @@ func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, "Piece Placed")
+	fen, err := engine.ConvertBoardToString(*game)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data := types.PlaceResponse{
+		FEN:      fen,
+		Position: postPlace.Position,
+		Type:     postPlace.Type,
+		Cost:     place.Cost,
+		Money:    game.Money,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, "Piece placed", data)
 }
 
 func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
@@ -205,7 +233,7 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = engine.PlacePieceDelete(place, game)
+	err = engine.PlacePieceDelete(&place, game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -217,7 +245,21 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, "Piece Deleted")
+	fen, err := engine.ConvertBoardToString(*game)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data := types.PlaceResponse{
+		FEN:      fen,
+		Position: deletePlace.Position,
+		Type:     place.Type,
+		Cost:     -place.Cost,
+		Money:    game.Money,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, "Piece deleted", data)
 }
 
 func (h *Handler) postState(w http.ResponseWriter, r *http.Request) {
@@ -243,5 +285,9 @@ func (h *Handler) postState(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteJSON(w, http.StatusOK, game.State)
+	data := map[string]interface{}{
+		"state": game.State,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, "State changed", data)
 }

@@ -36,16 +36,6 @@ type Game struct {
 	Money         [2]int             `bson:"money" json:"money"`
 }
 
-/*
-board
-mochigoma
-turn
-moveCount
-enPassant
-CheckerJump
-time
-*/
-
 type GameLogs struct {
 	ID          primitive.ObjectID `bson:"_id.omitempty" json:"_id.omitempty"`
 	BoardStates []string           `bson:"boardStates" json:"boardStates"`

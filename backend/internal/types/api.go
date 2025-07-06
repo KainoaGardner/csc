@@ -26,11 +26,30 @@ type DeletePlace struct {
 	Turn     int    `json:"turn"` //TEMP USE SENT ID INSTEAD
 }
 
+type PlaceResponse struct {
+	FEN      string `json:"fen"`
+	Position string `json:"position"`
+	Type     int    `json:"type"`
+	Cost     int    `json:"cost"`
+	Money    [2]int `json:"money"`
+}
+
 type PostGame struct {
 	Width     int    `json:"width"`
 	Height    int    `json:"height"`
 	Money     [2]int `json:"money"`
 	StartTime [2]int `json:"startTime"`
+	PlaceLine int    `json:"placeLine"`
+}
+
+type PostGameResponse struct {
+	ID        string `json:"id"`
+	WhiteID   string `json:"whiteID"`
+	BlackID   string `json:"blackID"`
+	Color     string `json:"color"`
+	Width     int    `json:"width"`
+	Height    int    `json:"height"`
+	Money     [2]int `json:"money"`
 	PlaceLine int    `json:"placeLine"`
 }
 

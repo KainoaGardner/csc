@@ -20,13 +20,13 @@ func PlacePiece(place types.Place, game *types.Game) error {
 	return nil
 }
 
-func PlacePieceDelete(place types.Place, game *types.Game) error {
+func PlacePieceDelete(place *types.Place, game *types.Game) error {
 	err := checkGameState(types.PlaceState, game.State)
 	if err != nil {
 		return err
 	}
 
-	err = checkValidPlaceDelete(place, *game)
+	err = checkValidPlaceDelete(*place, *game)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func checkValidPlace(place types.Place, game types.Game) error {
 	return nil
 }
 
-func updateDeletePlacePiece(place types.Place, game *types.Game) error {
+func updateDeletePlacePiece(place *types.Place, game *types.Game) error {
 	piece := game.Board.Board[place.Pos.Y][place.Pos.X]
 	if piece == nil {
 		return fmt.Errorf("Cannot delete empty piece")
