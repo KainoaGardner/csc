@@ -22,5 +22,6 @@ func NewHandler(client *mongo.Client, dbConfig config.DB) *Handler {
 
 func (h *Handler) RegisterRoutes(r chi.Router) {
 	h.registerGameRoutes(r)
+	h.registerGameLogRoutes(r)
 	h.registerTestRoutes(r)
 }

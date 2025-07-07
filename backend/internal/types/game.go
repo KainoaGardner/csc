@@ -19,26 +19,24 @@ type Board struct {
 }
 
 type Game struct {
-	ID            primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
-	Board         Board              `bson:"board" json:"board"`
-	WhiteID       string             `bson:"whiteID" json:"whiteID"`
-	BlackID       string             `bson:"blackID" json:"blackID"`
-	Mochigoma     [MochigomaSize]int `bson:"mochigoma" json:"mochigoma"` //turn 0=0-6  turn 1=7-13 | order 歩香桂銀金角飛
-	Turn          int                `bson:"turn" json:"turn"`
-	MoveCount     int                `bson:"moveCount" json:"moveCount"`
-	HalfMoveCount int                `bson:"halfMoveCount" json:"halfMoveCount"`
-	EnPassant     *Vec2              `bson:"enPassant" json:"enPassant"`
-	CheckerJump   *Vec2              `bson:"checkerJump" json:"checkerJump"`
-	Winner        *int               `bson:"winner" json:"winner"`
-	State         int                `bson:"state" json:"state"` //0 place,1 move,2 over
-	Time          [2]int             `bson:"time" json:"time"`
-	LastMoveTime  time.Time          `bson:"lastMoveTime" json:"lastMoveTime"`
-	Money         [2]int             `bson:"money" json:"money"`
-}
-
-type GameLogs struct {
-	ID          primitive.ObjectID `bson:"_id.omitempty" json:"_id.omitempty"`
-	BoardStates []string           `bson:"boardStates" json:"boardStates"`
+	ID              primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	Board           Board              `bson:"board" json:"board"`
+	WhiteID         string             `bson:"whiteID" json:"whiteID"`
+	BlackID         string             `bson:"blackID" json:"blackID"`
+	Mochigoma       [MochigomaSize]int `bson:"mochigoma" json:"mochigoma"` //turn 0=0-6  turn 1=7-13 | order 歩香桂銀金角飛
+	Turn            int                `bson:"turn" json:"turn"`
+	MoveCount       int                `bson:"moveCount" json:"moveCount"`
+	HalfMoveCount   int                `bson:"halfMoveCount" json:"halfMoveCount"`
+	EnPassant       *Vec2              `bson:"enPassant" json:"enPassant"`
+	CheckerJump     *Vec2              `bson:"checkerJump" json:"checkerJump"`
+	Winner          *int               `bson:"winner" json:"winner"`
+	State           int                `bson:"state" json:"state"` //0 place,1 move,2 over
+	Time            [2]int64           `bson:"time" json:"time"`
+	LastMoveTime    time.Time          `bson:"lastMoveTime" json:"lastMoveTime"`
+	Money           [2]int             `bson:"money" json:"money"`
+	Ready           [2]bool            `bson:"ready" json:"ready"`
+	Draw            [2]bool            `bson:"draw" json:"draw"`
+	PositionHistory map[string]int     `bson:"positionHistory" json:"positionHistory"`
 }
 
 const (

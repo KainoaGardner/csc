@@ -1,7 +1,6 @@
 package engine
 
 import (
-	"fmt"
 	"github.com/KainoaGardner/csc/internal/types"
 )
 
@@ -54,26 +53,14 @@ func checkUnderAttack(pos types.Vec2, game types.Game) bool {
 	return ok
 }
 
-func GetInCheckmate(game types.Game) int {
+func GetInCheckmate(game types.Game) bool {
 	if !GetInCheck(game) {
-		possibleMoves := getAllPossibleMovesCheckmate(game)
-
-		fmt.Println(possibleMoves)
-		if len(possibleMoves) > 0 {
-			return 0
-		} else {
-			possibleDrops := getAllPossibleDrops(game)
-			if len(possibleDrops) > 0 {
-				return 0
-			} else {
-				return 2
-			}
-		}
+		return false
 	}
 
 	possibleMoves := getAllPossibleMovesCheckmate(game)
 	if len(possibleMoves) > 0 {
-		return 0
+		return false
 	}
 
 	possibleDrops := getAllPossibleDrops(game)
@@ -87,11 +74,11 @@ func GetInCheckmate(game types.Game) int {
 		gameCopy := copyGame(game)
 		gameCopy.Board.Board[movePos.Y][movePos.X] = &piece
 		if !GetInCheck(*gameCopy) {
-			return 0
+			return false
 		}
 	}
 
-	return 1
+	return true
 }
 
 func getValidPieceMovesForCheckmate(pos types.Vec2, piece types.Piece, game types.Game) []types.Vec2 {

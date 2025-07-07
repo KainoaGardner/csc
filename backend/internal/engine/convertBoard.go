@@ -47,6 +47,37 @@ func ConvertBoardToString(game types.Game) (string, error) {
 	return result, nil
 }
 
+func ConvertBoardToStringPositionKey(game types.Game) (string, error) {
+	result := ""
+
+	piecePositionString, err := convertPiecePositionToString(game)
+	if err != nil {
+		return result, err
+	}
+
+	result += piecePositionString + " "
+
+	mochigomaString := convertMochigomaToString(game)
+	result += mochigomaString + " "
+
+	turnString := getTurnString(game)
+	result += turnString + " "
+
+	enPassantString, err := getEnPassantString(game)
+	if err != nil {
+		return result, err
+	}
+	result += enPassantString + " "
+
+	checkerJumpString, err := getCheckerJumpString(game)
+	if err != nil {
+		return result, err
+	}
+	result += checkerJumpString + " "
+
+	return result, nil
+}
+
 func convertPiecePositionToString(game types.Game) (string, error) {
 	result := ""
 
@@ -147,8 +178,8 @@ func getMoveCountString(game types.Game) string {
 func getTimeString(game types.Game) string {
 	result := ""
 
-	result += strconv.Itoa(game.Time[0]) + "/"
-	result += strconv.Itoa(game.Time[1])
+	result += strconv.FormatInt(game.Time[0], 10) + "/"
+	result += strconv.FormatInt(game.Time[1], 10)
 
 	return result
 }

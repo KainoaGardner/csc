@@ -35,11 +35,11 @@ type PlaceResponse struct {
 }
 
 type PostGame struct {
-	Width     int    `json:"width"`
-	Height    int    `json:"height"`
-	Money     [2]int `json:"money"`
-	StartTime [2]int `json:"startTime"`
-	PlaceLine int    `json:"placeLine"`
+	Width     int      `json:"width"`
+	Height    int      `json:"height"`
+	Money     [2]int   `json:"money"`
+	StartTime [2]int64 `json:"startTime"`
+	PlaceLine int      `json:"placeLine"`
 }
 
 type PostGameResponse struct {
@@ -55,4 +55,8 @@ type PostGameResponse struct {
 
 type PostState struct {
 	State int `json:"state"`
+}
+
+type PostReady struct {
+	Turn int `json:"turn"`
 }

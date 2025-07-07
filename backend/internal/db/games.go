@@ -20,9 +20,6 @@ func CreateGame(client *mongo.Client, db config.DB, game *types.Game) (string, e
 		return "", err
 	}
 
-	// id := inserted.InsertedID.(primitive.ObjectID)
-	// game.ID = id
-
 	return game.ID.Hex(), nil
 }
 
@@ -72,7 +69,7 @@ func FindGame(client *mongo.Client, db config.DB, gameID string) (*types.Game, e
 	return &result, nil
 }
 
-func PlaceUpdate(client *mongo.Client, db config.DB, gameID string, place types.Place, game types.Game) error {
+func GamePlaceUpdate(client *mongo.Client, db config.DB, gameID string, place types.Place, game types.Game) error {
 	id, err := primitive.ObjectIDFromHex(gameID)
 	if err != nil {
 		return err
@@ -92,7 +89,7 @@ func PlaceUpdate(client *mongo.Client, db config.DB, gameID string, place types.
 	return nil
 }
 
-func MoveUpdate(client *mongo.Client, db config.DB, gameID string, game types.Game) error {
+func GameMoveUpdate(client *mongo.Client, db config.DB, gameID string, game types.Game) error {
 	id, err := primitive.ObjectIDFromHex(gameID)
 	if err != nil {
 		return err
@@ -110,7 +107,7 @@ func MoveUpdate(client *mongo.Client, db config.DB, gameID string, game types.Ga
 	return nil
 }
 
-func StateUpdate(client *mongo.Client, db config.DB, gameID string, game types.Game) error {
+func GameStateUpdate(client *mongo.Client, db config.DB, gameID string, game types.Game) error {
 	id, err := primitive.ObjectIDFromHex(gameID)
 	if err != nil {
 		return err
@@ -118,6 +115,24 @@ func StateUpdate(client *mongo.Client, db config.DB, gameID string, game types.G
 
 	filter := bson.M{"_id": id}
 	update := bson.M{"$set": bson.M{"state": game.State}}
+
+	collection := client.Database(db.Name).Collection(db.Collections.Games)
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GameReadyUpdate(client *mongo.Client, db config.DB, gameID string, game types.Game) error {
+	id, err := primitive.ObjectIDFromHex(gameID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{"state": game.State, "ready": game.Ready, "lastMoveTime": game.LastMoveTime}}
 
 	collection := client.Database(db.Name).Collection(db.Collections.Games)
 	_, err = collection.UpdateOne(context.Background(), filter, update)
