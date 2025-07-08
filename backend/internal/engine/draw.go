@@ -48,6 +48,10 @@ func checkStalemate(game types.Game) bool {
 }
 
 func updateMoveHistory(boardString string, game *types.Game) {
+	_, ok := game.PositionHistory[boardString]
+	if !ok {
+		game.PositionHistory[boardString] = 0
+	}
 	game.PositionHistory[boardString]++
 }
 

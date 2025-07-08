@@ -55,6 +55,7 @@ func MovePiece(move types.Move, game *types.Game) error {
 		if GetInCheckmate(*game) {
 			moveTurn := getEnemyTurnInt(*game)
 			game.Winner = &moveTurn
+			game.Reason = "Checkmate"
 			game.State = types.OverState
 		} else {
 			result, err := GetDraw(game)
@@ -64,6 +65,7 @@ func MovePiece(move types.Move, game *types.Game) error {
 			if result {
 				tie := types.Tie
 				game.Winner = &tie
+				game.Reason = "Draw"
 				game.State = types.OverState
 			}
 		}

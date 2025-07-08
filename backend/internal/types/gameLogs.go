@@ -7,6 +7,7 @@ import (
 
 type GameLog struct {
 	ID      primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	GameID  string             `bson:"gameID" json:"gameID"`
 	WhiteID string             `bson:"whiteID" json:"whiteID"`
 	BlackID string             `bson:"blackID" json:"blackID"`
 
@@ -16,6 +17,6 @@ type GameLog struct {
 	Moves       []string `bson:"moves" json:"moves"`
 	BoardStates []string `bson:"boardStates" json:"boardStates"`
 
-	Winner *string `bson:"winner" json:"winner"`
-	Reason string  `bson:"reason" json:"reason"`
+	Winner *int   `bson:"winner" json:"winner"`
+	Reason string `bson:"reason" json:"reason"`
 }

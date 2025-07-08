@@ -9,10 +9,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func CreateGameLog(client *mongo.Client, db config.DB, game types.Game, gameLog types.GameLog) (string, error) {
+func CreateGameLog(client *mongo.Client, db config.DB, gameLog *types.GameLog) (string, error) {
 	collection := client.Database(db.Name).Collection(db.Collections.GameLogs)
 
-	gameLog.ID = game.ID
+	gameLog.ID = primitive.NewObjectID()
 	_, err := collection.InsertOne(context.Background(), gameLog)
 	if err != nil {
 		return "", err
@@ -67,13 +67,32 @@ func FindGameLog(client *mongo.Client, db config.DB, gameLogID string) (*types.G
 	return &result, nil
 }
 
-func GameLogUpdate(client *mongo.Client, db config.DB, gameLogID string, moveString string, fenString string) error {
-	id, err := primitive.ObjectIDFromHex(gameLogID)
+func FindGameLogFromGameID(client *mongo.Client, db config.DB, gameID string) (*types.GameLog, error) {
+	var result types.GameLog
+
+	id, err := primitive.ObjectIDFromHex(gameID)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"gameID": id}
+
+	collection := client.Database(db.Name).Collection(db.Collections.GameLogs)
+	err = collection.FindOne(context.Background(), filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func GameLogUpdate(client *mongo.Client, db config.DB, gameID string, moveString string, fenString string) error {
+	id, err := primitive.ObjectIDFromHex(gameID)
 	if err != nil {
 		return err
 	}
 
-	filter := bson.M{"_id": id}
+	filter := bson.M{"gameID": id}
 	update := bson.M{"$push": bson.M{"moves": moveString, "boardStates": fenString}}
 
 	collection := client.Database(db.Name).Collection(db.Collections.GameLogs)

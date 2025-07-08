@@ -16,6 +16,8 @@ func SetupNewGame(gameConfig types.PostGame) (*types.Game, error) {
 	game.Time = gameConfig.StartTime
 	game.Money = gameConfig.Money
 
+	game.PositionHistory = map[string]int{}
+
 	game.Board.Width = gameConfig.Width
 	game.Board.Height = gameConfig.Height
 	game.Board.Board = make([][]*types.Piece, game.Board.Height)

@@ -30,6 +30,7 @@ type Game struct {
 	EnPassant       *Vec2              `bson:"enPassant" json:"enPassant"`
 	CheckerJump     *Vec2              `bson:"checkerJump" json:"checkerJump"`
 	Winner          *int               `bson:"winner" json:"winner"`
+	Reason          string             `bson:"reason" json:"reason"`
 	State           int                `bson:"state" json:"state"` //0 place,1 move,2 over
 	Time            [2]int64           `bson:"time" json:"time"`
 	LastMoveTime    time.Time          `bson:"lastMoveTime" json:"lastMoveTime"`

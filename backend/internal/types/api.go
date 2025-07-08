@@ -1,5 +1,9 @@
 package types
 
+import (
+	"time"
+)
+
 type APIRespone struct {
 	Message string      `json:"message"`
 	Data    interface{} `json:"data,omitempty"`
@@ -59,4 +63,19 @@ type PostState struct {
 
 type PostReady struct {
 	Turn int `json:"turn"`
+}
+
+type GetGameLog struct {
+	ID      string `json:"id"`
+	GameID  string `json:"gameID"`
+	WhiteID string `json:"whiteID"`
+	BlackID string `json:"blackID"`
+
+	Date        time.Time `json:"date"`
+	MoveCount   int       `json:"moveCount"`
+	Moves       []string  `json:"moves"`
+	BoardStates []string  `json:"boardStates"`
+
+	Winner *int   `json:"winner"`
+	Reason string `json:"reason"`
 }

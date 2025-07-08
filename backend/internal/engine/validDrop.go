@@ -117,7 +117,7 @@ func checkUtifudume(move types.Move, piece types.Piece, game types.Game) error {
 	gameCopy.Turn = getEnemyTurnInt(*gameCopy)
 	result := GetInCheckmate(*gameCopy)
 
-	if result == 1 {
+	if result {
 		return fmt.Errorf("Cant checkmate with fu drop")
 	}
 

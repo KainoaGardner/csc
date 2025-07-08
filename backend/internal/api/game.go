@@ -27,6 +27,7 @@ func (h *Handler) registerGameRoutes(r chi.Router) {
 	r.Post("/game/{gameID}/state", h.postState)
 
 	r.Post("/game/{gameID}/ready", h.postReady)
+	r.Post("/game/{gameID}/unready", h.postUnready)
 }
 
 func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
@@ -151,12 +152,30 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// db.GameLogUpdate(h.client,h)
-
 	fen, err := engine.ConvertBoardToString(*game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
+	}
+
+	err = db.GameLogUpdate(h.client, h.dbConfig, gameID, postMove.Move, fen)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if game.State == types.OverState {
+		gameLog, err := db.FindGameLogFromGameID(h.client, h.dbConfig, gameID)
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+		engine.SetupFinalGameLog(*game, gameLog)
+		err = db.GameLogFinalUpdate(h.client, h.dbConfig, gameID, *gameLog)
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, err)
+			return
+		}
 	}
 
 	data := types.PostMoveResponse{
@@ -328,5 +347,55 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 		"ready": game.Ready,
 	}
 
+	if game.State == types.MoveState {
+		gameLog := engine.SetupGameLog(*game)
+		gameLogID, err := db.CreateGameLog(h.client, h.dbConfig, gameLog)
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+		data = map[string]interface{}{
+			"state":     game.State,
+			"ready":     game.Ready,
+			"gameLogID": gameLogID,
+		}
+
+	}
+
 	utils.WriteResponse(w, http.StatusOK, "Ready", data)
+}
+
+func (h *Handler) postUnready(w http.ResponseWriter, r *http.Request) {
+	var postReady types.PostReady
+	err := utils.ParseJSON(r, &postReady)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	gameID := chi.URLParam(r, "gameID")
+	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = engine.UnreadyPlayer(postReady.Turn, game)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = db.GameReadyUpdate(h.client, h.dbConfig, gameID, *game)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data := map[string]interface{}{
+		"state": game.State,
+		"ready": game.Ready,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, "Unready", data)
 }

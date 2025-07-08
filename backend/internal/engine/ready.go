@@ -20,9 +20,24 @@ func ReadyPlayer(turn int, game *types.Game) error {
 	game.Ready[turn] = true
 
 	if checkBothReady(*game) {
-		game.State = 2
+		game.State = types.MoveState
 		game.LastMoveTime = time.Now()
 	}
+
+	return nil
+}
+
+func UnreadyPlayer(turn int, game *types.Game) error {
+	err := checkGameState(types.PlaceState, game.State)
+	if err != nil {
+		return err
+	}
+
+	if !game.Ready[turn] {
+		return fmt.Errorf("Already not ready")
+	}
+
+	game.Ready[turn] = false
 
 	return nil
 }
