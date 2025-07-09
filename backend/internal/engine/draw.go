@@ -129,3 +129,26 @@ func checkAbleToMate(pieceCounts map[int]int) bool {
 
 	return false
 }
+
+func DrawRequest(draw bool, turn int, game *types.Game) error {
+	err := checkGameState(types.MoveState, game.State)
+	if err != nil {
+		return err
+	}
+
+	if !draw {
+		game.Draw[0] = false
+		game.Draw[1] = false
+		return nil
+	}
+
+	game.Draw[turn] = true
+	if game.Draw[0] && game.Draw[1] {
+		tie := types.Tie
+		game.Winner = &tie
+		game.Reason = "Draw"
+		game.State = types.OverState
+	}
+
+	return nil
+}

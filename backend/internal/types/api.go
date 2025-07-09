@@ -1,6 +1,7 @@
 package types
 
 import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
 
@@ -15,8 +16,9 @@ type PostMove struct {
 }
 
 type PostMoveResponse struct {
-	FEN  string `json:"fen"`
-	Move string `json:"move"`
+	ID   primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	FEN  string             `json:"fen"`
+	Move string             `json:"move"`
 }
 
 type PostPlace struct {
@@ -31,11 +33,12 @@ type DeletePlace struct {
 }
 
 type PlaceResponse struct {
-	FEN      string `json:"fen"`
-	Position string `json:"position"`
-	Type     int    `json:"type"`
-	Cost     int    `json:"cost"`
-	Money    [2]int `json:"money"`
+	ID       primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	FEN      string             `json:"fen"`
+	Position string             `json:"position"`
+	Type     int                `json:"type"`
+	Cost     int                `json:"cost"`
+	Money    [2]int             `json:"money"`
 }
 
 type PostGame struct {
@@ -47,14 +50,32 @@ type PostGame struct {
 }
 
 type PostGameResponse struct {
-	ID        string `json:"id"`
+	ID        string `json:"_id"`
 	WhiteID   string `json:"whiteID"`
 	BlackID   string `json:"blackID"`
 	Color     string `json:"color"`
 	Width     int    `json:"width"`
 	Height    int    `json:"height"`
 	Money     [2]int `json:"money"`
+	State     int    `json:"state`
 	PlaceLine int    `json:"placeLine"`
+}
+
+type GetGameResponse struct {
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	WhiteID       string             `bson:"whiteID" json:"whiteID"`
+	BlackID       string             `bson:"blackID" json:"blackID"`
+	Turn          int                `bson:"turn" json:"turn"`
+	MoveCount     int                `bson:"moveCount" json:"moveCount"`
+	HalfMoveCount int                `bson:"halfMoveCount" json:"halfMoveCount"`
+	Winner        *int               `bson:"winner" json:"winner"`
+	Reason        string             `bson:"reason" json:"reason"`
+	State         int                `bson:"state" json:"state"` //0 place,1 move,2 over
+	Time          [2]int64           `bson:"time" json:"time"`
+	LastMoveTime  time.Time          `bson:"lastMoveTime" json:"lastMoveTime"`
+	Money         [2]int             `bson:"money" json:"money"`
+	Ready         [2]bool            `bson:"ready" json:"ready"`
+	Draw          [2]bool            `bson:"draw" json:"draw"`
 }
 
 type PostState struct {
@@ -62,20 +83,23 @@ type PostState struct {
 }
 
 type PostReady struct {
-	Turn int `json:"turn"`
+	Turn  int  `json:"turn"`
+	Ready bool `json:"ready"`
 }
 
-type GetGameLog struct {
-	ID      string `json:"id"`
-	GameID  string `json:"gameID"`
-	WhiteID string `json:"whiteID"`
-	BlackID string `json:"blackID"`
+type GameOverResponse struct {
+	ID            primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	WhiteID       string             `bson:"whiteID" json:"whiteID"`
+	BlackID       string             `bson:"blackID" json:"blackID"`
+	MoveCount     int                `bson:"moveCount" json:"moveCount"`
+	HalfMoveCount int                `bson:"halfMoveCount" json:"halfMoveCount"`
+	Winner        *int               `bson:"winner" json:"winner"`
+	Reason        string             `bson:"reason" json:"reason"`
+	State         int                `bson:"state" json:"state"` //0 place,1 move,2 over
+	LastMoveTime  time.Time          `bson:"lastMoveTime" json:"lastMoveTime"`
+}
 
-	Date        time.Time `json:"date"`
-	MoveCount   int       `json:"moveCount"`
-	Moves       []string  `json:"moves"`
-	BoardStates []string  `json:"boardStates"`
-
-	Winner *int   `json:"winner"`
-	Reason string `json:"reason"`
+type PostDrawRequest struct {
+	Draw bool `json:"draw"`
+	Turn int  `json:"turn"`
 }

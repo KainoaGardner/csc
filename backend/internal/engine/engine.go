@@ -80,3 +80,14 @@ func CheckTurn(turn int, gameTurn int) error {
 
 	return nil
 }
+
+func UpdateStartGame(game *types.Game) error {
+	err := checkGameState(types.ConnectState, game.State)
+	if err != nil {
+		return err
+	}
+	game.State = types.PlaceState
+	return nil
+
+	//set black ID
+}

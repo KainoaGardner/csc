@@ -142,3 +142,21 @@ func GameReadyUpdate(client *mongo.Client, db config.DB, gameID string, game typ
 
 	return nil
 }
+
+func GameDrawUpdate(client *mongo.Client, db config.DB, gameID string, game types.Game) error {
+	id, err := primitive.ObjectIDFromHex(gameID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{"draw": game.Draw}}
+
+	collection := client.Database(db.Name).Collection(db.Collections.Games)
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -8,7 +8,7 @@ import (
 func SetupGameLog(game types.Game) *types.GameLog {
 	var result types.GameLog
 
-	result.ID = game.ID
+	result.GameID = game.ID.Hex()
 	result.WhiteID = game.WhiteID
 	result.BlackID = game.BlackID
 

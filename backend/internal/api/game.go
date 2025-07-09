@@ -16,6 +16,7 @@ import (
 func (h *Handler) registerGameRoutes(r chi.Router) {
 	r.Get("/game", h.getAllGames)
 	r.Post("/game", h.postCreateGame)
+	r.Post("/game/{gameID}/join", h.postJoinGame)
 
 	r.Delete("/game", h.deleteAllGames)
 
@@ -27,7 +28,7 @@ func (h *Handler) registerGameRoutes(r chi.Router) {
 	r.Post("/game/{gameID}/state", h.postState)
 
 	r.Post("/game/{gameID}/ready", h.postReady)
-	r.Post("/game/{gameID}/unready", h.postUnready)
+	r.Post("/game/{gameID}/draw", h.postDraw)
 }
 
 func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
@@ -37,13 +38,28 @@ func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ids := []string{}
+	result := []types.GetGameResponse{}
 	for _, game := range games {
-		idString := game.ID.Hex()
-		ids = append(ids, idString)
+		gameResponse := types.GetGameResponse{}
+		gameResponse.ID = game.ID
+		gameResponse.WhiteID = game.WhiteID
+		gameResponse.BlackID = game.BlackID
+		gameResponse.Turn = game.Turn
+		gameResponse.MoveCount = game.MoveCount
+		gameResponse.HalfMoveCount = game.HalfMoveCount
+		gameResponse.Winner = game.Winner
+		gameResponse.Reason = game.Reason
+		gameResponse.State = game.State
+		gameResponse.Time = game.Time
+		gameResponse.LastMoveTime = game.LastMoveTime
+		gameResponse.Money = game.Money
+		gameResponse.Ready = game.Ready
+		gameResponse.Draw = game.Draw
+
+		result = append(result, gameResponse)
 	}
 
-	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("%d games found", len(ids)), ids)
+	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("%d games found", len(result)), result)
 }
 
 func (h *Handler) deleteAllGames(w http.ResponseWriter, r *http.Request) {
@@ -87,9 +103,45 @@ func (h *Handler) postCreateGame(w http.ResponseWriter, r *http.Request) {
 		Height:    game.Board.Height,
 		Money:     game.Money,
 		PlaceLine: game.Board.PlaceLine,
+		State:     game.State,
 	}
 
 	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Game created"), data)
+}
+
+func (h *Handler) postJoinGame(w http.ResponseWriter, r *http.Request) {
+	gameID := chi.URLParam(r, "gameID")
+	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = engine.UpdateStartGame(game)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = db.GameMoveUpdate(h.client, h.dbConfig, gameID, *game)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data := types.PostGameResponse{
+		ID:        gameID,
+		WhiteID:   game.WhiteID,
+		BlackID:   game.BlackID,
+		Color:     "w",
+		Width:     game.Board.Width,
+		Height:    game.Board.Height,
+		Money:     game.Money,
+		PlaceLine: game.Board.PlaceLine,
+		State:     game.State,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Joined"), data)
 }
 
 func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
@@ -107,6 +159,7 @@ func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := map[string]interface{}{
+		"_id": game.ID,
 		"fen": result,
 	}
 
@@ -176,13 +229,29 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 			utils.WriteError(w, http.StatusBadRequest, err)
 			return
 		}
+
+		data := map[string]interface{}{
+			"_id":           game.ID,
+			"whiteID":       game.WhiteID,
+			"blackID":       game.BlackID,
+			"moveCount":     game.MoveCount,
+			"halfMoveCount": game.HalfMoveCount,
+			"winner":        game.Winner,
+			"reason":        game.Reason,
+			"state":         game.State,
+			"lastMoveTime":  game.LastMoveTime,
+		}
+
+		utils.WriteResponse(w, http.StatusOK, "Game Over", data)
+	} else {
+		data := types.PostMoveResponse{
+			ID:   game.ID,
+			FEN:  fen,
+			Move: postMove.Move,
+		}
+		utils.WriteResponse(w, http.StatusOK, "Piece moved", data)
 	}
 
-	data := types.PostMoveResponse{
-		FEN:  fen,
-		Move: postMove.Move,
-	}
-	utils.WriteResponse(w, http.StatusOK, "Piece moved", data)
 }
 
 func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
@@ -225,6 +294,7 @@ func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := types.PlaceResponse{
+		ID:       game.ID,
 		FEN:      fen,
 		Position: postPlace.Position,
 		Type:     postPlace.Type,
@@ -275,6 +345,7 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := types.PlaceResponse{
+		ID:       game.ID,
 		FEN:      fen,
 		Position: deletePlace.Position,
 		Type:     place.Type,
@@ -330,7 +401,7 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = engine.ReadyPlayer(postReady.Turn, game)
+	err = engine.ReadyPlayer(postReady.Ready, postReady.Turn, game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -342,11 +413,6 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := map[string]interface{}{
-		"state": game.State,
-		"ready": game.Ready,
-	}
-
 	if game.State == types.MoveState {
 		gameLog := engine.SetupGameLog(*game)
 		gameLogID, err := db.CreateGameLog(h.client, h.dbConfig, gameLog)
@@ -354,20 +420,42 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 			utils.WriteError(w, http.StatusBadRequest, err)
 			return
 		}
-		data = map[string]interface{}{
+		data := map[string]interface{}{
+			"_id":       game.ID,
 			"state":     game.State,
 			"ready":     game.Ready,
 			"gameLogID": gameLogID,
 		}
+		utils.WriteResponse(w, http.StatusOK, "Game Start", data)
+	} else if game.State == types.OverState {
+		data := map[string]interface{}{
+			"_id":           game.ID,
+			"whiteID":       game.WhiteID,
+			"blackID":       game.BlackID,
+			"moveCount":     game.MoveCount,
+			"halfMoveCount": game.HalfMoveCount,
+			"winner":        game.Winner,
+			"reason":        game.Reason,
+			"state":         game.State,
+			"lastMoveTime":  game.LastMoveTime,
+		}
 
+		utils.WriteResponse(w, http.StatusOK, "Game Over", data)
+	} else {
+		data := map[string]interface{}{
+			"_id":   game.ID,
+			"state": game.State,
+			"ready": game.Ready,
+		}
+
+		utils.WriteResponse(w, http.StatusOK, "Ready", data)
 	}
 
-	utils.WriteResponse(w, http.StatusOK, "Ready", data)
 }
 
-func (h *Handler) postUnready(w http.ResponseWriter, r *http.Request) {
-	var postReady types.PostReady
-	err := utils.ParseJSON(r, &postReady)
+func (h *Handler) postDraw(w http.ResponseWriter, r *http.Request) {
+	var postDraw types.PostDrawRequest
+	err := utils.ParseJSON(r, &postDraw)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -380,22 +468,51 @@ func (h *Handler) postUnready(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = engine.UnreadyPlayer(postReady.Turn, game)
+	err = engine.DrawRequest(postDraw.Draw, postDraw.Turn, game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
-	err = db.GameReadyUpdate(h.client, h.dbConfig, gameID, *game)
+	err = db.GameDrawUpdate(h.client, h.dbConfig, gameID, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
-	data := map[string]interface{}{
-		"state": game.State,
-		"ready": game.Ready,
-	}
+	if game.State == types.OverState {
+		gameLog, err := db.FindGameLogFromGameID(h.client, h.dbConfig, gameID)
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+		engine.SetupFinalGameLog(*game, gameLog)
+		err = db.GameLogFinalUpdate(h.client, h.dbConfig, gameID, *gameLog)
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, err)
+			return
+		}
 
-	utils.WriteResponse(w, http.StatusOK, "Unready", data)
+		data := map[string]interface{}{
+			"_id":           game.ID,
+			"whiteID":       game.WhiteID,
+			"blackID":       game.BlackID,
+			"moveCount":     game.MoveCount,
+			"halfMoveCount": game.HalfMoveCount,
+			"winner":        game.Winner,
+			"reason":        game.Reason,
+			"state":         game.State,
+			"draw":          game.Draw,
+			"lastMoveTime":  game.LastMoveTime,
+		}
+
+		utils.WriteResponse(w, http.StatusOK, "Game Over", data)
+	} else {
+		data := map[string]interface{}{
+			"_id":  game.ID,
+			"draw": game.Draw,
+		}
+
+		utils.WriteResponse(w, http.StatusOK, "Draw", data)
+	}
 }

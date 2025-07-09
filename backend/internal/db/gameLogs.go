@@ -70,15 +70,10 @@ func FindGameLog(client *mongo.Client, db config.DB, gameLogID string) (*types.G
 func FindGameLogFromGameID(client *mongo.Client, db config.DB, gameID string) (*types.GameLog, error) {
 	var result types.GameLog
 
-	id, err := primitive.ObjectIDFromHex(gameID)
-	if err != nil {
-		return nil, err
-	}
-
-	filter := bson.M{"gameID": id}
+	filter := bson.M{"gameID": gameID}
 
 	collection := client.Database(db.Name).Collection(db.Collections.GameLogs)
-	err = collection.FindOne(context.Background(), filter).Decode(&result)
+	err := collection.FindOne(context.Background(), filter).Decode(&result)
 	if err != nil {
 		return nil, err
 	}
@@ -87,16 +82,16 @@ func FindGameLogFromGameID(client *mongo.Client, db config.DB, gameID string) (*
 }
 
 func GameLogUpdate(client *mongo.Client, db config.DB, gameID string, moveString string, fenString string) error {
-	id, err := primitive.ObjectIDFromHex(gameID)
-	if err != nil {
-		return err
+	filter := bson.M{"gameID": gameID}
+	update := bson.M{
+		"$push": bson.M{
+			"moves":       bson.M{"$each": []string{moveString}},
+			"boardStates": bson.M{"$each": []string{fenString}},
+		},
 	}
 
-	filter := bson.M{"gameID": id}
-	update := bson.M{"$push": bson.M{"moves": moveString, "boardStates": fenString}}
-
 	collection := client.Database(db.Name).Collection(db.Collections.GameLogs)
-	_, err = collection.UpdateOne(context.Background(), filter, update)
+	_, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return err
 	}
@@ -105,16 +100,11 @@ func GameLogUpdate(client *mongo.Client, db config.DB, gameID string, moveString
 }
 
 func GameLogFinalUpdate(client *mongo.Client, db config.DB, gameID string, gameLog types.GameLog) error {
-	id, err := primitive.ObjectIDFromHex(gameID)
-	if err != nil {
-		return err
-	}
-
-	filter := bson.M{"_id": id}
+	filter := bson.M{"gameID": gameID}
 	update := bson.M{"$set": gameLog}
 
 	collection := client.Database(db.Name).Collection(db.Collections.GameLogs)
-	_, err = collection.UpdateOne(context.Background(), filter, update)
+	_, err := collection.UpdateOne(context.Background(), filter, update)
 	if err != nil {
 		return err
 	}

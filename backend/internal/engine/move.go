@@ -27,6 +27,15 @@ func MovePiece(move types.Move, game *types.Game) error {
 		return err
 	}
 
+	updateMoveTime(game)
+	if checkTimeLoss(*game) {
+		moveTurn := getEnemyTurnInt(*game)
+		game.Winner = &moveTurn
+		game.Reason = "Time"
+		game.State = types.OverState
+		return nil
+	}
+
 	takePiece := game.Board.Board[move.End.Y][move.End.X]
 	validCastle := takePiece != nil && piece.Type == types.King && takePiece.Type == types.Rook && takePiece.Owner == piece.Owner
 
@@ -51,26 +60,33 @@ func MovePiece(move types.Move, game *types.Game) error {
 		updateHalfMoveCount(piece, takePiece, game)
 		updateMoveCount(game)
 		game.Turn = getEnemyTurnInt(*game)
-
-		if GetInCheckmate(*game) {
-			moveTurn := getEnemyTurnInt(*game)
-			game.Winner = &moveTurn
-			game.Reason = "Checkmate"
-			game.State = types.OverState
-		} else {
-			result, err := GetDraw(game)
-			if err != nil {
-				return err
-			}
-			if result {
-				tie := types.Tie
-				game.Winner = &tie
-				game.Reason = "Draw"
-				game.State = types.OverState
-			}
+		err = checkCheckmateOrDraw(game)
+		if err != nil {
+			return err
 		}
 	}
 
+	return nil
+}
+
+func checkCheckmateOrDraw(game *types.Game) error {
+	if GetInCheckmate(*game) {
+		moveTurn := getEnemyTurnInt(*game)
+		game.Winner = &moveTurn
+		game.Reason = "Checkmate"
+		game.State = types.OverState
+	} else {
+		result, err := GetDraw(game)
+		if err != nil {
+			return err
+		}
+		if result {
+			tie := types.Tie
+			game.Winner = &tie
+			game.Reason = "Draw"
+			game.State = types.OverState
+		}
+	}
 	return nil
 }
 
