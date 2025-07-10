@@ -7,7 +7,7 @@ import (
 
 type GameLog struct {
 	ID      primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
-	GameID  string             `bson:"gameID" json:"gameID"`
+	GameID  primitive.ObjectID `bson:"gameID" json:"gameID"`
 	WhiteID string             `bson:"whiteID" json:"whiteID"`
 	BlackID string             `bson:"blackID" json:"blackID"`
 

@@ -10,6 +10,7 @@ type APIRespone struct {
 	Data    interface{} `json:"data,omitempty"`
 }
 
+// game api
 type PostMove struct {
 	Move string `json:"move"`
 	Turn int    `json:"turn"`
@@ -102,4 +103,25 @@ type GameOverResponse struct {
 type PostDrawRequest struct {
 	Draw bool `json:"draw"`
 	Turn int  `json:"turn"`
+}
+
+//user api
+
+type PostUser struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type UserResponse struct {
+	ID          primitive.ObjectID `bson:"_id,omitempty"`
+	Username    string             `bson:"username"`
+	Email       string             `bson:"email"`
+	CreatedTime time.Time          `bson:"createdTime"`
+}
+
+type UpdateUserStats struct {
+	GamesPlayed int    `bson:"gamesPlayed"`
+	GamesWon    int    `bson:"gamesWon"`
+	GameLog     string `bson:"gameLog"`
 }
