@@ -50,6 +50,22 @@ func DeleteAllGames(client *mongo.Client, db config.DB) (int, error) {
 	return int(result.DeletedCount), nil
 }
 
+func DeleteGame(client *mongo.Client, db config.DB, gameID string) (int, error) {
+	id, err := primitive.ObjectIDFromHex(gameID)
+	if err != nil {
+		return 0, err
+	}
+
+	filter := bson.M{"_id": id}
+	collection := client.Database(db.Name).Collection(db.Collections.Games)
+	result, err := collection.DeleteOne(context.Background(), filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(result.DeletedCount), nil
+}
+
 func FindGame(client *mongo.Client, db config.DB, gameID string) (*types.Game, error) {
 	var result types.Game
 

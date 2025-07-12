@@ -15,6 +15,7 @@ func (h *Handler) registerGameLogRoutes(r chi.Router) {
 	r.Delete("/log", h.deleteAllGameLogs)
 }
 
+// admin
 func (h *Handler) getAllGameLogs(w http.ResponseWriter, r *http.Request) {
 	gameLogs, err := db.ListAllGameLogs(h.client, h.dbConfig)
 	if err != nil {
@@ -30,6 +31,7 @@ func (h *Handler) getAllGameLogs(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("%d game logs found", len(result)), result)
 }
 
+// admin
 func (h *Handler) deleteAllGameLogs(w http.ResponseWriter, r *http.Request) {
 	amount, err := db.DeleteAllGameLogs(h.client, h.dbConfig)
 	if err != nil {
@@ -42,6 +44,7 @@ func (h *Handler) deleteAllGameLogs(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, "Gamelogs deleted", data)
 }
 
+// auth
 func (h *Handler) getGameLog(w http.ResponseWriter, r *http.Request) {
 	gameLogID := chi.URLParam(r, "gameLogID")
 	gameLog, err := db.FindGameLog(h.client, h.dbConfig, gameLogID)

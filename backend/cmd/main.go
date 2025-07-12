@@ -27,7 +27,7 @@ func main() {
 	}()
 
 	server := api.NewAPIServer(fmt.Sprintf("%s:%s", config.PublicHost, config.Port))
-	if err := server.Run(client, config.DB); err != nil {
+	if err := server.Run(client, config.DB, config.JWTKey); err != nil {
 		log.Fatal(err)
 	}
 }

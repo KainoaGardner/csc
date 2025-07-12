@@ -10,6 +10,7 @@ type Config struct {
 	DB         DB
 	PublicHost string
 	Port       string
+	JWTKey     string
 }
 
 type DB struct {
@@ -45,6 +46,8 @@ func LoadConfig() Config {
 
 	result.PublicHost = checkGetenv("PUBLIC_HOST")
 	result.Port = checkGetenv("PORT")
+
+	result.JWTKey = checkGetenv("JWT_KEY")
 
 	result.DB.Name = os.Getenv("MONGODB_DB")
 	result.DB.Uri = checkGetenv("MONGODB_URI")

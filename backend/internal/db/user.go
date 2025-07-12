@@ -28,6 +28,20 @@ func FindUserLogin(client *mongo.Client, db config.DB, user types.User) error {
 	return nil
 }
 
+func FindUserFromUsername(client *mongo.Client, db config.DB, userName string) (*types.User, error) {
+	var result types.User
+
+	filter := bson.M{"username": userName}
+
+	collection := client.Database(db.Name).Collection(db.Collections.Users)
+	err := collection.FindOne(context.Background(), filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
 func CreateUser(client *mongo.Client, db config.DB, newUser *types.User) (string, error) {
 	collection := client.Database(db.Name).Collection(db.Collections.Users)
 
@@ -65,4 +79,38 @@ func DeleteAllUsers(client *mongo.Client, db config.DB) (int, error) {
 	}
 
 	return int(result.DeletedCount), nil
+}
+
+func DeleteUser(client *mongo.Client, db config.DB, userID string) (int, error) {
+	id, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return 0, err
+	}
+
+	filter := bson.M{"_id": id}
+	collection := client.Database(db.Name).Collection(db.Collections.Users)
+	result, err := collection.DeleteOne(context.Background(), filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return int(result.DeletedCount), nil
+}
+
+func FindUser(client *mongo.Client, db config.DB, userID string) (*types.User, error) {
+	var result types.User
+	id, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"_id": id}
+
+	collection := client.Database(db.Name).Collection(db.Collections.Users)
+	err = collection.FindOne(context.Background(), filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }

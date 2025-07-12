@@ -31,6 +31,7 @@ func (h *Handler) registerGameRoutes(r chi.Router) {
 	r.Post("/game/{gameID}/draw", h.postDraw)
 }
 
+// admin
 func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
 	games, err := db.ListAllGames(h.client, h.dbConfig)
 	if err != nil {
@@ -62,6 +63,7 @@ func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("%d games found", len(result)), result)
 }
 
+// admin
 func (h *Handler) deleteAllGames(w http.ResponseWriter, r *http.Request) {
 	amount, err := db.DeleteAllGames(h.client, h.dbConfig)
 	if err != nil {
@@ -109,6 +111,7 @@ func (h *Handler) postCreateGame(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Game created"), data)
 }
 
+// auth
 func (h *Handler) postJoinGame(w http.ResponseWriter, r *http.Request) {
 	gameID := chi.URLParam(r, "gameID")
 	game, err := db.FindGame(h.client, h.dbConfig, gameID)
@@ -144,6 +147,7 @@ func (h *Handler) postJoinGame(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Joined"), data)
 }
 
+// auth either player
 func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
 	gameID := chi.URLParam(r, "gameID")
 	game, err := db.FindGame(h.client, h.dbConfig, gameID)
@@ -166,6 +170,7 @@ func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, "Board", data)
 }
 
+// auth either player
 func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 	var postMove types.PostMove
 	err := utils.ParseJSON(r, &postMove)
@@ -230,6 +235,12 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		_, err = db.DeleteGame(h.client, h.dbConfig, gameID)
+		if err != nil {
+			utils.WriteError(w, http.StatusBadRequest, err)
+			return
+		}
+
 		data := map[string]interface{}{
 			"_id":           game.ID,
 			"whiteID":       game.WhiteID,
@@ -254,6 +265,7 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// auth either player
 func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
 	var postPlace types.PostPlace
 	err := utils.ParseJSON(r, &postPlace)
@@ -305,6 +317,7 @@ func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, "Piece placed", data)
 }
 
+// auth either player
 func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 	var deletePlace types.DeletePlace
 	err := utils.ParseJSON(r, &deletePlace)
@@ -356,6 +369,7 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, "Piece deleted", data)
 }
 
+// admin
 func (h *Handler) postState(w http.ResponseWriter, r *http.Request) {
 	var postState types.PostState
 	err := utils.ParseJSON(r, &postState)
@@ -386,6 +400,7 @@ func (h *Handler) postState(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, "State changed", data)
 }
 
+// auth either player
 func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 	var postReady types.PostReady
 	err := utils.ParseJSON(r, &postReady)
@@ -453,6 +468,7 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// auth either player
 func (h *Handler) postDraw(w http.ResponseWriter, r *http.Request) {
 	var postDraw types.PostDrawRequest
 	err := utils.ParseJSON(r, &postDraw)

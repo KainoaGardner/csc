@@ -114,14 +114,24 @@ type PostUser struct {
 }
 
 type UserResponse struct {
-	ID          primitive.ObjectID `bson:"_id,omitempty"`
-	Username    string             `bson:"username"`
-	Email       string             `bson:"email"`
-	CreatedTime time.Time          `bson:"createdTime"`
+	ID          primitive.ObjectID `json:"_id,omitempty"`
+	Username    string             `json:"username"`
+	Email       string             `json:"email"`
+	CreatedTime time.Time          `json:"createdTime"`
 }
 
 type UpdateUserStats struct {
 	GamesPlayed int    `bson:"gamesPlayed"`
 	GamesWon    int    `bson:"gamesWon"`
 	GameLog     string `bson:"gameLog"`
+}
+
+type PostLogin struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type TokenResponse struct {
+	AccessToken  string `json:"accessToken"`
+	RefreshToken string `json:"tokenToken"`
 }

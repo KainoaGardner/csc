@@ -10,6 +10,7 @@ func (h *Handler) registerTestRoutes(r chi.Router) {
 	r.Get("/test/moveConvert", h.moveTest)
 }
 
+// admin
 func (h *Handler) moveTest(w http.ResponseWriter, r *http.Request) {
 	engine.RunTests()
 	w.Write([]byte("Test Finished"))

@@ -22,7 +22,7 @@ func NewAPIServer(addr string) *APIServer {
 	}
 }
 
-func (s *APIServer) Run(client *mongo.Client, dbConfig config.DB) error {
+func (s *APIServer) Run(client *mongo.Client, dbConfig config.DB, jwtKey string) error {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
@@ -36,7 +36,7 @@ func (s *APIServer) Run(client *mongo.Client, dbConfig config.DB) error {
 	}))
 
 	r.Route("/", func(r chi.Router) {
-		handHandler := NewHandler(client, dbConfig)
+		handHandler := NewHandler(client, dbConfig, jwtKey)
 		handHandler.RegisterRoutes(r)
 
 	})
