@@ -1,7 +1,9 @@
 package api
 
 import (
+	"github.com/KainoaGardner/csc/internal/auth"
 	"github.com/KainoaGardner/csc/internal/engine"
+	"github.com/KainoaGardner/csc/internal/utils"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 )
@@ -12,6 +14,17 @@ func (h *Handler) registerTestRoutes(r chi.Router) {
 
 // admin
 func (h *Handler) moveTest(w http.ResponseWriter, r *http.Request) {
-	engine.RunTests()
-	w.Write([]byte("Test Finished"))
+	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
+	moves, err := engine.MovesTest()
+	if err != nil {
+		utils.WriteResponse(w, http.StatusBadRequest, "Failed", moves)
+		return
+	}
+
+	utils.WriteResponse(w, http.StatusBadRequest, "Passed", moves)
 }

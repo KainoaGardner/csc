@@ -10,14 +10,14 @@ import (
 type Handler struct {
 	client   *mongo.Client
 	dbConfig config.DB
-	jwtKey   string
+	jwt      config.JWT
 }
 
-func NewHandler(client *mongo.Client, dbConfig config.DB, jwtKey string) *Handler {
+func NewHandler(client *mongo.Client, dbConfig config.DB, jwt config.JWT) *Handler {
 	var result Handler
 	result.client = client
 	result.dbConfig = dbConfig
-	result.jwtKey = jwtKey
+	result.jwt = jwt
 
 	return &result
 }

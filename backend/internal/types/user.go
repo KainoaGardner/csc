@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/golang-jwt/jwt/v5"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -22,4 +23,9 @@ type UserStats struct {
 	GamesPlayed int                `bson:"gamesPlayed"`
 	GamesWon    int                `bson:"gamesWon"`
 	GameLogs    []string           `bson:"gameLogs"`
+}
+
+type TokenClaims struct {
+	UserID string `json:"userID"`
+	jwt.RegisteredClaims
 }

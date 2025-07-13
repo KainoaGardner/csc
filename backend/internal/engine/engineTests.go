@@ -5,7 +5,7 @@ import (
 	"github.com/KainoaGardner/csc/internal/types"
 )
 
-func RunTests() {
+func MovesTest() ([]string, error) {
 	game := types.Game{}
 	game.Board.Width = 8
 	game.Board.Height = 8
@@ -115,16 +115,17 @@ func RunTests() {
 		"N*,e8",
 	}
 
+	var result []string
 	for i := 0; i < len(moves); i++ {
 		err := convertStringToMoveTest(moves[i], game)
+		result = append(result, moves[i])
 		if err != nil {
-			fmt.Println(err)
-			fmt.Println("FAILED", moves[i])
-			return
+			return result, fmt.Errorf("Failed")
 		}
 
-		fmt.Println("Passed", moves[i])
 	}
+
+	return result, nil
 }
 
 func convertStringToMoveTest(input string, game types.Game) error {

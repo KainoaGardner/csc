@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/KainoaGardner/csc/internal/auth"
 	"github.com/KainoaGardner/csc/internal/db"
 	"github.com/KainoaGardner/csc/internal/types"
 	"github.com/KainoaGardner/csc/internal/utils"
@@ -17,6 +18,12 @@ func (h *Handler) registerGameLogRoutes(r chi.Router) {
 
 // admin
 func (h *Handler) getAllGameLogs(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	gameLogs, err := db.ListAllGameLogs(h.client, h.dbConfig)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -33,6 +40,12 @@ func (h *Handler) getAllGameLogs(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) deleteAllGameLogs(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	amount, err := db.DeleteAllGameLogs(h.client, h.dbConfig)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -44,7 +57,6 @@ func (h *Handler) deleteAllGameLogs(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, "Gamelogs deleted", data)
 }
 
-// auth
 func (h *Handler) getGameLog(w http.ResponseWriter, r *http.Request) {
 	gameLogID := chi.URLParam(r, "gameLogID")
 	gameLog, err := db.FindGameLog(h.client, h.dbConfig, gameLogID)

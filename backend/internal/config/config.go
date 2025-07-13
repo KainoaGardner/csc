@@ -10,13 +10,18 @@ type Config struct {
 	DB         DB
 	PublicHost string
 	Port       string
-	JWTKey     string
+	JWT        JWT
 }
 
 type DB struct {
 	Name        string
 	Uri         string
 	Collections Collections
+}
+
+type JWT struct {
+	AccessKey  string
+	RefreshKey string
 }
 
 type Collections struct {
@@ -47,7 +52,8 @@ func LoadConfig() Config {
 	result.PublicHost = checkGetenv("PUBLIC_HOST")
 	result.Port = checkGetenv("PORT")
 
-	result.JWTKey = checkGetenv("JWT_KEY")
+	result.JWT.AccessKey = checkGetenv("JWT_ACCESS_KEY")
+	result.JWT.RefreshKey = checkGetenv("JWT_REFRESH_KEY")
 
 	result.DB.Name = os.Getenv("MONGODB_DB")
 	result.DB.Uri = checkGetenv("MONGODB_URI")

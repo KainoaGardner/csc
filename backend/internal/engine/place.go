@@ -170,16 +170,12 @@ func checkValidPlaceType(place types.PostPlace) error {
 	return fmt.Errorf("Invalid place type")
 }
 
-func SetupPlace(placeConfig types.PostPlace, userID string, game types.Game) (types.Place, error) {
+func SetupPlace(placeConfig types.PostPlace, turn int, game types.Game) (types.Place, error) {
 	var result types.Place
 
-	turn, err := GetTurnFromID(userID, game) //USE id
-	if err != nil {
-		return result, fmt.Errorf("Could not get turn from player ID")
-	}
 	result.Turn = turn
 
-	err = checkValidPlaceType(placeConfig)
+	err := checkValidPlaceType(placeConfig)
 	if err != nil {
 		return result, err
 	}
@@ -200,13 +196,9 @@ func SetupPlace(placeConfig types.PostPlace, userID string, game types.Game) (ty
 	return result, nil
 }
 
-func SetupDeletePlace(placeConfig types.DeletePlace, userID string, game types.Game) (types.Place, error) {
+func SetupDeletePlace(placeConfig types.DeletePlace, turn int, game types.Game) (types.Place, error) {
 	var result types.Place
 
-	turn, err := GetTurnFromID(userID, game) //USE id
-	if err != nil {
-		return result, fmt.Errorf("Could not get turn from player ID")
-	}
 	result.Turn = turn
 
 	position, err := convertStringToPosition(placeConfig.Position, game.Board.Height)

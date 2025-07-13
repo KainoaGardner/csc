@@ -1,6 +1,7 @@
 package api
 
 import (
+	"github.com/KainoaGardner/csc/internal/auth"
 	"github.com/KainoaGardner/csc/internal/db"
 	"github.com/KainoaGardner/csc/internal/engine"
 	"github.com/KainoaGardner/csc/internal/types"
@@ -9,8 +10,6 @@ import (
 
 	"fmt"
 	"net/http"
-
-	"strconv"
 )
 
 func (h *Handler) registerGameRoutes(r chi.Router) {
@@ -33,6 +32,12 @@ func (h *Handler) registerGameRoutes(r chi.Router) {
 
 // admin
 func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	games, err := db.ListAllGames(h.client, h.dbConfig)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -65,6 +70,12 @@ func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) deleteAllGames(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	amount, err := db.DeleteAllGames(h.client, h.dbConfig)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -76,15 +87,22 @@ func (h *Handler) deleteAllGames(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse(w, http.StatusOK, "Games deleted", data)
 }
 
+// auth
 func (h *Handler) postCreateGame(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	var postGame types.PostGame
-	err := utils.ParseJSON(r, &postGame)
+	err = utils.ParseJSON(r, &postGame)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
-	game, err := engine.SetupNewGame(postGame)
+	game, err := engine.SetupNewGame(postGame, claims.UserID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -113,6 +131,12 @@ func (h *Handler) postCreateGame(w http.ResponseWriter, r *http.Request) {
 
 // auth
 func (h *Handler) postJoinGame(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	gameID := chi.URLParam(r, "gameID")
 	game, err := db.FindGame(h.client, h.dbConfig, gameID)
 	if err != nil {
@@ -120,7 +144,7 @@ func (h *Handler) postJoinGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = engine.UpdateStartGame(game)
+	err = engine.UpdateStartGame(game, claims.UserID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -149,8 +173,20 @@ func (h *Handler) postJoinGame(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	gameID := chi.URLParam(r, "gameID")
 	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	_, err = engine.GetTurnFromID(*game, claims.UserID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -172,8 +208,14 @@ func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	var postMove types.PostMove
-	err := utils.ParseJSON(r, &postMove)
+	err = utils.ParseJSON(r, &postMove)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -186,7 +228,13 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = engine.CheckTurn(postMove.Turn, game.Turn)
+	turn, err := engine.GetTurnFromID(*game, claims.UserID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = engine.CheckTurn(turn, game.Turn)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -267,8 +315,14 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	var postPlace types.PostPlace
-	err := utils.ParseJSON(r, &postPlace)
+	err = utils.ParseJSON(r, &postPlace)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -281,7 +335,13 @@ func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	place, err := engine.SetupPlace(postPlace, strconv.Itoa(postPlace.Turn), *game)
+	turn, err := engine.GetTurnFromID(*game, claims.UserID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	place, err := engine.SetupPlace(postPlace, turn, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -319,8 +379,14 @@ func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	var deletePlace types.DeletePlace
-	err := utils.ParseJSON(r, &deletePlace)
+	err = utils.ParseJSON(r, &deletePlace)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -333,7 +399,13 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	place, err := engine.SetupDeletePlace(deletePlace, strconv.Itoa(deletePlace.Turn), *game)
+	turn, err := engine.GetTurnFromID(*game, claims.UserID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	place, err := engine.SetupDeletePlace(deletePlace, turn, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -371,8 +443,14 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) postState(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	var postState types.PostState
-	err := utils.ParseJSON(r, &postState)
+	err = utils.ParseJSON(r, &postState)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -402,8 +480,14 @@ func (h *Handler) postState(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	var postReady types.PostReady
-	err := utils.ParseJSON(r, &postReady)
+	err = utils.ParseJSON(r, &postReady)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -416,7 +500,13 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = engine.ReadyPlayer(postReady.Ready, postReady.Turn, game)
+	turn, err := engine.GetTurnFromID(*game, claims.UserID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = engine.ReadyPlayer(postReady.Ready, turn, game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -470,8 +560,14 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) postDraw(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	var postDraw types.PostDrawRequest
-	err := utils.ParseJSON(r, &postDraw)
+	err = utils.ParseJSON(r, &postDraw)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -484,7 +580,13 @@ func (h *Handler) postDraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = engine.DrawRequest(postDraw.Draw, postDraw.Turn, game)
+	turn, err := engine.GetTurnFromID(*game, claims.UserID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = engine.DrawRequest(postDraw.Draw, turn, game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return

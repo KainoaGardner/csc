@@ -6,13 +6,15 @@ import (
 	"strconv"
 )
 
-func SetupNewGame(gameConfig types.PostGame) (*types.Game, error) {
+func SetupNewGame(gameConfig types.PostGame, userID string) (*types.Game, error) {
 	err := checkSetupConfig(gameConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	game := types.Game{}
+
+	game.WhiteID = userID
 	game.Time = gameConfig.StartTime
 	game.Money = gameConfig.Money
 
@@ -27,7 +29,6 @@ func SetupNewGame(gameConfig types.PostGame) (*types.Game, error) {
 
 	game.Board.PlaceLine = gameConfig.PlaceLine
 
-	//REMOVE LATER
 	game.State = 0
 
 	return &game, nil
@@ -49,22 +50,6 @@ func checkSetupConfig(gameConfig types.PostGame) error {
 	return nil
 }
 
-func GetTurnFromID(id string, game types.Game) (int, error) {
-	var result int
-
-	// if id == game.WhiteID {
-	// 	result = 0
-	// } else if id == game.BlackID {
-	// 	result = 1
-	// } else {
-	// 	return 0, fmt.Errorf("Invalid ID")
-	// }
-
-	result, _ = strconv.Atoi(id) //TEMP
-
-	return result, nil
-}
-
 func checkGameState(mode int, state int) error {
 	if state != mode {
 		return fmt.Errorf("Incorrect state")
@@ -81,13 +66,28 @@ func CheckTurn(turn int, gameTurn int) error {
 	return nil
 }
 
-func UpdateStartGame(game *types.Game) error {
+func UpdateStartGame(game *types.Game, userID string) error {
 	err := checkGameState(types.ConnectState, game.State)
 	if err != nil {
 		return err
 	}
+
+	if userID == game.WhiteID {
+		return fmt.Errorf("Cant join your own game")
+	}
+
+	game.BlackID = userID
 	game.State = types.PlaceState
 	return nil
+}
 
-	//set black ID
+func GetTurnFromID(game types.Game, userID string) (int, error) {
+	if game.WhiteID == userID {
+		return types.White, nil
+	}
+	if game.BlackID == userID {
+		return types.Black, nil
+	}
+
+	return -1, fmt.Errorf("Player not in game")
 }

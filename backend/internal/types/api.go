@@ -13,7 +13,6 @@ type APIRespone struct {
 // game api
 type PostMove struct {
 	Move string `json:"move"`
-	Turn int    `json:"turn"`
 }
 
 type PostMoveResponse struct {
@@ -25,12 +24,10 @@ type PostMoveResponse struct {
 type PostPlace struct {
 	Position string `json:"position"`
 	Type     int    `json:"type"`
-	Turn     int    `json:"turn"` //TEMP USE SENT ID INSTEAD
 }
 
 type DeletePlace struct {
 	Position string `json:"position"`
-	Turn     int    `json:"turn"` //TEMP USE SENT ID INSTEAD
 }
 
 type PlaceResponse struct {
@@ -58,7 +55,7 @@ type PostGameResponse struct {
 	Width     int    `json:"width"`
 	Height    int    `json:"height"`
 	Money     [2]int `json:"money"`
-	State     int    `json:"state`
+	State     int    `json:"state"`
 	PlaceLine int    `json:"placeLine"`
 }
 
@@ -84,7 +81,6 @@ type PostState struct {
 }
 
 type PostReady struct {
-	Turn  int  `json:"turn"`
 	Ready bool `json:"ready"`
 }
 
@@ -102,7 +98,6 @@ type GameOverResponse struct {
 
 type PostDrawRequest struct {
 	Draw bool `json:"draw"`
-	Turn int  `json:"turn"`
 }
 
 //user api

@@ -15,13 +15,15 @@ import (
 func (h *Handler) registerUserRoutes(r chi.Router) {
 	r.Post("/user/", h.createUser)
 	r.Get("/user/{userID}", h.getUser)
-	r.Delete("/user/{userID}", h.deleteUser)
+	r.Delete("/user", h.deleteUser)
 
 	r.Post("/user/login", h.loginUser)
 	// r.Post("/user/logout", h.loginUser)
 
 	r.Get("/user", h.getAllUsers)
-	r.Delete("/user", h.deleteAllUsers)
+	r.Delete("/user/all", h.deleteAllUsers)
+
+	r.Post("/auth/refresh", h.refreshToken)
 }
 
 func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
@@ -66,6 +68,12 @@ func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	userID := chi.URLParam(r, "userID")
 
 	dbUser, err := db.FindUser(h.client, h.dbConfig, userID)
@@ -79,9 +87,13 @@ func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 
 // auth
 func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
-	userID := chi.URLParam(r, "userID")
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
 
-	count, err := db.DeleteUser(h.client, h.dbConfig, userID)
+	count, err := db.DeleteUser(h.client, h.dbConfig, claims.UserID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -92,6 +104,12 @@ func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) getAllUsers(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	users, err := db.ListAllUsers(h.client, h.dbConfig)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -115,6 +133,12 @@ func (h *Handler) getAllUsers(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) deleteAllUsers(w http.ResponseWriter, r *http.Request) {
+	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
 	amount, err := db.DeleteAllUsers(h.client, h.dbConfig)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
@@ -147,15 +171,44 @@ func (h *Handler) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessExpireTime := time.Now().Add(24 * 14 * time.Hour).Unix()
-	accessToken, err := auth.CreateToken(h.jwtKey, dbUser.ID.Hex(), accessExpireTime)
+	accessExpireTime := 24 * 14 * time.Hour
+	accessToken, err := auth.CreateToken(h.jwt.AccessKey, dbUser.ID.Hex(), accessExpireTime)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
-	refreshExpireTime := time.Now().Add(24 * 14 * time.Hour).Unix()
-	refreshToken, err := auth.CreateToken(h.jwtKey, dbUser.ID.Hex(), refreshExpireTime)
+	refreshExpireTime := 24 * 14 * time.Hour
+	refreshToken, err := auth.CreateToken(h.jwt.RefreshKey, dbUser.ID.Hex(), refreshExpireTime)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data := types.TokenResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Logged in"), data)
+}
+
+// auth
+func (h *Handler) refreshToken(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.RefreshKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
+	accessExpireTime := 24 * 14 * time.Hour
+	accessToken, err := auth.CreateToken(h.jwt.AccessKey, claims.UserID, accessExpireTime)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	refreshToken, err := auth.GetTokenFromRequest(r)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
