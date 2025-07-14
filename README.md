@@ -3,6 +3,6 @@ Multiplayer mix of Chess Shogi and Checkers where players have a budget to buy a
 
 <http://kainoagardner.xyz/csc>
   
-<img src=".github/csc.png"
+<img src=".github/csc.jpg"
      alt="Image"
      style="float: left; margin-right: 10px; height: 500px" />
