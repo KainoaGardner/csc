@@ -5,7 +5,10 @@ import (
 	"math"
 	"strings"
 
+	"github.com/KainoaGardner/csc/internal/config"
 	"github.com/KainoaGardner/csc/internal/types"
+
+	"net/smtp"
 )
 
 func GetIndexFirstChar(str string, char string) int {
@@ -62,4 +65,29 @@ func AbsoluteValueInt(x int) int {
 
 func CheckVec2Equal(x types.Vec2, y types.Vec2) bool {
 	return x.X == y.X && x.Y == y.Y
+}
+
+func SendResetPasswordEmail(config config.Config, toEmail string, token string) error {
+	resetLink := config.PublicHost + "/user/password/reset?token=" + token
+
+	to := []string{toEmail}
+	message := "To: " + toEmail + "\r\n" +
+		"Subject: Password Reset\r\n" +
+		"\r\n" +
+		"Click to reset your password:\r\n" +
+		resetLink
+
+	msg := []byte(message)
+
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	auth := smtp.PlainAuth("", config.Email.From, config.Email.Password, smtpHost)
+
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, config.Email.From, to, msg)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

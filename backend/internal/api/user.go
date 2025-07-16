@@ -24,6 +24,10 @@ func (h *Handler) registerUserRoutes(r chi.Router) {
 	r.Delete("/user/all", h.deleteAllUsers)
 
 	r.Post("/auth/refresh", h.refreshToken)
+
+	r.Post("/user/password/forgot", h.forgotPassword)
+	r.Post("/user/password/reset", h.resetPassword)
+
 }
 
 func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
@@ -40,20 +44,20 @@ func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = user.CheckUniqueLogin(h.client, h.dbConfig, *newUser)
+	err = user.CheckUniqueLogin(h.client, h.config.DB, *newUser)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
-	_, err = db.CreateUser(h.client, h.dbConfig, newUser)
+	_, err = db.CreateUser(h.client, h.config.DB, newUser)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	userStats := user.SetupUserStats(*newUser)
-	_, err = db.CreateUserStats(h.client, h.dbConfig, userStats)
+	_, err = db.CreateUserStats(h.client, h.config.DB, userStats)
 
 	data := types.UserResponse{
 		ID:          newUser.ID,
@@ -68,7 +72,7 @@ func (h *Handler) createUser(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	statusCode, err := auth.CheckAdminRequest(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
@@ -76,7 +80,7 @@ func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 
 	userID := chi.URLParam(r, "userID")
 
-	dbUser, err := db.FindUser(h.client, h.dbConfig, userID)
+	dbUser, err := db.FindUser(h.client, h.config.DB, userID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -87,13 +91,13 @@ func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 
 // auth
 func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
 	}
 
-	count, err := db.DeleteUser(h.client, h.dbConfig, claims.UserID)
+	count, err := db.DeleteUser(h.client, h.config.DB, claims.UserID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -104,13 +108,13 @@ func (h *Handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) getAllUsers(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	statusCode, err := auth.CheckAdminRequest(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
 	}
 
-	users, err := db.ListAllUsers(h.client, h.dbConfig)
+	users, err := db.ListAllUsers(h.client, h.config.DB)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -133,13 +137,13 @@ func (h *Handler) getAllUsers(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) deleteAllUsers(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	statusCode, err := auth.CheckAdminRequest(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
 	}
 
-	amount, err := db.DeleteAllUsers(h.client, h.dbConfig)
+	amount, err := db.DeleteAllUsers(h.client, h.config.DB)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -159,7 +163,7 @@ func (h *Handler) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbUser, err := db.FindUserFromUsername(h.client, h.dbConfig, postLogin.Username)
+	dbUser, err := db.FindUserFromUsername(h.client, h.config.DB, postLogin.Username)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -172,14 +176,14 @@ func (h *Handler) loginUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	accessExpireTime := 24 * 14 * time.Hour
-	accessToken, err := auth.CreateToken(h.jwt.AccessKey, dbUser.ID.Hex(), accessExpireTime)
+	accessToken, err := auth.CreateToken(h.config.JWT.AccessKey, dbUser.ID.Hex(), accessExpireTime)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	refreshExpireTime := 24 * 14 * time.Hour
-	refreshToken, err := auth.CreateToken(h.jwt.RefreshKey, dbUser.ID.Hex(), refreshExpireTime)
+	refreshToken, err := auth.CreateToken(h.config.JWT.RefreshKey, dbUser.ID.Hex(), refreshExpireTime)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -195,14 +199,14 @@ func (h *Handler) loginUser(w http.ResponseWriter, r *http.Request) {
 
 // auth
 func (h *Handler) refreshToken(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.RefreshKey, r)
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.RefreshKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
 	}
 
 	accessExpireTime := 24 * 14 * time.Hour
-	accessToken, err := auth.CreateToken(h.jwt.AccessKey, claims.UserID, accessExpireTime)
+	accessToken, err := auth.CreateToken(h.config.JWT.AccessKey, claims.UserID, accessExpireTime)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -219,5 +223,67 @@ func (h *Handler) refreshToken(w http.ResponseWriter, r *http.Request) {
 		RefreshToken: refreshToken,
 	}
 
-	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Logged in"), data)
+	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Updated access token"), data)
+}
+
+func (h *Handler) forgotPassword(w http.ResponseWriter, r *http.Request) {
+	var postForgot types.PostForgotPassword
+	err := utils.ParseJSON(r, &postForgot)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	dbUser, err := db.FindUserFromEmail(h.client, h.config.DB, postForgot.Email)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	resetExpireTime := 15 * time.Minute
+	resetToken, err := auth.CreateToken(h.config.JWT.PasswordRefreshKey, dbUser.ID.Hex(), resetExpireTime)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = utils.SendResetPasswordEmail(h.config, postForgot.Email, resetToken)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data := map[string]interface{}{"email": postForgot.Email}
+
+	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Email sent"), data)
+}
+
+func (h *Handler) resetPassword(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.PasswordRefreshKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
+	var postReset types.PostResetPassword
+	err = utils.ParseJSON(r, &postReset)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	passwordHash, err := auth.HashPassword(postReset.Password)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	_, err = db.UpdateUserPassword(h.client, h.config.DB, claims.ID, passwordHash)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data := map[string]interface{}{"_id": claims.ID}
+	utils.WriteResponse(w, http.StatusOK, "Password updated", data)
 }

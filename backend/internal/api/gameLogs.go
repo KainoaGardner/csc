@@ -18,13 +18,13 @@ func (h *Handler) registerGameLogRoutes(r chi.Router) {
 
 // admin
 func (h *Handler) getAllGameLogs(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	statusCode, err := auth.CheckAdminRequest(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
 	}
 
-	gameLogs, err := db.ListAllGameLogs(h.client, h.dbConfig)
+	gameLogs, err := db.ListAllGameLogs(h.client, h.config.DB)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -40,13 +40,13 @@ func (h *Handler) getAllGameLogs(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) deleteAllGameLogs(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	statusCode, err := auth.CheckAdminRequest(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
 	}
 
-	amount, err := db.DeleteAllGameLogs(h.client, h.dbConfig)
+	amount, err := db.DeleteAllGameLogs(h.client, h.config.DB)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -59,7 +59,7 @@ func (h *Handler) deleteAllGameLogs(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) getGameLog(w http.ResponseWriter, r *http.Request) {
 	gameLogID := chi.URLParam(r, "gameLogID")
-	gameLog, err := db.FindGameLog(h.client, h.dbConfig, gameLogID)
+	gameLog, err := db.FindGameLog(h.client, h.config.DB, gameLogID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return

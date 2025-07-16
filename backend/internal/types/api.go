@@ -130,3 +130,11 @@ type TokenResponse struct {
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"tokenToken"`
 }
+
+type PostForgotPassword struct {
+	Email string `json:"email"`
+}
+
+type PostResetPassword struct {
+	Password string `json:"password"`
+}

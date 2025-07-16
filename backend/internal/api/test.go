@@ -14,7 +14,7 @@ func (h *Handler) registerTestRoutes(r chi.Router) {
 
 // admin
 func (h *Handler) moveTest(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	statusCode, err := auth.CheckAdminRequest(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return

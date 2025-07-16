@@ -8,16 +8,15 @@ import (
 )
 
 type Handler struct {
-	client   *mongo.Client
-	dbConfig config.DB
-	jwt      config.JWT
+	client *mongo.Client
+
+	config config.Config
 }
 
-func NewHandler(client *mongo.Client, dbConfig config.DB, jwt config.JWT) *Handler {
+func NewHandler(client *mongo.Client, config config.Config) *Handler {
 	var result Handler
 	result.client = client
-	result.dbConfig = dbConfig
-	result.jwt = jwt
+	result.config = config
 
 	return &result
 }

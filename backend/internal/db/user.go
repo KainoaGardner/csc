@@ -114,3 +114,37 @@ func FindUser(client *mongo.Client, db config.DB, userID string) (*types.User, e
 
 	return &result, nil
 }
+
+func FindUserFromEmail(client *mongo.Client, db config.DB, email string) (*types.User, error) {
+	var result types.User
+
+	filter := bson.M{"email": email}
+
+	collection := client.Database(db.Name).Collection(db.Collections.Users)
+	err := collection.FindOne(context.Background(), filter).Decode(&result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func UpdateUserPassword(client *mongo.Client, db config.DB, userID string, hashPassword string) (*types.User, error) {
+	var result types.User
+
+	id, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	filter := bson.M{"_id": id}
+	update := bson.M{"$set": bson.M{"passwordHash": hashPassword}}
+
+	collection := client.Database(db.Name).Collection(db.Collections.Users)
+	_, err = collection.UpdateOne(context.Background(), filter, update)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}

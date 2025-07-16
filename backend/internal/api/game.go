@@ -32,13 +32,13 @@ func (h *Handler) registerGameRoutes(r chi.Router) {
 
 // admin
 func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	statusCode, err := auth.CheckAdminRequest(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
 	}
 
-	games, err := db.ListAllGames(h.client, h.dbConfig)
+	games, err := db.ListAllGames(h.client, h.config.DB)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -70,13 +70,13 @@ func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) deleteAllGames(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	statusCode, err := auth.CheckAdminRequest(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
 	}
 
-	amount, err := db.DeleteAllGames(h.client, h.dbConfig)
+	amount, err := db.DeleteAllGames(h.client, h.config.DB)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -89,7 +89,7 @@ func (h *Handler) deleteAllGames(w http.ResponseWriter, r *http.Request) {
 
 // auth
 func (h *Handler) postCreateGame(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
@@ -108,7 +108,7 @@ func (h *Handler) postCreateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	gameID, err := db.CreateGame(h.client, h.dbConfig, game)
+	gameID, err := db.CreateGame(h.client, h.config.DB, game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -131,14 +131,14 @@ func (h *Handler) postCreateGame(w http.ResponseWriter, r *http.Request) {
 
 // auth
 func (h *Handler) postJoinGame(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
 	}
 
 	gameID := chi.URLParam(r, "gameID")
-	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	game, err := db.FindGame(h.client, h.config.DB, gameID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -150,7 +150,7 @@ func (h *Handler) postJoinGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.GameMoveUpdate(h.client, h.dbConfig, gameID, *game)
+	err = db.GameMoveUpdate(h.client, h.config.DB, gameID, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -173,14 +173,14 @@ func (h *Handler) postJoinGame(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
 	}
 
 	gameID := chi.URLParam(r, "gameID")
-	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	game, err := db.FindGame(h.client, h.config.DB, gameID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -208,7 +208,7 @@ func (h *Handler) getBoard(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
@@ -222,7 +222,7 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameID := chi.URLParam(r, "gameID")
-	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	game, err := db.FindGame(h.client, h.config.DB, gameID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -252,7 +252,7 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.GameMoveUpdate(h.client, h.dbConfig, gameID, *game)
+	err = db.GameMoveUpdate(h.client, h.config.DB, gameID, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -264,26 +264,26 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.GameLogUpdate(h.client, h.dbConfig, gameID, postMove.Move, fen)
+	err = db.GameLogUpdate(h.client, h.config.DB, gameID, postMove.Move, fen)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	if game.State == types.OverState {
-		gameLog, err := db.FindGameLogFromGameID(h.client, h.dbConfig, gameID)
+		gameLog, err := db.FindGameLogFromGameID(h.client, h.config.DB, gameID)
 		if err != nil {
 			utils.WriteError(w, http.StatusBadRequest, err)
 			return
 		}
 		engine.SetupFinalGameLog(*game, gameLog)
-		err = db.GameLogFinalUpdate(h.client, h.dbConfig, gameID, *gameLog)
+		err = db.GameLogFinalUpdate(h.client, h.config.DB, gameID, *gameLog)
 		if err != nil {
 			utils.WriteError(w, http.StatusBadRequest, err)
 			return
 		}
 
-		_, err = db.DeleteGame(h.client, h.dbConfig, gameID)
+		_, err = db.DeleteGame(h.client, h.config.DB, gameID)
 		if err != nil {
 			utils.WriteError(w, http.StatusBadRequest, err)
 			return
@@ -315,7 +315,7 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
@@ -329,7 +329,7 @@ func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameID := chi.URLParam(r, "gameID")
-	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	game, err := db.FindGame(h.client, h.config.DB, gameID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -353,7 +353,7 @@ func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.GamePlaceUpdate(h.client, h.dbConfig, gameID, place, *game)
+	err = db.GamePlaceUpdate(h.client, h.config.DB, gameID, place, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -379,7 +379,7 @@ func (h *Handler) postPlacePiece(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
@@ -393,7 +393,7 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameID := chi.URLParam(r, "gameID")
-	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	game, err := db.FindGame(h.client, h.config.DB, gameID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -417,7 +417,7 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.GamePlaceUpdate(h.client, h.dbConfig, gameID, place, *game)
+	err = db.GamePlaceUpdate(h.client, h.config.DB, gameID, place, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -443,7 +443,7 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 
 // admin
 func (h *Handler) postState(w http.ResponseWriter, r *http.Request) {
-	statusCode, err := auth.CheckAdminRequest(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	statusCode, err := auth.CheckAdminRequest(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
@@ -457,7 +457,7 @@ func (h *Handler) postState(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameID := chi.URLParam(r, "gameID")
-	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	game, err := db.FindGame(h.client, h.config.DB, gameID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -465,7 +465,7 @@ func (h *Handler) postState(w http.ResponseWriter, r *http.Request) {
 
 	game.State = postState.State
 
-	err = db.GameStateUpdate(h.client, h.dbConfig, gameID, *game)
+	err = db.GameStateUpdate(h.client, h.config.DB, gameID, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -480,7 +480,7 @@ func (h *Handler) postState(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
@@ -494,7 +494,7 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameID := chi.URLParam(r, "gameID")
-	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	game, err := db.FindGame(h.client, h.config.DB, gameID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -512,7 +512,7 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.GameReadyUpdate(h.client, h.dbConfig, gameID, *game)
+	err = db.GameReadyUpdate(h.client, h.config.DB, gameID, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -520,7 +520,7 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 
 	if game.State == types.MoveState {
 		gameLog := engine.SetupGameLog(*game)
-		gameLogID, err := db.CreateGameLog(h.client, h.dbConfig, gameLog)
+		gameLogID, err := db.CreateGameLog(h.client, h.config.DB, gameLog)
 		if err != nil {
 			utils.WriteError(w, http.StatusBadRequest, err)
 			return
@@ -560,7 +560,7 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 
 // auth either player
 func (h *Handler) postDraw(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.dbConfig, h.jwt.AccessKey, r)
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
 	if err != nil {
 		utils.WriteError(w, statusCode, err)
 		return
@@ -574,7 +574,7 @@ func (h *Handler) postDraw(w http.ResponseWriter, r *http.Request) {
 	}
 
 	gameID := chi.URLParam(r, "gameID")
-	game, err := db.FindGame(h.client, h.dbConfig, gameID)
+	game, err := db.FindGame(h.client, h.config.DB, gameID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -592,20 +592,20 @@ func (h *Handler) postDraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = db.GameDrawUpdate(h.client, h.dbConfig, gameID, *game)
+	err = db.GameDrawUpdate(h.client, h.config.DB, gameID, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
 	if game.State == types.OverState {
-		gameLog, err := db.FindGameLogFromGameID(h.client, h.dbConfig, gameID)
+		gameLog, err := db.FindGameLogFromGameID(h.client, h.config.DB, gameID)
 		if err != nil {
 			utils.WriteError(w, http.StatusBadRequest, err)
 			return
 		}
 		engine.SetupFinalGameLog(*game, gameLog)
-		err = db.GameLogFinalUpdate(h.client, h.dbConfig, gameID, *gameLog)
+		err = db.GameLogFinalUpdate(h.client, h.config.DB, gameID, *gameLog)
 		if err != nil {
 			utils.WriteError(w, http.StatusBadRequest, err)
 			return
