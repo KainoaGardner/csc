@@ -1,17 +1,27 @@
+import API_URL from "./env.tsx"
 import { useState } from "react"
+import { useApp, useErrorHandler, useNotifHandler } from "./appContext/useApp.tsx"
 
 type FormData = {
   username: string;
   email: string;
   password: string;
+  passwordConfirm: string;
 }
 
-function Register({ handleError }: { handleError: (err: string) => void }) {
-  const [formData, setFormData] = useState<FormData>({
-    username: "",
-    email: "",
-    password: "",
-  })
+const emptyFormData = {
+  username: "",
+  email: "",
+  password: "",
+  passwordConfirm: "",
+}
+
+function Register() {
+  const { setPage } = useApp()
+  const { handleError } = useErrorHandler()
+  const { handleNotif } = useNotifHandler()
+
+  const [formData, setFormData] = useState<FormData>(emptyFormData)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -22,12 +32,46 @@ function Register({ handleError }: { handleError: (err: string) => void }) {
   }
 
   const handleSubmit = () => {
-    if (!checkValidSubmit(formData)) {
-      handleError("Cannot submit empty input")
+    if (formData.username.length === 0 || formData.email.length === 0 || formData.password.length === 0 || formData.passwordConfirm.length === 0) {
+      handleError("Cannot have empty inputs")
+      setFormData(emptyFormData)
+    } else if (formData.password !== formData.passwordConfirm) {
+      handleError("Passwords do not match")
+      setFormData(emptyFormData)
     } else {
-      console.log(formData)
+      postUser()
     }
   }
+
+
+  const postUser = async () => {
+    const postData = {
+      username: formData.username,
+      email: formData.email,
+      password: formData.password,
+    }
+
+    try {
+      const response = await fetch(API_URL + "user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json; charset=utf-8",
+        },
+        body: JSON.stringify(postData),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        handleNotif("User Registered")
+        setPage("login")
+      } else {
+        handleError(data.error);
+        setFormData(emptyFormData)
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
 
   return (
@@ -54,6 +98,14 @@ function Register({ handleError }: { handleError: (err: string) => void }) {
         onChange={handleChange}
         placeholder="Password"
       />
+      <input
+        type="password"
+        name="passwordConfirm"
+        value={formData.passwordConfirm}
+        onChange={handleChange}
+        placeholder="Confirm Password"
+      />
+
 
       <button
         onClick={handleSubmit}
@@ -64,10 +116,3 @@ function Register({ handleError }: { handleError: (err: string) => void }) {
 }
 export default Register;
 
-function checkValidSubmit(formData: FormData): boolean {
-  if (formData.username.length === 0 || formData.email.length === 0 || formData.password.length === 0) {
-    return false
-  }
-
-  return true
-}

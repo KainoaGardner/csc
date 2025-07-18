@@ -1,28 +1,24 @@
 import Login from "./login.jsx";
 import Error from "./error.jsx";
+import Notif from "./notif.jsx"
 import Register from "./register.jsx";
 import Home from "./home.jsx";
-import { useState } from "react"
 import "./App.css"
 
-type Page = "home" | "login" | "register"
+
+import { useApp } from "./appContext/useApp.tsx"
+import type { Page } from "./appContext/appContext.tsx"
+
+
+
 
 function App() {
-  const [page, setPage] = useState<Page>("home")
-  const [error, setError] = useState<string>("")
-
-  const handleError = (err: string) => {
-    setError(err);
-    setTimeout(() => {
-      setError("");
-    }, 5000);
-  };
-
-
+  const { page, setPage, error, notif } = useApp();
 
   return (
     <>
       <Error error={error} />
+      <Notif notif={notif} />
 
       <div className="nav">
         <button
@@ -40,18 +36,18 @@ function App() {
 
       </div>
 
-      <Tab page={page} handleError={handleError} />
+      <Tab page={page} />
 
     </>
   )
 }
 
-function Tab({ page, handleError }: { page: Page, handleError: (err: string) => void }) {
+function Tab({ page }: { page: Page }) {
   switch (page) {
     case "login":
       return <Login />
     case "register":
-      return <Register handleError={handleError} />
+      return <Register />
     default:
       return <Home />
   }

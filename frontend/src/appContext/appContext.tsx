@@ -1,0 +1,15 @@
+import { createContext } from "react"
+
+interface AppContextType {
+  page: Page
+  setPage: (page: Page) => void
+  error: string
+  setError: (error: string) => void
+  notif: string
+  setNotif: (notif: string) => void
+  accessToken: string | null;
+  setAccessToken: (token: string | null) => void
+}
+
+export type Page = "home" | "login" | "register"
+export const AppContext = createContext<AppContextType | undefined>(undefined)
