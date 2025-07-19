@@ -3,7 +3,6 @@ package engine
 import (
 	"fmt"
 	"github.com/KainoaGardner/csc/internal/types"
-	"strconv"
 )
 
 func SetupNewGame(gameConfig types.PostGame, userID string) (*types.Game, error) {

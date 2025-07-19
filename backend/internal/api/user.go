@@ -13,7 +13,7 @@ import (
 )
 
 func (h *Handler) registerUserRoutes(r chi.Router) {
-	r.Post("/user/", h.createUser)
+	r.Post("/user", h.createUser)
 	r.Get("/user/{userID}", h.getUser)
 	r.Delete("/user", h.deleteUser)
 

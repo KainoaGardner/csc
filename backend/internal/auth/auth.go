@@ -37,7 +37,7 @@ func CreateToken(jwtKey string, userID string, expireTime time.Duration) (string
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, tokenClaims)
-	signedToken, err := token.SignedString(jwtKey)
+	signedToken, err := token.SignedString([]byte(jwtKey))
 	if err != nil {
 		return "", err
 	}
@@ -91,9 +91,9 @@ func GetTokenClaims(jwtKey string, r *http.Request) (*types.TokenClaims, error) 
 
 func CheckExpiredToken(claims *types.TokenClaims) bool {
 	if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(time.Now()) {
-		return false
+		return true
 	}
-	return true
+	return false
 }
 
 func CheckAdminRequest(client *mongo.Client, dbConfig config.DB, jwtKey string, r *http.Request) (int, error) {
