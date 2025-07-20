@@ -17,6 +17,8 @@ func (h *Handler) registerGameRoutes(r chi.Router) {
 	r.Post("/game", h.postCreateGame)
 	r.Post("/game/{gameID}/join", h.postJoinGame)
 
+	r.Get("/game/join/all", h.getAllJoinableGames)
+
 	r.Delete("/game/all", h.deleteAllGames)
 
 	r.Get("/game/{gameID}", h.getBoard)
@@ -61,6 +63,7 @@ func (h *Handler) getAllGames(w http.ResponseWriter, r *http.Request) {
 		gameResponse.Money = game.Money
 		gameResponse.Ready = game.Ready
 		gameResponse.Draw = game.Draw
+		gameResponse.Public = game.Public
 
 		result = append(result, gameResponse)
 	}
@@ -633,4 +636,28 @@ func (h *Handler) postDraw(w http.ResponseWriter, r *http.Request) {
 
 		utils.WriteResponse(w, http.StatusOK, "Draw", data)
 	}
+}
+
+func (h *Handler) getAllJoinableGames(w http.ResponseWriter, r *http.Request) {
+	games, err := db.ListAllJoinableGames(h.client, h.config.DB)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	result := []types.JoinableGameResponse{}
+	for _, game := range games {
+		gameResponse := types.JoinableGameResponse{}
+		gameResponse.ID = game.ID
+		gameResponse.WhiteID = game.WhiteID
+		gameResponse.Time = game.Time
+		gameResponse.Money = game.Money
+		gameResponse.Width = game.Board.Width
+		gameResponse.Height = game.Board.Height
+		gameResponse.PlaceLine = game.Board.PlaceLine
+
+		result = append(result, gameResponse)
+	}
+
+	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("%d games found", len(result)), result)
 }

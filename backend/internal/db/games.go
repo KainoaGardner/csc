@@ -176,3 +176,25 @@ func GameDrawUpdate(client *mongo.Client, db config.DB, gameID string, game type
 
 	return nil
 }
+
+func ListAllJoinableGames(client *mongo.Client, db config.DB) ([]types.Game, error) {
+	var games []types.Game
+
+	collection := client.Database(db.Name).Collection(db.Collections.Games)
+
+	filter := bson.M{
+		"state":  types.ConnectState,
+		"public": true,
+	}
+
+	cursor, err := collection.Find(context.Background(), filter)
+	if err != nil {
+	}
+
+	err = cursor.All(context.Background(), &games)
+	if err != nil {
+		return nil, err
+	}
+
+	return games, nil
+}

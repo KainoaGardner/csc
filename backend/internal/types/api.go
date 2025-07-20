@@ -45,6 +45,7 @@ type PostGame struct {
 	Money     [2]int   `json:"money"`
 	StartTime [2]int64 `json:"startTime"`
 	PlaceLine int      `json:"placeLine"`
+	Public    bool     `json:"public"`
 }
 
 type PostGameResponse struct {
@@ -74,6 +75,7 @@ type GetGameResponse struct {
 	Money         [2]int             `bson:"money" json:"money"`
 	Ready         [2]bool            `bson:"ready" json:"ready"`
 	Draw          [2]bool            `bson:"draw" json:"draw"`
+	Public        bool               `json:"public"`
 }
 
 type PostState struct {
@@ -142,4 +144,14 @@ type UserStatsResponse struct {
 	GamesPlayed int      `json:"gamesPlayed"`
 	GamesWon    int      `json:"gamesWon"`
 	GameLog     []string `json:"gameLog"`
+}
+
+type JoinableGameResponse struct {
+	ID        primitive.ObjectID `json:"_id"`
+	Width     int                `json:"width"`
+	Height    int                `json:"height"`
+	PlaceLine int                `json:"placeLine"`
+	WhiteID   string             `json:"whiteID"`
+	Time      [2]int64           `json:"time"`
+	Money     [2]int             `json:"money"`
 }

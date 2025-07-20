@@ -29,6 +29,7 @@ func SetupNewGame(gameConfig types.PostGame, userID string) (*types.Game, error)
 	game.Board.PlaceLine = gameConfig.PlaceLine
 
 	game.State = 0
+	game.Public = gameConfig.Public
 
 	return &game, nil
 }
@@ -38,12 +39,28 @@ func checkSetupConfig(gameConfig types.PostGame) error {
 		return fmt.Errorf("Cannot have negative start time")
 	}
 
-	if gameConfig.Money[0] < 0 || gameConfig.Money[1] < 0 {
-		return fmt.Errorf("Cannot have negative money")
+	if gameConfig.StartTime[0] > 100000 || gameConfig.StartTime[1] > 100000 {
+		return fmt.Errorf("Starttime limit 100000")
+	}
+
+	if gameConfig.Money[0] < 50 || gameConfig.Money[1] < 50 {
+		return fmt.Errorf("Need at least 50 money")
+	}
+
+	if gameConfig.Money[0] > 100000000 || gameConfig.Money[1] > 100000000 {
+		return fmt.Errorf("Money limit 100000 seconds")
 	}
 
 	if gameConfig.Width <= 0 || gameConfig.Height <= 0 {
 		return fmt.Errorf("Cannot have negative or 0 Width or Height")
+	}
+
+	if gameConfig.Width > 20 || gameConfig.Height >= 20 {
+		return fmt.Errorf("Cannot have negative or 0 Width or Height")
+	}
+
+	if gameConfig.PlaceLine >= gameConfig.Height || gameConfig.PlaceLine <= 0 {
+		return fmt.Errorf("PlaceLine must be within the board")
 	}
 
 	return nil

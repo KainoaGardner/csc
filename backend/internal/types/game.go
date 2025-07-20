@@ -31,13 +31,14 @@ type Game struct {
 	CheckerJump     *Vec2              `bson:"checkerJump" json:"checkerJump"`
 	Winner          *int               `bson:"winner" json:"winner"`
 	Reason          string             `bson:"reason" json:"reason"`
-	State           int                `bson:"state" json:"state"` //0 place,1 move,2 over
+	State           int                `bson:"state" json:"state"`
 	Time            [2]int64           `bson:"time" json:"time"`
 	LastMoveTime    time.Time          `bson:"lastMoveTime" json:"lastMoveTime"`
 	Money           [2]int             `bson:"money" json:"money"`
 	Ready           [2]bool            `bson:"ready" json:"ready"`
 	Draw            [2]bool            `bson:"draw" json:"draw"`
 	PositionHistory map[string]int     `bson:"positionHistory" json:"positionHistory"`
+	Public          bool               `bson:"public"`
 }
 
 const (
