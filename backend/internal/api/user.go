@@ -13,14 +13,16 @@ import (
 )
 
 func (h *Handler) registerUserRoutes(r chi.Router) {
-	r.Post("/user", h.createUser)
 	r.Get("/user/{userID}", h.getUser)
+
+	r.Get("/user", h.getAuthUser)
+	r.Post("/user", h.createUser)
 	r.Delete("/user", h.deleteUser)
 
 	r.Post("/user/login", h.loginUser)
-	// r.Post("/user/logout", h.loginUser)
+	r.Post("/user/logout", h.logoutUser)
 
-	r.Get("/user", h.getAllUsers)
+	r.Get("/user/all", h.getAllUsers)
 	r.Delete("/user/all", h.deleteAllUsers)
 
 	r.Post("/auth/refresh", h.refreshToken)
@@ -87,6 +89,30 @@ func (h *Handler) getUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteResponse(w, http.StatusOK, "User", dbUser)
+}
+
+// auth
+func (h *Handler) getAuthUser(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
+	dbUser, err := db.FindUser(h.client, h.config.DB, claims.UserID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data := types.UserResponse{
+		ID:          dbUser.ID,
+		Username:    dbUser.Username,
+		Email:       dbUser.Email,
+		CreatedTime: dbUser.CreatedTime,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, "User", data)
 }
 
 // auth
@@ -189,19 +215,54 @@ func (h *Handler) loginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refreshToken",
+		Value:    refreshToken,
+		Path:     "/auth/refresh",
+		HttpOnly: true,
+		Secure:   false, //change for prod
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   24 * 14 * 60 * 60,
+	})
+
 	data := types.TokenResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken: accessToken,
 	}
 
 	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Logged in"), data)
 }
 
+func (h *Handler) logoutUser(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refreshToken",
+		Value:    "",
+		Path:     "/auth/refresh",
+		HttpOnly: true,
+		Secure:   false, //change for prod
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   -1,
+	})
+
+	utils.WriteJSON(w, http.StatusOK, fmt.Sprintf("Logged out"))
+}
+
 // auth
 func (h *Handler) refreshToken(w http.ResponseWriter, r *http.Request) {
-	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.RefreshKey, r)
+	cookie, err := r.Cookie("refreshToken")
 	if err != nil {
-		utils.WriteError(w, statusCode, err)
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	refreshToken := cookie.Value
+
+	claims, err := auth.ParseToken(h.config.JWT.RefreshKey, refreshToken)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+	expired := auth.CheckExpiredToken(claims)
+	if expired {
+		utils.WriteError(w, http.StatusUnauthorized, err)
 		return
 	}
 
@@ -212,15 +273,25 @@ func (h *Handler) refreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	refreshToken, err := auth.GetTokenFromRequest(r)
+	refreshExpireTime := 24 * 14 * time.Hour
+	refreshToken, err = auth.CreateToken(h.config.JWT.RefreshKey, claims.UserID, refreshExpireTime)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
+	http.SetCookie(w, &http.Cookie{
+		Name:     "refreshToken",
+		Value:    refreshToken,
+		Path:     "/auth/refresh",
+		HttpOnly: true,
+		Secure:   false, //change for prod
+		SameSite: http.SameSiteStrictMode,
+		MaxAge:   24 * 14 * 60 * 60,
+	})
+
 	data := types.TokenResponse{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken: accessToken,
 	}
 
 	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("Updated access token"), data)

@@ -13,11 +13,11 @@ import (
 )
 
 func (h *Handler) registerGameRoutes(r chi.Router) {
-	r.Get("/game", h.getAllGames)
+	r.Get("/game/all", h.getAllGames)
 	r.Post("/game", h.postCreateGame)
 	r.Post("/game/{gameID}/join", h.postJoinGame)
 
-	r.Delete("/game", h.deleteAllGames)
+	r.Delete("/game/all", h.deleteAllGames)
 
 	r.Get("/game/{gameID}", h.getBoard)
 	r.Post("/game/{gameID}/move", h.postMovePiece)

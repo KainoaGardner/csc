@@ -11,9 +11,9 @@ import (
 )
 
 func (h *Handler) registerGameLogRoutes(r chi.Router) {
-	r.Get("/log", h.getAllGameLogs)
+	r.Get("/log/all", h.getAllGameLogs)
 	r.Get("/log/{gameLogID}", h.getGameLog)
-	r.Delete("/log", h.deleteAllGameLogs)
+	r.Delete("/log/all", h.deleteAllGameLogs)
 }
 
 // admin

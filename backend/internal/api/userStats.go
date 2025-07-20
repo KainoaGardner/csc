@@ -11,11 +11,36 @@ import (
 )
 
 func (h *Handler) registerUserStatRoutes(r chi.Router) {
+	r.Get("/userStat", h.getAuthUserStats)
 	r.Get("/userStat/{userID}", h.getUserStats)
-	r.Get("/userStat", h.getAllUserStats)
+	r.Get("/userStat/all", h.getAllUserStats)
+}
+
+// auth
+func (h *Handler) getAuthUserStats(w http.ResponseWriter, r *http.Request) {
+	claims, statusCode, err := auth.CheckValidAuth(h.client, h.config.DB, h.config.JWT.AccessKey, r)
+	if err != nil {
+		utils.WriteError(w, statusCode, err)
+		return
+	}
+
+	userStats, err := db.FindUserStatsFromUserID(h.client, h.config.DB, claims.UserID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data := types.UserStatsResponse{
+		GamesPlayed: userStats.GamesPlayed,
+		GamesWon:    userStats.GamesWon,
+		GameLog:     userStats.GameLogs,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, "User Stats", data)
 }
 
 func (h *Handler) getUserStats(w http.ResponseWriter, r *http.Request) {
+
 	userID := chi.URLParam(r, "userID")
 	userStats, err := db.FindUserStatsFromUserID(h.client, h.config.DB, userID)
 	if err != nil {
@@ -23,7 +48,13 @@ func (h *Handler) getUserStats(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteResponse(w, http.StatusOK, "User Stats", userStats)
+	data := types.UserStatsResponse{
+		GamesPlayed: userStats.GamesPlayed,
+		GamesWon:    userStats.GamesWon,
+		GameLog:     userStats.GameLogs,
+	}
+
+	utils.WriteResponse(w, http.StatusOK, "User Stats", data)
 }
 
 // admin

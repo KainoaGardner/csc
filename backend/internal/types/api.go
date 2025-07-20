@@ -127,8 +127,7 @@ type PostLogin struct {
 }
 
 type TokenResponse struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"tokenToken"`
+	AccessToken string `json:"accessToken"`
 }
 
 type PostForgotPassword struct {
@@ -137,4 +136,10 @@ type PostForgotPassword struct {
 
 type PostResetPassword struct {
 	Password string `json:"password"`
+}
+
+type UserStatsResponse struct {
+	GamesPlayed int      `json:"gamesPlayed"`
+	GamesWon    int      `json:"gamesWon"`
+	GameLog     []string `json:"gameLog"`
 }
