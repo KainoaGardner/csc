@@ -11,5 +11,15 @@ interface AppContextType {
   setAccessToken: (token: string | null) => void
 }
 
-export type Page = "home" | "login" | "register"
+export type Page =
+  "home" |
+  "login" |
+  "register" |
+  "userStats" |
+  "multiplayer" |
+  "campaign" |
+  "settings" |
+  "createGame" |
+  "joinGame"
+
 export const AppContext = createContext<AppContextType | undefined>(undefined)

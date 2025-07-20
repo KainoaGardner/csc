@@ -1,16 +1,19 @@
 import Login from "./login.jsx";
+import Multiplayer from "./multiplayer.jsx";
+import CreateGame from "./createGame.jsx";
+import JoinGame from "./joinGame.jsx";
+import Campign from "./campaign.jsx";
+
+import Settings from "./settings.jsx";
+import User from "./user.js";
 import Error from "./error.jsx";
 import Notif from "./notif.jsx"
 import Register from "./register.jsx";
 import Home from "./home.jsx";
 import "./App.css"
 
-
 import { useApp } from "./appContext/useApp.tsx"
 import type { Page } from "./appContext/appContext.tsx"
-
-
-
 
 function App() {
   const { page, setPage, error, notif } = useApp();
@@ -25,6 +28,10 @@ function App() {
           className={page === "home" ? "on navButton" : "navButton"}
           onClick={() => setPage("home")}>
           Home</button>
+        <button
+          className={page === "userStats" ? "on navButton" : "navButton"}
+          onClick={() => setPage("userStats")}>
+          User Stats</button>
         <button
           className={page === "login" ? "on navButton" : "navButton"}
           onClick={() => setPage("login")}>
@@ -48,13 +55,22 @@ function Tab({ page }: { page: Page }) {
       return <Login />
     case "register":
       return <Register />
+    case "userStats":
+      return <User />
+    case "multiplayer":
+      return <Multiplayer />
+    case "createGame":
+      return <CreateGame />
+    case "joinGame":
+      return <JoinGame />
+    case "campaign":
+      return <Campign />
+    case "settings":
+      return <Settings />
     default:
       return <Home />
   }
-
 }
-
-
 
 
 export default App

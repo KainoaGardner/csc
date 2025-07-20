@@ -14,7 +14,7 @@ const emptyFormData = {
 
 
 function Login() {
-  const { setPage } = useApp()
+  const { setPage, setAccessToken } = useApp()
   const { handleError } = useErrorHandler()
   const { handleNotif } = useNotifHandler()
 
@@ -56,7 +56,8 @@ function Login() {
       const data = await response.json();
       if (response.ok) {
         handleNotif("Logged in")
-        console.log(data)
+        const accessToken = data.data.accessToken
+        setAccessToken(accessToken)
         setPage("home")
       } else {
         handleError(data.error);
