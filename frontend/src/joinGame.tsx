@@ -15,6 +15,9 @@ function JoinGame() {
       <button onClick={() => { setPage("multiplayer") }}>Back</button>
       <hr />
 
+      <button onClick={() => { setPage("public") }}>Game List</button>
+      <button onClick={() => { setPage("private") }}>Join with Code</button>
+
     </>
   );
 }

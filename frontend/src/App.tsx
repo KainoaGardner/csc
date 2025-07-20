@@ -1,7 +1,13 @@
+import Game from "./game.jsx";
+
 import Login from "./login.jsx";
 import Multiplayer from "./multiplayer.jsx";
 import CreateGame from "./createGame.jsx";
 import JoinGame from "./joinGame.jsx";
+
+import PrivateJoin from "./private.jsx";
+import PublicJoin from "./public.jsx";
+
 import Campign from "./campaign.jsx";
 
 import Settings from "./settings.jsx";
@@ -63,10 +69,16 @@ function Tab({ page }: { page: Page }) {
       return <CreateGame />
     case "joinGame":
       return <JoinGame />
+    case "private":
+      return <PrivateJoin />
+    case "public":
+      return <PublicJoin />
     case "campaign":
       return <Campign />
     case "settings":
       return <Settings />
+    case "game":
+      return <Game />
     default:
       return <Home />
   }

@@ -14,12 +14,18 @@ const emptyFormData = {
 
 
 function Login() {
-  const { setPage, setAccessToken } = useApp()
+  const { setPage, accessToken, setAccessToken } = useApp()
   const { handleError } = useErrorHandler()
   const { handleNotif } = useNotifHandler()
 
 
   const [formData, setFormData] = useState<FormData>(emptyFormData)
+
+  if (accessToken !== null) {
+    handleError("Already logged in")
+    setPage("userStats")
+  }
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;

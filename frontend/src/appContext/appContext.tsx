@@ -9,6 +9,8 @@ interface AppContextType {
   setNotif: (notif: string) => void
   accessToken: string | null;
   setAccessToken: (token: string | null) => void
+  gameID: string | null;
+  setGameID: (id: string | null) => void
 }
 
 export type Page =
@@ -20,6 +22,9 @@ export type Page =
   "campaign" |
   "settings" |
   "createGame" |
-  "joinGame"
+  "joinGame" |
+  "game" |
+  "private" |
+  "public"
 
 export const AppContext = createContext<AppContextType | undefined>(undefined)
