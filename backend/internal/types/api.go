@@ -1,6 +1,7 @@
 package types
 
 import (
+	"encoding/json"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"time"
 )
@@ -24,6 +25,7 @@ type PostMoveResponse struct {
 type PostPlace struct {
 	Position string `json:"position"`
 	Type     int    `json:"type"`
+	Place    bool   `json:"place"`
 }
 
 type DeletePlace struct {
@@ -154,4 +156,18 @@ type JoinableGameResponse struct {
 	WhiteID   string             `json:"whiteID"`
 	Time      [2]int64           `json:"time"`
 	Money     [2]int             `json:"money"`
+}
+
+type IncomingMessage struct {
+	Type string          `json:"type"`
+	Data json.RawMessage `json:"data"`
+}
+
+type OutgoingMessage struct {
+	Type string      `json:"type"`
+	Data interface{} `json:"data"`
+}
+
+type Error struct {
+	Error string `json:"error"`
 }

@@ -13,7 +13,7 @@ func SetupNewGame(gameConfig types.PostGame, userID string) (*types.Game, error)
 
 	game := types.Game{}
 
-	game.WhiteID = userID
+	// game.WhiteID = userID
 	game.Time = gameConfig.StartTime
 	game.Money = gameConfig.Money
 
@@ -97,6 +97,28 @@ func UpdateStartGame(game *types.Game, userID string) error {
 	return nil
 }
 
+func SetupJoinGame(game *types.Game, userID string) error {
+	err := checkGameState(types.ConnectState, game.State)
+	if err != nil {
+		return err
+	}
+
+	if game.WhiteID == "" {
+		game.WhiteID = userID
+
+	} else if game.BlackID == "" {
+		game.BlackID = userID
+	} else {
+		return fmt.Errorf("Game full")
+	}
+
+	if game.WhiteID != "" && game.BlackID != "" {
+		game.State = types.PlaceState
+	}
+
+	return nil
+}
+
 func GetTurnFromID(game types.Game, userID string) (int, error) {
 	if game.WhiteID == userID {
 		return types.White, nil
@@ -106,4 +128,11 @@ func GetTurnFromID(game types.Game, userID string) (int, error) {
 	}
 
 	return -1, fmt.Errorf("Player not in game")
+}
+
+func SetupResignGame(game *types.Game, turn int) {
+	otherTurn := getEnemyTurnInt(*game)
+	game.Winner = &otherTurn
+	game.Reason = "Resignation"
+	game.State = types.OverState
 }

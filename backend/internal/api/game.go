@@ -292,16 +292,16 @@ func (h *Handler) postMovePiece(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		data := map[string]interface{}{
-			"_id":           game.ID,
-			"whiteID":       game.WhiteID,
-			"blackID":       game.BlackID,
-			"moveCount":     game.MoveCount,
-			"halfMoveCount": game.HalfMoveCount,
-			"winner":        game.Winner,
-			"reason":        game.Reason,
-			"state":         game.State,
-			"lastMoveTime":  game.LastMoveTime,
+		data := types.GameOverResponse{
+			ID:            game.ID,
+			WhiteID:       game.WhiteID,
+			BlackID:       game.BlackID,
+			MoveCount:     game.MoveCount,
+			HalfMoveCount: game.HalfMoveCount,
+			Winner:        game.Winner,
+			Reason:        game.Reason,
+			State:         game.State,
+			LastMoveTime:  game.LastMoveTime,
 		}
 
 		utils.WriteResponse(w, http.StatusOK, "Game Over", data)
@@ -536,16 +536,16 @@ func (h *Handler) postReady(w http.ResponseWriter, r *http.Request) {
 		}
 		utils.WriteResponse(w, http.StatusOK, "Game Start", data)
 	} else if game.State == types.OverState {
-		data := map[string]interface{}{
-			"_id":           game.ID,
-			"whiteID":       game.WhiteID,
-			"blackID":       game.BlackID,
-			"moveCount":     game.MoveCount,
-			"halfMoveCount": game.HalfMoveCount,
-			"winner":        game.Winner,
-			"reason":        game.Reason,
-			"state":         game.State,
-			"lastMoveTime":  game.LastMoveTime,
+		data := types.GameOverResponse{
+			ID:            game.ID,
+			WhiteID:       game.WhiteID,
+			BlackID:       game.BlackID,
+			MoveCount:     game.MoveCount,
+			HalfMoveCount: game.HalfMoveCount,
+			Winner:        game.Winner,
+			Reason:        game.Reason,
+			State:         game.State,
+			LastMoveTime:  game.LastMoveTime,
 		}
 
 		utils.WriteResponse(w, http.StatusOK, "Game Over", data)

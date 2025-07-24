@@ -196,7 +196,7 @@ func SetupPlace(placeConfig types.PostPlace, turn int, game types.Game) (types.P
 	return result, nil
 }
 
-func SetupDeletePlace(placeConfig types.DeletePlace, turn int, game types.Game) (types.Place, error) {
+func SetupDeletePlace(placeConfig types.PostPlace, turn int, game types.Game) (types.Place, error) {
 	var result types.Place
 
 	result.Turn = turn

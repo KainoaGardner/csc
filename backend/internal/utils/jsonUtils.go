@@ -15,6 +15,27 @@ func ParseJSON(r *http.Request, payload any) error {
 	return json.NewDecoder(r.Body).Decode(payload)
 }
 
+func ParseMsgJSON[T any](msg types.IncomingMessage) (T, error) {
+	var result T
+
+	if msg.Data == nil {
+		return result, fmt.Errorf("Missing request data")
+
+	}
+
+	jsonData, err := json.Marshal(msg.Data)
+	if err != nil {
+		return result, err
+	}
+
+	err = json.Unmarshal(jsonData, &result)
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
 func WriteJSON(w http.ResponseWriter, status int, v any) error {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)

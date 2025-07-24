@@ -9,7 +9,6 @@ import (
 
 type Handler struct {
 	client *mongo.Client
-
 	config config.Config
 }
 
