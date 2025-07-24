@@ -190,7 +190,6 @@ function CreateGame() {
 
       <button onClick={postCreateGame}>Create Game</button>
 
-      <p>{gameConfig.public ? "true" : "false"}</p>
     </>
   );
 }
