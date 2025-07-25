@@ -1,5 +1,4 @@
 import API_URL from "./env.tsx"
-import { useFetchWithAuth } from "./apiCalls/api.tsx"
 import { useApp, useErrorHandler, useNotifHandler } from "./appContext/useApp.tsx"
 import { useState } from "react"
 
@@ -7,7 +6,6 @@ function PrivateJoin() {
   const { setPage, accessToken, setGameID } = useApp()
   const { handleError } = useErrorHandler()
   const { handleNotif } = useNotifHandler()
-  const fetchWithAuth = useFetchWithAuth()
   const [code, setCode] = useState<string>("")
 
   if (accessToken === null) {
@@ -20,17 +18,14 @@ function PrivateJoin() {
     setCode(value)
   }
 
-  async function postJoinGame() {
+  async function getJoinablePrivateGame() {
     try {
-      const url = API_URL + "game/" + code + "/join"
-      console.log(url)
-      const response = await fetchWithAuth(API_URL + "game/" + code + "/join", {
-        method: "POST",
+      const response = await fetch(API_URL + "game/" + code + "/private", {
+        method: "GET",
       })
 
       const data = await response.json();
       if (response.ok) {
-        handleNotif(data.message)
         setGameID(data.data._id)
         setPage("game")
       } else {
@@ -55,7 +50,7 @@ function PrivateJoin() {
       />
 
       <button
-        onClick={postJoinGame}
+        onClick={getJoinablePrivateGame}
       >Submit</button>
 
 

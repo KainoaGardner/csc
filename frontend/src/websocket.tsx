@@ -1,5 +1,62 @@
+import API_URL from "./env.tsx"
 import { useEffect, useRef, useState } from "react"
+// import { useErrorHandler, useNotifHandler } from "./appContext/useApp.tsx"
 
-export function useWebSocket(gameID: string, playerID: string) {
+type Message<T = unknown> = {
+  type: string;
+  data: T;
+}
 
+const joinRequest: Message<null> = {
+  type: "join",
+  data: null,
+}
+
+export function useGameWebSocket(gameID: string | null, accessToken: string | null, onMessage?: (msg: Message) => void) {
+  // const { handleError } = useErrorHandler()
+  // const { handleNotif } = useNotifHandler()
+
+  const [messages, setMessages] = useState<Message[]>([])
+  const ws = useRef<WebSocket | null>(null)
+
+  useEffect(() => {
+    if (gameID === null || accessToken === null) {
+      return
+    }
+
+    const socket = new WebSocket(API_URL + "ws/" + gameID + "/" + accessToken)
+    ws.current = socket
+
+    socket.onopen = () => {
+      console.log("connected to websocket")
+      sendMessage(joinRequest)
+    }
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      if (onMessage) onMessage(data)
+    }
+
+    socket.onclose = () => {
+      console.log("Websocket closed")
+    }
+
+    socket.onerror = (error) => {
+      console.error("Websocket error: ", error)
+    }
+
+    return () => {
+      socket.close()
+    }
+
+  }, [gameID, accessToken, onMessage])
+
+
+  const sendMessage = (msg: Message) => {
+    if (ws.current?.readyState === WebSocket.OPEN) {
+      ws.current.send(JSON.stringify(msg))
+    }
+  }
+
+  return { messages, setMessages, sendMessage }
 }
