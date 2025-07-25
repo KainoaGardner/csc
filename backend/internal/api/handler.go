@@ -25,5 +25,6 @@ func (h *Handler) RegisterRoutes(r chi.Router) {
 	h.registerUserStatRoutes(r)
 	h.registerGameRoutes(r)
 	h.registerGameLogRoutes(r)
+	h.registerWebsocketRoutes(r)
 	h.registerTestRoutes(r)
 }

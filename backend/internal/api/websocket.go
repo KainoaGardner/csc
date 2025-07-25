@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"github.com/KainoaGardner/csc/internal/auth"
 	"github.com/KainoaGardner/csc/internal/utils"
 	"github.com/KainoaGardner/csc/internal/websockets"
@@ -23,6 +24,11 @@ func (h *Handler) registerWebsocketRoutes(r chi.Router) {
 func (h *Handler) connectToGame(w http.ResponseWriter, r *http.Request) {
 	gameID := chi.URLParam(r, "gameID")
 	accessToken := chi.URLParam(r, "accessToken")
+
+	if gameID == "" || accessToken == "" {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("Missing gameID or accessToken"))
+		return
+	}
 
 	claims, err := auth.ParseToken(h.config.JWT.AccessKey, accessToken)
 	if err != nil {

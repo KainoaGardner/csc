@@ -21,6 +21,7 @@ func (h *Handler) registerGameRoutes(r chi.Router) {
 
 	r.Delete("/game/all", h.deleteAllGames)
 
+	r.Get("/game/{gameID}/private", h.getPrivateGame)
 	r.Get("/game/{gameID}", h.getBoard)
 	r.Post("/game/{gameID}/move", h.postMovePiece)
 	r.Post("/game/{gameID}/place", h.postPlacePiece)
@@ -660,4 +661,23 @@ func (h *Handler) getAllJoinableGames(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteResponse(w, http.StatusOK, fmt.Sprintf("%d games found", len(result)), result)
+}
+
+func (h *Handler) getPrivateGame(w http.ResponseWriter, r *http.Request) {
+	gameID := chi.URLParam(r, "gameID")
+	game, err := db.FindGame(h.client, h.config.DB, gameID)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if game.State != types.ConnectState {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	data := map[string]interface{}{
+		"_id": game.ID,
+	}
+	utils.WriteResponse(w, http.StatusOK, "Joinable game", data)
 }

@@ -103,6 +103,10 @@ func SetupJoinGame(game *types.Game, userID string) error {
 		return err
 	}
 
+	if game.WhiteID == userID || game.BlackID == userID {
+		return fmt.Errorf("Already joined game")
+	}
+
 	if game.WhiteID == "" {
 		game.WhiteID = userID
 
