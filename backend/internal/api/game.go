@@ -388,8 +388,8 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var deletePlace types.DeletePlace
-	err = utils.ParseJSON(r, &deletePlace)
+	var postPlace types.PostPlace
+	err = utils.ParseJSON(r, &postPlace)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -408,7 +408,7 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	place, err := engine.SetupDeletePlace(deletePlace, turn, *game)
+	place, err := engine.SetupDeletePlace(postPlace, turn, *game)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
@@ -435,7 +435,7 @@ func (h *Handler) deletePlacePiece(w http.ResponseWriter, r *http.Request) {
 	data := types.PlaceResponse{
 		ID:       game.ID,
 		FEN:      fen,
-		Position: deletePlace.Position,
+		Position: postPlace.Position,
 		Type:     place.Type,
 		Cost:     -place.Cost,
 		Money:    game.Money,
