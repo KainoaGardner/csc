@@ -1,8 +1,11 @@
 import { useApp, useErrorHandler } from "./appContext/useApp.tsx"
 
+
 function Game() {
   const { setPage, accessToken, gameID } = useApp()
   const { handleError } = useErrorHandler()
+
+
 
   if (accessToken === null) {
     handleError("Not logged in")
