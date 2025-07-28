@@ -1,4 +1,10 @@
-import { FenStringToPieceInt, isCharDigit, isCharUppercase, type Vec2 } from "./util.ts"
+import {
+  FenStringToPieceInt,
+  isCharDigit,
+  isCharUppercase,
+  convertStringToPosition,
+  type Vec2,
+} from "./util.ts"
 
 export interface Piece {
   type: number;
@@ -125,6 +131,24 @@ export class Game {
     }
   }
 
+  #updateEnPassant(posString: string) {
+    if (posString === "-") {
+      this.enPassant = null
+      return
+    }
+
+    this.enPassant = convertStringToPosition(posString, this.height)
+  }
+
+  #updateCheckerJump(posString: string) {
+    if (posString === "-") {
+      this.checkerJump = null
+      return
+    }
+
+    this.checkerJump = convertStringToPosition(posString, this.height)
+  }
+
   #updateMoveCounts(halfMoves: string, moves: string) {
     this.halfMoves = parseInt(halfMoves)
     this.moves = parseInt(moves)
@@ -145,12 +169,12 @@ export class Game {
     }
 
     this.#clearBoard()
-    this.#updateBoard(parts[0])
 
+    this.#updateBoard(parts[0])
     this.#updateMochigoma(parts[1])
     this.#updateTurn(parts[2])
-    // this.#updateEnPassant(parts[3])
-    // this.#updateCheckerJump(parts[4])
+    this.#updateEnPassant(parts[3])
+    this.#updateCheckerJump(parts[4])
     this.#updateMoveCounts(parts[5], parts[6])
     this.#updateTime(parts[7])
   }
