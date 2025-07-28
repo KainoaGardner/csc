@@ -1,6 +1,7 @@
 package websockets
 
 import (
+	"encoding/json"
 	"github.com/KainoaGardner/csc/internal/config"
 	"github.com/KainoaGardner/csc/internal/db"
 	"github.com/KainoaGardner/csc/internal/engine"
@@ -118,22 +119,27 @@ func DeleteGameRoom(gameID string) {
 	}
 }
 
+// resignCase(gameID, playerID, client, config)
+
 func HandleMessages(gameID string, playerID string, conn *websocket.Conn, client *mongo.Client, config config.Config) {
 	defer func() {
 		log.Printf("Closing connection for player %s", playerID)
-		DeleteGameRoom(gameID)
+		RemovePlayerFromGame(gameID, playerID)
+		// DeleteGameRoom(gameID)
 		conn.Close()
 	}()
 
 	for {
-		var msg types.IncomingMessage
-		err := conn.ReadJSON(&msg)
+		_, data, err := conn.ReadMessage()
 		if err != nil {
-			if websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-				resignCase(gameID, playerID, client, config)
-				break
-			}
+			log.Printf("read error (player=%s game=%s): %v", playerID, gameID, err)
+			resignCase(gameID, playerID, client, config)
+			return
+		}
 
+		var msg types.IncomingMessage
+		if err := json.Unmarshal(data, &msg); err != nil {
+			log.Printf("bad json (player=%s): %v data=%q", playerID, err, data)
 			continue
 		}
 
@@ -155,11 +161,9 @@ func HandleMessages(gameID string, playerID string, conn *websocket.Conn, client
 		}
 
 		if over {
-			break
+			return
 		}
-
 	}
-
 }
 
 func broadcastError(gameID string, playerID string, err error) {
@@ -357,6 +361,8 @@ func resignCase(gameID string, playerID string, client *mongo.Client, config con
 		broadcastError(gameID, playerID, err)
 		return false
 	}
+
+	log.Println("Resign Case")
 
 	if game.State == types.OverState {
 		return gameOver(game, gameID, playerID, client, config)

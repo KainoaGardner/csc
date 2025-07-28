@@ -200,5 +200,10 @@ func ResignCase(gameID string, userID string, client *mongo.Client, config confi
 
 	SetupResignGame(game, turn)
 
+	err = db.GameMoveUpdate(client, config.DB, gameID, *game)
+	if err != nil {
+		return nil, err
+	}
+
 	return game, nil
 }
