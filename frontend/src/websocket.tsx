@@ -1,6 +1,6 @@
 import API_URL from "./env.tsx"
 import { useEffect, useRef, useState } from "react"
-// import { useErrorHandler, useNotifHandler } from "./appContext/useApp.tsx"
+import { useApp } from "./appContext/useApp.tsx"
 
 type Message<T = unknown> = {
   type: string;
@@ -15,6 +15,10 @@ const joinRequest: Message<null> = {
 export function useGameWebSocket(gameID: string | null, accessToken: string | null, onMessage?: (msg: Message) => void) {
   // const { handleError } = useErrorHandler()
   // const { handleNotif } = useNotifHandler()
+
+
+  // const { setPage } = useApp()
+
 
   const [messages, setMessages] = useState<Message[]>([])
   const ws = useRef<WebSocket | null>(null)
@@ -37,8 +41,9 @@ export function useGameWebSocket(gameID: string | null, accessToken: string | nu
       if (onMessage) onMessage(data)
     }
 
-    socket.onclose = () => {
-      console.log("Websocket closed")
+    socket.onclose = (event) => {
+      console.log("Websocket closed", event.code, event.reason)
+      // setPage("home")
     }
 
     socket.onerror = (error) => {
@@ -49,7 +54,7 @@ export function useGameWebSocket(gameID: string | null, accessToken: string | nu
       socket.close()
     }
 
-  }, [gameID, accessToken, onMessage])
+  }, [gameID, accessToken])
 
 
   const sendMessage = (msg: Message) => {

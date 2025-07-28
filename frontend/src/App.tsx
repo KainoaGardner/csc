@@ -1,4 +1,5 @@
 import Game from "./game.jsx";
+import Test from "./test.jsx";
 
 import Login from "./login.jsx";
 import Multiplayer from "./multiplayer.jsx";
@@ -46,6 +47,11 @@ function App() {
           className={page === "register" ? "on navButton" : "navButton"}
           onClick={() => setPage("register")}>
           Register</button>
+        <button
+          className={page === "test" ? "on navButton" : "navButton"}
+          onClick={() => setPage("test")}>
+          Test</button>
+
 
       </div>
 
@@ -79,6 +85,8 @@ function Tab({ page }: { page: Page }) {
       return <Settings />
     case "game":
       return <Game />
+    case "test":
+      return <Test />
     default:
       return <Home />
   }

@@ -1,9 +1,15 @@
 import { useApp, useErrorHandler } from "./appContext/useApp.tsx"
 import { useGameWebSocket } from "./websocket.tsx"
+import { useEffect, useRef, useState } from "react"
 
 type Message<T = unknown> = {
   type: string;
   data: T;
+}
+
+const joinRequest: Message<null> = {
+  type: "join",
+  data: null,
 }
 
 function Game() {
@@ -26,6 +32,16 @@ function Game() {
 
   const { messages, setMessages, sendMessage } = useGameWebSocket(gameID, accessToken, handleMessage)
 
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas)
+      return
+
+    const ctx = canvas.getContext("2d")
+
+  })
+
   return (
     <>
       <h1>Game</h1>
@@ -39,7 +55,7 @@ function Game() {
         </div>
       ))}
 
-      <canvas></canvas>
+      <canvas ref={canvasRef} width={512} height={512}></canvas>
 
     </>
   );

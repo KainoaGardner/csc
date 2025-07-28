@@ -25,6 +25,7 @@ export type Page =
   "joinGame" |
   "game" |
   "private" |
-  "public"
+  "public" |
+  "test"
 
 export const AppContext = createContext<AppContextType | undefined>(undefined)
