@@ -7,10 +7,6 @@ type Message<T = unknown> = {
   data: T;
 }
 
-const joinRequest: Message<null> = {
-  type: "join",
-  data: null,
-}
 
 function Game() {
   const { setPage, accessToken, gameID } = useApp()
@@ -39,7 +35,6 @@ function Game() {
       return
 
     const ctx = canvas.getContext("2d")
-
   })
 
   return (

@@ -13,6 +13,7 @@ export interface Piece {
 }
 
 export class Game {
+  id: string
   state = 1
 
   width: number
@@ -32,7 +33,12 @@ export class Game {
   enPassant: Vec2 | null = null
   checkerJump: Vec2 | null = null
 
-  constructor(width: number, height: number, placeLine: number, money: Vec2, time: Vec2) {
+  winner: number | null = null
+  reason: string = ""
+
+  constructor(id: string, width: number, height: number, placeLine: number, money: Vec2, time: Vec2) {
+    this.id = id
+
     this.board = Array.from({ length: height }, () => Array(width).fill(null))
     this.width = width
     this.height = height
