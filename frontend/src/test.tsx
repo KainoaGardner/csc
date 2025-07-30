@@ -1,16 +1,22 @@
 // import { useApp } from "./appContext/useApp.tsx"
 import { Game } from "./game/game.ts"
+import { Button, createGameButtons } from "./game/button.ts"
+import { InputHandler } from "./game/inputHandler.ts"
 import { BoardRenderer2D } from "./game/render2d.ts"
 
+import { useNotifHandler } from "./appContext/useApp.tsx"
 import { useEffect, useRef, useState } from "react"
 
 function Test() {
-
+  const { handleNotif } = useNotifHandler()
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const frameRef = useRef<number | null>(null)
 
   const gameRef = useRef<Game | null>(null)
   const rendererRef = useRef<BoardRenderer2D | null>(null)
+
+  const inputRef = useRef<InputHandler | null>(null)
+  const buttonsRef = useRef<Button[]>([])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -21,16 +27,27 @@ function Test() {
     if (!ctx)
       return
 
+
+
     const money = { x: 300, y: 300 }
     const time = { x: 10000, y: 10000 }
     const game = new Game("123irngrsa98fradakob", 8, 8, 4, money, time)
+    game.state = 1
 
-    // const fen = "3cq*ck*3/8/8/8/8/8/8/3CQ*CK*3 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
+    const fen = "3cq*ck*3/8/8/8/8/8/8/3CQ*CK*3 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
+    game.updateGame(fen)
 
-    const renderer = new BoardRenderer2D(ctx, canvas)
+    const renderer = new BoardRenderer2D(ctx, canvas, game)
+
+    const buttons = createGameButtons(canvas, renderer.UIRatio, game.id, handleNotif)
+    buttonsRef.current = buttons
+
+    const input = new InputHandler(canvas, buttons)
+    inputRef.current = input
 
     gameRef.current = game
     rendererRef.current = renderer
+
 
     let lastFrame = performance.now()
 
@@ -49,7 +66,7 @@ function Test() {
     }
 
     const render = () => {
-      rendererRef.current!.draw(gameRef.current!, 0, 0)
+      rendererRef.current!.draw(gameRef.current!, 0, 0, buttonsRef.current!)
     }
 
     frameRef.current = requestAnimationFrame(frame)
@@ -58,6 +75,7 @@ function Test() {
       if (frameRef.current !== null) {
         cancelAnimationFrame(frameRef.current)
       }
+      input.cleanup()
     }
 
   }, [])
@@ -65,7 +83,7 @@ function Test() {
 
   return (
     <>
-      <canvas ref={canvasRef} width={1200} height={800}></canvas>
+      <canvas ref={canvasRef} width={1000} height={1000}></canvas>
     </>
   );
 }

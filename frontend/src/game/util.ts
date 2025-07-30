@@ -28,6 +28,12 @@ export interface Vec2 {
   y: number;
 }
 
+export interface Mouse {
+  x: number;
+  y: number;
+  pressed: boolean;
+}
+
 export function isCharDigit(char: string): boolean {
   if (char.length !== 1) {
     return false

@@ -14,7 +14,7 @@ export interface Piece {
 
 export class Game {
   id: string
-  state = 1
+  state = 0
 
   width: number
   height: number
