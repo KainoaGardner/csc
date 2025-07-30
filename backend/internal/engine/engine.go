@@ -55,8 +55,8 @@ func checkSetupConfig(gameConfig types.PostGame) error {
 		return fmt.Errorf("Cannot have negative or 0 Width or Height")
 	}
 
-	if gameConfig.Width > 20 || gameConfig.Height >= 20 {
-		return fmt.Errorf("Cannot have negative or 0 Width or Height")
+	if gameConfig.Width > 20 || gameConfig.Height > 20 {
+		return fmt.Errorf("Cannot have width or height bigger than 20")
 	}
 
 	if gameConfig.PlaceLine >= gameConfig.Height || gameConfig.PlaceLine <= 0 {
