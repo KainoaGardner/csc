@@ -1,4 +1,5 @@
 // import { useApp } from "./appContext/useApp.tsx"
+
 import { Game } from "./game/game.ts"
 import { Button, createGameButtons } from "./game/button.ts"
 import { InputHandler } from "./game/inputHandler.ts"
@@ -34,7 +35,11 @@ function Test() {
     const game = new Game("123irngrsa98fradakob", 8, 8, 4, money, time)
     game.state = 1
 
-    const fen = "3cq*ck*3/8/8/8/8/8/8/3CQ*CK*3 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
+
+    const fen = "cp*cn*cb*cr*cq*ck*sp*sl*/sn*sg*sc*sb*sr*sk*np*nl*/nn*ng*nb*nr*kc*kk*2/8/8/2KK*KC*NR*NB*NG*NN*/NL*NP*SK*SR*SB*SC*SG*SN*/SL*SP*CK*CQ*CR*CB*CN*CP* 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
+    // const fen = "3cq*ck*3/8/8/8/8/8/8/3CQ*CK*3 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
+
+
     game.updateGame(fen)
 
     const renderer = new BoardRenderer2D(ctx, canvas, game)
@@ -66,7 +71,7 @@ function Test() {
     }
 
     const render = () => {
-      rendererRef.current!.draw(gameRef.current!, 0, 0, buttonsRef.current!)
+      rendererRef.current!.draw(gameRef.current!, 0, buttonsRef.current!)
     }
 
     frameRef.current = requestAnimationFrame(frame)

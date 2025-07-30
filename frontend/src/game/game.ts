@@ -6,11 +6,8 @@ import {
   type Vec2,
 } from "./util.ts"
 
-export interface Piece {
-  type: number;
-  owner: number;
-  moved: boolean;
-}
+
+import { Piece } from "./piece.ts"
 
 export class Game {
   id: string
@@ -80,8 +77,12 @@ export class Game {
 
       if (currPiece.length === 3) {
         pieceStrings.push(currPiece)
+        const pos: Vec2 = { x: k, y: i, }
+        piecePositions.push(pos)
+
       }
     }
+
 
     for (let i = 0; i < pieceStrings.length; i++) {
       const pos = piecePositions[i]
@@ -100,12 +101,7 @@ export class Game {
 
       const moved = pieceString[2] === "-"
 
-      const piece: Piece = {
-        type: type,
-        owner: owner,
-        moved: moved,
-      }
-
+      const piece = new Piece(type, owner, moved)
       this.#setPiece(pos, piece)
     }
   }

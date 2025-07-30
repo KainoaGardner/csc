@@ -1,4 +1,5 @@
 import { Game } from "./game.ts"
+import { PieceImages, PieceImageDimensions } from "./images.ts"
 import { Button } from "./button.ts"
 
 import { BoardThemeColors } from "./themes.ts"
@@ -20,25 +21,25 @@ export class BoardRenderer2D {
   }
 
 
-  draw(game: Game, boardTheme: number, pieceTheme: number, buttons: Button[]) {
+  draw(game: Game, boardTheme: number, buttons: Button[]) {
     this.ctx.fillStyle = "#111"
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
     switch (game.state) {
       case 0: {
-        this.#drawConnect(game)
+        this.#drawConnect()
         break
       }
       case 1: {
-        this.#drawPlace(game, boardTheme, pieceTheme)
+        this.#drawPlace(game, boardTheme)
         break
       }
       case 2: {
-        this.#drawMove(game, boardTheme, pieceTheme)
+        this.#drawMove(game, boardTheme)
         break
       }
       case 3: {
-        this.#drawOver(game, boardTheme, pieceTheme)
+        this.#drawOver(game, boardTheme)
         break
       }
     }
@@ -46,7 +47,7 @@ export class BoardRenderer2D {
     this.#drawButtons(game, buttons)
   }
 
-  #drawConnect(game: Game) {
+  #drawConnect() {
     this.ctx.textAlign = "center"
     this.ctx.textBaseline = "middle";
     this.ctx.font = `${50 * this.UIRatio}px Arial`
@@ -58,25 +59,25 @@ export class BoardRenderer2D {
     this.ctx.fillText("Click ID Button to copy ID", this.canvas.width / 2, this.canvas.height / 2 + this.UIRatio * 100)
   }
 
-  #drawPlace(game: Game, boardTheme: number, pieceTheme: number) {
-    this.#drawBoard(game, boardTheme, pieceTheme)
+  #drawPlace(game: Game, boardTheme: number) {
+    this.#drawBoard(game, boardTheme)
     this.#drawCover(game)
-    this.#drawMochigoma(game, boardTheme, pieceTheme)
-    this.#drawPieces(game, pieceTheme)
+    this.#drawMochigoma(game, boardTheme)
+    this.#drawPieces(game)
   }
 
-  #drawMove(game: Game, boardTheme: number, pieceTheme: number) {
-    this.#drawBoard(game, boardTheme, pieceTheme)
-    this.#drawMochigoma(game, boardTheme, pieceTheme)
+  #drawMove(game: Game, boardTheme: number) {
+    this.#drawBoard(game, boardTheme)
+    this.#drawMochigoma(game, boardTheme)
   }
 
-  #drawOver(game: Game, boardTheme: number, pieceTheme: number) {
-    this.#drawBoard(game, boardTheme, pieceTheme)
-    this.#drawMochigoma(game, boardTheme, pieceTheme)
+  #drawOver(game: Game, boardTheme: number) {
+    this.#drawBoard(game, boardTheme)
+    this.#drawMochigoma(game, boardTheme)
     this.#drawOverMessage(game)
   }
 
-  #drawBoard(game: Game, boardTheme: number, pieceTheme: number) {
+  #drawBoard(game: Game, boardTheme: number) {
     this.ctx.fillStyle = "#FFF"
     this.ctx.fillRect(100 * this.UIRatio, 100 * this.UIRatio, 800 * this.UIRatio, 800 * this.UIRatio)
 
@@ -103,25 +104,16 @@ export class BoardRenderer2D {
           continue
         }
 
-        let color = "#000"
-        if (piece.owner === 0) {
-          color = "#FFF"
-        }
-
-        this.ctx.fillStyle = color
-        this.ctx.textAlign = "center"
-        this.ctx.textBaseline = "middle";
-        this.ctx.font = `${this.tileSize / 2 * this.UIRatio}px Arial`
-        this.ctx.fillText(piece.type.toString(), xStart + j * this.tileSize + this.tileSize / 2, yStart + i * this.tileSize + this.tileSize / 2)
+        piece.draw(this.ctx, xStart + j * this.tileSize, yStart + i * this.tileSize, this.tileSize)
       }
     }
   }
 
-  #drawMochigoma(game: Game, boardTheme: number, pieceTheme: number) {
+  #drawMochigoma(game: Game, boardTheme: number) {
 
   }
 
-  #drawPieces(game: Game, pieceTheme: number) {
+  #drawPieces(game: Game) {
 
   }
 
@@ -138,6 +130,7 @@ export class BoardRenderer2D {
     if (game.state === 0) {
       screen = "connect"
     }
+
 
     for (const button of buttons) {
       if (button.screen === screen) {

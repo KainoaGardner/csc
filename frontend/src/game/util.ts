@@ -23,6 +23,8 @@ FenStringToPieceInt.set("NR", 20)
 FenStringToPieceInt.set("KC", 21)
 FenStringToPieceInt.set("KK", 22)
 
+
+
 export interface Vec2 {
   x: number;
   y: number;
@@ -104,5 +106,6 @@ export function convertLowercaseToNumber(str: string): number {
 
   return result
 }
+
 
 
