@@ -6,7 +6,7 @@ import { InputHandler } from "./game/inputHandler.ts"
 import { BoardRenderer2D } from "./game/render2d.ts"
 
 import { useNotifHandler } from "./appContext/useApp.tsx"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
 function Test() {
   const { handleNotif } = useNotifHandler()
@@ -47,7 +47,7 @@ function Test() {
     const buttons = createGameButtons(canvas, renderer.UIRatio, game, handleNotif, renderer.switchShopScreen)
     buttonsRef.current = buttons
 
-    const input = new InputHandler(canvas, buttons)
+    const input = new InputHandler(canvas)
     inputRef.current = input
 
     gameRef.current = game
@@ -60,18 +60,25 @@ function Test() {
       const dt = (nowFrame - lastFrame) / 1000
       lastFrame = nowFrame
 
-      update(dt)
+      update()
       render()
 
       frameRef.current = requestAnimationFrame(frame)
     }
 
-    const update = (dt: number) => {
-      rendererRef.current!.update(dt)
+    const update = () => {
+      rendererRef.current!.update(gameRef.current!, inputRef.current!)
+      inputRef.current!.update()
+      for (const button of buttons) {
+        if (!button.visible) {
+          continue
+        }
+        button.update(inputRef.current!)
+      }
     }
 
     const render = () => {
-      rendererRef.current!.draw(gameRef.current!, 0, buttonsRef.current!)
+      rendererRef.current!.draw(gameRef.current!, 0, buttonsRef.current!, inputRef.current!)
     }
 
     frameRef.current = requestAnimationFrame(frame)

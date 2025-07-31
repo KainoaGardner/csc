@@ -104,7 +104,7 @@ export class Game {
 
       const moved = pieceString[2] === "-"
 
-      const piece = new Piece(type, owner, moved)
+      const piece = new Piece(pos.x, pos.y, type, owner, moved)
       this.#setPiece(pos, piece)
     }
   }

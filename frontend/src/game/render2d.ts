@@ -1,56 +1,56 @@
 import { Game } from "./game.ts"
 import { Piece } from "./piece.ts"
 import { PieceEnum, PieceTypeToPrice } from "./util.ts"
-import { PieceImages, PieceImageDimensions } from "./images.ts"
 import { Button } from "./button.ts"
 
 import { BoardThemeColors } from "./themes.ts"
+import { InputHandler } from "./inputHandler.ts"
 
 const whiteShopPieces = [
   [
-    new Piece(PieceEnum.Pawn, 0, false),
-    new Piece(PieceEnum.Knight, 0, false),
-    new Piece(PieceEnum.Bishop, 0, false),
-    new Piece(PieceEnum.Rook, 0, false),
-    new Piece(PieceEnum.Queen, 0, false),
-    new Piece(PieceEnum.King, 0, false),
+    new Piece(0, 8, PieceEnum.Pawn, 0, false),
+    new Piece(1, 8, PieceEnum.Knight, 0, false),
+    new Piece(2, 8, PieceEnum.Bishop, 0, false),
+    new Piece(3, 8, PieceEnum.Rook, 0, false),
+    new Piece(4, 8, PieceEnum.Queen, 0, false),
+    new Piece(5, 8, PieceEnum.King, 0, false),
   ],
   [
-    new Piece(PieceEnum.Fu, 0, false),
-    new Piece(PieceEnum.Kyou, 0, false),
-    new Piece(PieceEnum.Kei, 0, false),
-    new Piece(PieceEnum.Gin, 0, false),
-    new Piece(PieceEnum.Kin, 0, false),
-    new Piece(PieceEnum.Kaku, 0, false),
-    new Piece(PieceEnum.Hi, 0, false),
-    new Piece(PieceEnum.Ou, 0, false),
+    new Piece(0, 8, PieceEnum.Fu, 0, false),
+    new Piece(1, 8, PieceEnum.Kyou, 0, false),
+    new Piece(2, 8, PieceEnum.Kei, 0, false),
+    new Piece(3, 8, PieceEnum.Gin, 0, false),
+    new Piece(4, 8, PieceEnum.Kin, 0, false),
+    new Piece(5, 8, PieceEnum.Kaku, 0, false),
+    new Piece(6, 8, PieceEnum.Hi, 0, false),
+    new Piece(7, 8, PieceEnum.Ou, 0, false),
   ],
   [
-    new Piece(PieceEnum.Checker, 0, false),
+    new Piece(0, 8, PieceEnum.Checker, 0, false),
   ]
 ]
 
 const blackShopPieces = [
   [
-    new Piece(PieceEnum.Pawn, 1, false),
-    new Piece(PieceEnum.Knight, 1, false),
-    new Piece(PieceEnum.Bishop, 1, false),
-    new Piece(PieceEnum.Rook, 1, false),
-    new Piece(PieceEnum.Queen, 1, false),
-    new Piece(PieceEnum.King, 1, false),
+    new Piece(0, -1, PieceEnum.Pawn, 1, false),
+    new Piece(1, -1, PieceEnum.Knight, 1, false),
+    new Piece(2, -1, PieceEnum.Bishop, 1, false),
+    new Piece(3, -1, PieceEnum.Rook, 1, false),
+    new Piece(4, -1, PieceEnum.Queen, 1, false),
+    new Piece(5, -1, PieceEnum.King, 1, false),
   ],
   [
-    new Piece(PieceEnum.Fu, 1, false),
-    new Piece(PieceEnum.Kyou, 1, false),
-    new Piece(PieceEnum.Kei, 1, false),
-    new Piece(PieceEnum.Gin, 1, false),
-    new Piece(PieceEnum.Kin, 1, false),
-    new Piece(PieceEnum.Kaku, 1, false),
-    new Piece(PieceEnum.Hi, 1, false),
-    new Piece(PieceEnum.Ou, 1, false),
+    new Piece(0, -1, PieceEnum.Fu, 1, false),
+    new Piece(1, -1, PieceEnum.Kyou, 1, false),
+    new Piece(2, -1, PieceEnum.Kei, 1, false),
+    new Piece(3, -1, PieceEnum.Gin, 1, false),
+    new Piece(4, -1, PieceEnum.Kin, 1, false),
+    new Piece(5, -1, PieceEnum.Kaku, 1, false),
+    new Piece(6, -1, PieceEnum.Hi, 1, false),
+    new Piece(7, -1, PieceEnum.Ou, 1, false),
   ],
   [
-    new Piece(PieceEnum.Checker, 1, false),
+    new Piece(0, -1, PieceEnum.Checker, 1, false),
   ]
 
 ]
@@ -69,16 +69,14 @@ export class BoardRenderer2D {
   constructor(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, game: Game) {
     this.ctx = ctx
     this.canvas = canvas
-
     this.UIRatio = this.canvas.width / 1000
-
     this.tileSize = 800 * this.UIRatio / Math.max(game.width, game.height)
-
     this.switchShopScreen = this.switchShopScreen.bind(this)
+
   }
 
 
-  draw(game: Game, boardTheme: number, buttons: Button[]) {
+  draw(game: Game, boardTheme: number, buttons: Button[], input: InputHandler) {
     this.ctx.fillStyle = "#111"
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
@@ -88,15 +86,15 @@ export class BoardRenderer2D {
         break
       }
       case 1: {
-        this.#drawPlace(game, boardTheme)
+        this.#drawPlace(game, boardTheme, input)
         break
       }
       case 2: {
-        this.#drawMove(game, boardTheme)
+        this.#drawMove(game, boardTheme, input)
         break
       }
       case 3: {
-        this.#drawOver(game, boardTheme)
+        this.#drawOver(game, boardTheme, input)
         break
       }
     }
@@ -116,25 +114,25 @@ export class BoardRenderer2D {
     this.ctx.fillText("Click ID Button to copy ID", this.canvas.width / 2, this.canvas.height / 2 + this.UIRatio * 100)
   }
 
-  #drawPlace(game: Game, boardTheme: number) {
-    this.#drawBoard(game, boardTheme)
+  #drawPlace(game: Game, boardTheme: number, input: InputHandler) {
+    this.#drawBoard(game, boardTheme, input)
     this.#drawCover(game)
     this.#drawMochigoma(game, boardTheme)
-    this.#drawShopPieces(game)
+    this.#drawShopPieces(game, input)
   }
 
-  #drawMove(game: Game, boardTheme: number) {
-    this.#drawBoard(game, boardTheme)
+  #drawMove(game: Game, boardTheme: number, input: InputHandler) {
+    this.#drawBoard(game, boardTheme, input)
     this.#drawMochigoma(game, boardTheme)
   }
 
-  #drawOver(game: Game, boardTheme: number) {
-    this.#drawBoard(game, boardTheme)
+  #drawOver(game: Game, boardTheme: number, input: InputHandler) {
+    this.#drawBoard(game, boardTheme, input)
     this.#drawMochigoma(game, boardTheme)
     this.#drawOverMessage(game)
   }
 
-  #drawBoard(game: Game, boardTheme: number) {
+  #drawBoard(game: Game, boardTheme: number, input: InputHandler) {
     this.ctx.fillStyle = "#FFF"
     this.ctx.fillRect(100 * this.UIRatio, 100 * this.UIRatio, 800 * this.UIRatio, 800 * this.UIRatio)
 
@@ -161,7 +159,7 @@ export class BoardRenderer2D {
           continue
         }
 
-        piece.draw(this.ctx, xStart + j * this.tileSize, yStart + i * this.tileSize, this.tileSize)
+        piece.draw(this.ctx, this.tileSize, input)
       }
     }
   }
@@ -170,7 +168,7 @@ export class BoardRenderer2D {
 
   }
 
-  #drawShopPieces(game: Game) {
+  #drawShopPieces(game: Game, input: InputHandler) {
     this.ctx.textAlign = "center"
     this.ctx.textBaseline = "middle";
     this.ctx.lineWidth = 1 * this.UIRatio;
@@ -184,7 +182,7 @@ export class BoardRenderer2D {
 
       for (let i = 0; i < pieces.length; i++) {
         const piece = pieces[i]
-        piece.draw(this.ctx, 100 * this.UIRatio + this.tileSize * i, 900 * this.UIRatio, this.tileSize)
+        piece.draw(this.ctx, this.tileSize, input)
         const price = PieceTypeToPrice.get(piece.type)
         if (price === undefined) {
           continue
@@ -197,7 +195,7 @@ export class BoardRenderer2D {
       const pieces = this.blackShopPieces[this.shopScreen]
       for (let i = 0; i < pieces.length; i++) {
         const piece = pieces[i]
-        piece.draw(this.ctx, 100 * this.UIRatio + this.tileSize * i, 0, this.tileSize)
+        piece.draw(this.ctx, this.tileSize, input)
         const price = PieceTypeToPrice.get(piece.type)
         if (price === undefined) {
           continue
@@ -240,13 +238,21 @@ export class BoardRenderer2D {
     }
   }
 
-  update(dt: number) {
-  }
+  update(game: Game, input: InputHandler) {
+    let pieces
+    if (game.userSide === 0) {
+      pieces = this.whiteShopPieces[this.shopScreen]
+    } else {
+      pieces = this.blackShopPieces[this.shopScreen]
+    }
 
+    for (let i = 0; i < pieces.length; i++) {
+      const piece = pieces[i]
+      piece.update(this.tileSize, input)
+    }
+  }
 
   switchShopScreen() {
     this.shopScreen = (this.shopScreen + 1) % 3
-    console.log(this.shopScreen)
   }
-
 }

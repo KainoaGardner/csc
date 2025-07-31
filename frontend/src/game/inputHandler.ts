@@ -1,32 +1,18 @@
-import { Button } from "./button.ts"
 import { type Mouse } from "./util.ts"
 
 export class InputHandler {
-  mouse: Mouse = { x: 0, y: 0, pressed: false }
+  mouse: Mouse = { x: 0, y: 0, pressed: false, prevPressed: false, justPressed: false, justReleased: false }
 
-  constructor(canvas: HTMLCanvasElement, buttons: Button[]) {
+  constructor(canvas: HTMLCanvasElement) {
     const handleMouseMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect()
       this.mouse.x = e.clientX - rect.left
       this.mouse.y = e.clientY - rect.top
-
-      for (const button of buttons) {
-        if (!button.visible) {
-          continue
-        }
-        button.checkHoveringButton(this.mouse)
-      }
     }
 
     const handleMouseDown = () => {
       this.mouse.pressed = true
 
-      for (const button of buttons) {
-        if (!button.visible) {
-          continue
-        }
-        button.clickButton(this.mouse)
-      }
     }
 
     const handleMouseUp = () => {
@@ -42,6 +28,12 @@ export class InputHandler {
       canvas.removeEventListener("mousedown", handleMouseDown)
       window.removeEventListener("mouseup", handleMouseUp)
     }
+  }
+
+  update() {
+    this.mouse.justPressed = this.mouse.pressed && !this.mouse.prevPressed
+    this.mouse.justReleased = !this.mouse.pressed && this.mouse.prevPressed
+    this.mouse.prevPressed = this.mouse.pressed
   }
 
 

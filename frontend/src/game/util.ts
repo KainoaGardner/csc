@@ -76,6 +76,9 @@ export interface Mouse {
   x: number;
   y: number;
   pressed: boolean;
+  prevPressed: boolean;
+  justPressed: boolean;
+  justReleased: boolean;
 }
 
 export function isCharDigit(char: string): boolean {

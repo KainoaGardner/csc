@@ -1,5 +1,5 @@
-import { type Mouse } from "./util.ts"
 import { Game } from "./game.ts"
+import { InputHandler } from "./inputHandler.ts"
 
 type ButtonAction = (...args: unknown[]) => void
 
@@ -117,24 +117,28 @@ export class Button {
     ctx.strokeRect(this.x - this.width * (increaseSize - 1.0) / 2, this.y - this.height * (increaseSize - 1.0) / 2, this.width * increaseSize, this.height * increaseSize)
   }
 
-  checkHoveringButton(mouse: Mouse): boolean {
+  update(input: InputHandler) {
+    this.checkHoveringButton(input)
+    this.clickButton(input)
+  }
+
+  checkHoveringButton(input: InputHandler): boolean {
     let increaseSize = 1.1
     if (!this.hovering)
       increaseSize = 1.0
 
-    const result = (this.x - this.width * (increaseSize - 1.0) / 2 <= mouse.x
-      && mouse.x <= this.x + this.width + this.width * (increaseSize - 1.0) / 2
-      && this.y - this.height * (increaseSize - 1.0) / 2 <= mouse.y
-      && mouse.y <= this.y + this.height + this.height * (increaseSize - 1.0) / 2)
+    const result = (this.x - this.width * (increaseSize - 1.0) / 2 <= input.mouse.x
+      && input.mouse.x <= this.x + this.width + this.width * (increaseSize - 1.0) / 2
+      && this.y - this.height * (increaseSize - 1.0) / 2 <= input.mouse.y
+      && input.mouse.y <= this.y + this.height + this.height * (increaseSize - 1.0) / 2)
 
     this.hovering = result
     return result
   }
 
-  clickButton(mouse: Mouse) {
-    if (this.checkHoveringButton(mouse)) {
+  clickButton(input: InputHandler) {
+    if (input.mouse.justPressed && this.checkHoveringButton(input)) {
       this.onClick()
-      mouse.pressed = false
     }
   }
 }
@@ -231,6 +235,10 @@ export function createGameButtons(canvas: HTMLCanvasElement, UIRatio: number, ga
     onClick: () => readyUp()
   }
 
+  if (game.userSide === 1) {
+    readyButtonConfig.y = 650 * UIRatio
+  }
+
   const readyButton = new Button(readyButtonConfig)
   result.push(readyButton)
 
@@ -238,9 +246,6 @@ export function createGameButtons(canvas: HTMLCanvasElement, UIRatio: number, ga
   readyButtonConfig.screen = "placeReady"
   const unreadyButton = new Button(readyButtonConfig)
   result.push(unreadyButton)
-
-
-
 
   return result
 }
