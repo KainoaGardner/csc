@@ -1,27 +1,69 @@
-export const FenStringToPieceInt = new Map<string, number>()
+export const PieceEnum = {
+  Pawn: 1,
+  Knight: 2,
+  Bishop: 3,
+  Rook: 4,
+  Queen: 5,
+  King: 6,
+  Fu: 7,
+  Kyou: 8,
+  Kei: 9,
+  Gin: 10,
+  Kin: 11,
+  Kaku: 12,
+  Hi: 13,
+  Ou: 14,
+  To: 15,
+  NariKyou: 16,
+  NariKei: 17,
+  NariGin: 18,
+  Uma: 19,
+  Ryuu: 20,
+  Checker: 21,
+  CheckerKing: 22,
+}
 
-FenStringToPieceInt.set("CP", 1)
-FenStringToPieceInt.set("CN", 2)
-FenStringToPieceInt.set("CB", 3)
-FenStringToPieceInt.set("CR", 4)
-FenStringToPieceInt.set("CQ", 5)
-FenStringToPieceInt.set("CK", 6)
-FenStringToPieceInt.set("SP", 7)
-FenStringToPieceInt.set("SL", 8)
-FenStringToPieceInt.set("SN", 9)
-FenStringToPieceInt.set("SG", 10)
-FenStringToPieceInt.set("SC", 11)
-FenStringToPieceInt.set("SB", 12)
-FenStringToPieceInt.set("SR", 13)
-FenStringToPieceInt.set("SK", 14)
-FenStringToPieceInt.set("NP", 15)
-FenStringToPieceInt.set("NL", 16)
-FenStringToPieceInt.set("NN", 17)
-FenStringToPieceInt.set("NG", 18)
-FenStringToPieceInt.set("NB", 19)
-FenStringToPieceInt.set("NR", 20)
-FenStringToPieceInt.set("KC", 21)
-FenStringToPieceInt.set("KK", 22)
+export const FenStringToPieceInt = new Map<string, number>()
+FenStringToPieceInt.set("CP", PieceEnum.Pawn)
+FenStringToPieceInt.set("CN", PieceEnum.Knight)
+FenStringToPieceInt.set("CB", PieceEnum.Bishop)
+FenStringToPieceInt.set("CR", PieceEnum.Rook)
+FenStringToPieceInt.set("CQ", PieceEnum.Queen)
+FenStringToPieceInt.set("CK", PieceEnum.King)
+FenStringToPieceInt.set("SP", PieceEnum.Fu)
+FenStringToPieceInt.set("SL", PieceEnum.Kyou)
+FenStringToPieceInt.set("SN", PieceEnum.Kei)
+FenStringToPieceInt.set("SG", PieceEnum.Gin)
+FenStringToPieceInt.set("SC", PieceEnum.Kin)
+FenStringToPieceInt.set("SB", PieceEnum.Kaku)
+FenStringToPieceInt.set("SR", PieceEnum.Hi)
+FenStringToPieceInt.set("SK", PieceEnum.Ou)
+FenStringToPieceInt.set("NP", PieceEnum.To)
+FenStringToPieceInt.set("NL", PieceEnum.NariKyou)
+FenStringToPieceInt.set("NN", PieceEnum.NariKei)
+FenStringToPieceInt.set("NG", PieceEnum.NariGin)
+FenStringToPieceInt.set("NB", PieceEnum.Uma)
+FenStringToPieceInt.set("NR", PieceEnum.Ryuu)
+FenStringToPieceInt.set("KC", PieceEnum.Checker)
+FenStringToPieceInt.set("KK", PieceEnum.CheckerKing)
+
+
+export const PieceTypeToPrice = new Map<number, number>()
+PieceTypeToPrice.set(PieceEnum.Pawn, 3)
+PieceTypeToPrice.set(PieceEnum.Knight, 20)
+PieceTypeToPrice.set(PieceEnum.Bishop, 25)
+PieceTypeToPrice.set(PieceEnum.Rook, 30)
+PieceTypeToPrice.set(PieceEnum.Queen, 50)
+PieceTypeToPrice.set(PieceEnum.King, 50)
+PieceTypeToPrice.set(PieceEnum.Fu, 3)
+PieceTypeToPrice.set(PieceEnum.Kyou, 8)
+PieceTypeToPrice.set(PieceEnum.Kei, 12)
+PieceTypeToPrice.set(PieceEnum.Gin, 15)
+PieceTypeToPrice.set(PieceEnum.Kin, 20)
+PieceTypeToPrice.set(PieceEnum.Kaku, 28)
+PieceTypeToPrice.set(PieceEnum.Hi, 35)
+PieceTypeToPrice.set(PieceEnum.Ou, 45)
+PieceTypeToPrice.set(PieceEnum.Checker, 10)
 
 
 

@@ -32,7 +32,7 @@ function Test() {
 
     const money = { x: 300, y: 300 }
     const time = { x: 10000, y: 10000 }
-    const game = new Game("123irngrsa98fradakob", 8, 8, 4, money, time)
+    const game = new Game("123irngrsa98fradakob", 8, 8, 4, 0, money, time)
     game.state = 1
 
 
@@ -44,7 +44,7 @@ function Test() {
 
     const renderer = new BoardRenderer2D(ctx, canvas, game)
 
-    const buttons = createGameButtons(canvas, renderer.UIRatio, game.id, handleNotif)
+    const buttons = createGameButtons(canvas, renderer.UIRatio, game, handleNotif, renderer.switchShopScreen)
     buttonsRef.current = buttons
 
     const input = new InputHandler(canvas, buttons)

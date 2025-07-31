@@ -12,7 +12,7 @@ export class InputHandler {
 
       for (const button of buttons) {
         if (!button.visible) {
-          return
+          continue
         }
         button.checkHoveringButton(this.mouse)
       }
@@ -23,7 +23,7 @@ export class InputHandler {
 
       for (const button of buttons) {
         if (!button.visible) {
-          return
+          continue
         }
         button.clickButton(this.mouse)
       }

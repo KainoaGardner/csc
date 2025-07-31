@@ -11,6 +11,7 @@ import { Piece } from "./piece.ts"
 
 export class Game {
   id: string
+  userSide: number
   state = 0
 
   width: number
@@ -33,7 +34,7 @@ export class Game {
   winner: number | null = null
   reason: string = ""
 
-  constructor(id: string, width: number, height: number, placeLine: number, money: Vec2, time: Vec2) {
+  constructor(id: string, width: number, height: number, placeLine: number, userSide: number, money: Vec2, time: Vec2) {
     this.id = id
 
     this.board = Array.from({ length: height }, () => Array(width).fill(null))
@@ -42,6 +43,8 @@ export class Game {
     this.placeLine = placeLine
     this.money = money
     this.time = time
+
+    this.userSide = userSide
   }
 
   #updateBoard(fenPos: string) {

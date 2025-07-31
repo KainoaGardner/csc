@@ -27,8 +27,10 @@ export class Piece {
   }
 
   draw(ctx: CanvasRenderingContext2D, xTile: number, yTile: number, tileSize: number) {
-    if (this.image === undefined)
+    if (this.image === undefined) {
       return
+    }
+
 
     if (this.imageSize.x === 0 || this.imageSize.y === 0) {
       const imageSize = PieceImageDimensions.get(this.imageName)
@@ -36,6 +38,8 @@ export class Piece {
         const dimensions = { x: this.image.naturalWidth, y: this.image.naturalHeight }
         PieceImageDimensions.set(this.imageName, dimensions)
         this.imageSize = dimensions
+      } else {
+        this.imageSize = imageSize
       }
     }
 
