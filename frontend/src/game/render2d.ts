@@ -1,6 +1,6 @@
 import { Game } from "./game.ts"
 import { Piece } from "./piece.ts"
-import { PieceEnum, PieceTypeToPrice } from "./util.ts"
+import { PieceEnum, PieceTypeToPrice, fitTextToWidth } from "./util.ts"
 import { Button } from "./button.ts"
 
 import { BoardThemeColors } from "./themes.ts"
@@ -62,6 +62,7 @@ export class BoardRenderer2D {
   UIRatio: number
   tileSize: number
   shopScreen: number = 0
+  screen: string = ""
 
   whiteShopPieces: Piece[][] = whiteShopPieces
   blackShopPieces: Piece[][] = blackShopPieces
@@ -72,7 +73,6 @@ export class BoardRenderer2D {
     this.UIRatio = this.canvas.width / 1000
     this.tileSize = 800 * this.UIRatio / Math.max(game.width, game.height)
     this.switchShopScreen = this.switchShopScreen.bind(this)
-
   }
 
 
@@ -117,8 +117,9 @@ export class BoardRenderer2D {
   #drawPlace(game: Game, boardTheme: number, input: InputHandler) {
     this.#drawBoard(game, boardTheme, input)
     this.#drawCover(game)
-    this.#drawMochigoma(game, boardTheme)
-    this.#drawShopPieces(game, input)
+    this.#drawBoardPieces(game, input)
+    if (this.screen === "place")
+      this.#drawShopPieces(game, input)
   }
 
   #drawMove(game: Game, boardTheme: number, input: InputHandler) {
@@ -159,13 +160,38 @@ export class BoardRenderer2D {
           continue
         }
 
+        if (game.state === 1 && piece.owner !== game.userSide) {
+          continue
+        }
+
+
         piece.draw(this.ctx, this.tileSize, input)
       }
     }
   }
 
-  #drawMochigoma(game: Game, boardTheme: number) {
+  #drawBoardPieces(game: Game, input: InputHandler) {
+    for (let i = 0; i < game.height; i++) {
+      for (let j = 0; j < game.width; j++) {
+        const piece = game.board[i][j]
+        if (piece === null) {
+          continue
+        }
 
+        if (game.state === 1 &&
+          (game.userSide === 0 && i < game.placeLine) ||
+          (game.userSide === 1 && i >= game.placeLine)
+        ) {
+          continue
+        }
+
+        piece.draw(this.ctx, this.tileSize, input)
+      }
+    }
+  }
+
+
+  #drawMochigoma(game: Game, boardTheme: number) {
   }
 
   #drawShopPieces(game: Game, input: InputHandler) {
@@ -177,43 +203,52 @@ export class BoardRenderer2D {
     this.ctx.strokeStyle = "#000"
 
 
+    let pieces
+    let yStartPriceFont
+    let yStartMoneyFont
     if (game.userSide === 0) {
-      const pieces = this.whiteShopPieces[this.shopScreen]
-
-      for (let i = 0; i < pieces.length; i++) {
-        const piece = pieces[i]
-        piece.draw(this.ctx, this.tileSize, input)
-        const price = PieceTypeToPrice.get(piece.type)
-        if (price === undefined) {
-          continue
-        }
-
-        this.ctx.fillText(price.toString(), 100 * this.UIRatio + this.tileSize * i + this.tileSize / 2, 920 * this.UIRatio)
-        this.ctx.strokeText(price.toString(), 100 * this.UIRatio + this.tileSize * i + this.tileSize / 2, 920 * this.UIRatio)
-      }
+      pieces = this.whiteShopPieces[this.shopScreen]
+      yStartPriceFont = 920 * this.UIRatio
+      yStartMoneyFont = 900 * this.UIRatio
     } else {
-      const pieces = this.blackShopPieces[this.shopScreen]
-      for (let i = 0; i < pieces.length; i++) {
-        const piece = pieces[i]
-        piece.draw(this.ctx, this.tileSize, input)
-        const price = PieceTypeToPrice.get(piece.type)
-        if (price === undefined) {
-          continue
-        }
-        this.ctx.fillText(price.toString(), 100 * this.UIRatio + this.tileSize * i + this.tileSize / 2, 80 * this.UIRatio)
-        this.ctx.strokeText(price.toString(), 100 * this.UIRatio + this.tileSize * i + this.tileSize / 2, 80 * this.UIRatio)
-      }
+      pieces = this.whiteShopPieces[this.shopScreen]
+      yStartPriceFont = 80 * this.UIRatio
+      yStartMoneyFont = 0
     }
+
+    for (let i = 0; i < pieces.length; i++) {
+      const piece = pieces[i]
+      piece.draw(this.ctx, this.tileSize, input)
+      const price = PieceTypeToPrice.get(piece.type)
+      if (price === undefined) {
+        continue
+      }
+
+      this.ctx.fillText(price.toString(), 100 * this.UIRatio + this.tileSize * i + this.tileSize / 2, yStartPriceFont)
+      this.ctx.strokeText(price.toString(), 100 * this.UIRatio + this.tileSize * i + this.tileSize / 2, yStartPriceFont)
+    }
+
+    const moneyFontSize = fitTextToWidth(this.ctx, game.money[game.userSide].toString(), 90 * this.UIRatio, 50 * this.UIRatio, 5 * this.UIRatio)
+    this.ctx.font = `${moneyFontSize}px Arial`
+    this.ctx.fillText(game.money[game.userSide].toString(), 900 * this.UIRatio + this.tileSize / 2, yStartMoneyFont + this.tileSize / 2)
+    this.ctx.strokeText(game.money[game.userSide].toString(), 900 * this.UIRatio + this.tileSize / 2, yStartMoneyFont + this.tileSize / 2)
+
+
   }
 
   #drawCover(game: Game) {
-    this.ctx.fillStyle = "#000"
+    this.ctx.fillStyle = "#555"
+    this.ctx.globalAlpha = 0.75
+
+    const placeLinePixel = game.placeLine * this.tileSize
 
     if (game.userSide === 0) {
-      this.ctx.fillRect(100 * this.UIRatio, 100 * this.UIRatio, 800 * this.UIRatio, 400 * this.UIRatio)
+      this.ctx.fillRect(100 * this.UIRatio, 100 * this.UIRatio, 800 * this.UIRatio, placeLinePixel * this.UIRatio)
     } else {
-      this.ctx.fillRect(100 * this.UIRatio, 500 * this.UIRatio, 800 * this.UIRatio, 400 * this.UIRatio)
+      this.ctx.fillRect(100 * this.UIRatio, (placeLinePixel + 100) * this.UIRatio, 800 * this.UIRatio, 800 - placeLinePixel * this.UIRatio)
     }
+
+    this.ctx.globalAlpha = 1.0
   }
 
   #drawOverMessage(game: Game) {
@@ -221,15 +256,9 @@ export class BoardRenderer2D {
   }
 
   #drawButtons(game: Game, buttons: Button[]) {
-    let screen = ""
-    if (game.state === 0) {
-      screen = "connect"
-    } else if (game.state === 1) {
-      screen = "place"
-    }
 
     for (const button of buttons) {
-      if (button.screen === screen) {
+      if (button.screen === this.screen) {
         button.visible = true
         button.draw(this.ctx)
       } else {
@@ -239,6 +268,31 @@ export class BoardRenderer2D {
   }
 
   update(game: Game, input: InputHandler) {
+    this.updateScreen(game)
+
+    switch (game.state) {
+      case 1:
+        this.placeUpdate(game, input)
+        break
+      case 2:
+        this.moveUpdate(game, input)
+        break
+    }
+  }
+
+  updateScreen(game: Game) {
+    if (game.state === 0) {
+      this.screen = "connect"
+    } else if (game.state === 1) {
+      if (game.ready[game.userSide]) {
+        this.screen = "placeReady"
+      } else {
+        this.screen = "place"
+      }
+    }
+  }
+
+  placeUpdate(game: Game, input: InputHandler) {
     let pieces
     if (game.userSide === 0) {
       pieces = this.whiteShopPieces[this.shopScreen]
@@ -248,8 +302,23 @@ export class BoardRenderer2D {
 
     for (let i = 0; i < pieces.length; i++) {
       const piece = pieces[i]
-      piece.update(this.tileSize, input)
+      piece.placeUpdate(game, this.tileSize, input)
     }
+
+    for (let i = 0; i < game.height; i++) {
+      for (let j = 0; j < game.width; j++) {
+        const piece = game.board[i][j]
+        if (piece === null) {
+          continue
+        }
+
+        piece.placeUpdate(game, this.tileSize, input)
+      }
+    }
+  }
+
+  moveUpdate(game: Game, input: InputHandler) {
+
   }
 
   switchShopScreen() {

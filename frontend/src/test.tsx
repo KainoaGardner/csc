@@ -28,23 +28,25 @@ function Test() {
     if (!ctx)
       return
 
-
-
-    const money = { x: 300, y: 300 }
-    const time = { x: 10000, y: 10000 }
+    const money = [300, 300]
+    const time = [10000, 10000]
     const game = new Game("123irngrsa98fradakob", 8, 8, 4, 0, money, time)
     game.state = 1
 
-
-    const fen = "cp*cn*cb*cr*cq*ck*sp*sl*/sn*sg*sc*sb*sr*sk*np*nl*/nn*ng*nb*nr*kc*kk*2/8/8/2KK*KC*NR*NB*NG*NN*/NL*NP*SK*SR*SB*SC*SG*SN*/SL*SP*CK*CQ*CR*CB*CN*CP* 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
-    // const fen = "3cq*ck*3/8/8/8/8/8/8/3CQ*CK*3 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
-
-
-    game.updateGame(fen)
+    // const fen = "cp*cn*cb*cr*cq*ck*sp*sl*/sn*sg*sc*sb*sr*sk*np*nl*/nn*ng*nb*nr*kc*kk*2/8/8/2KK*KC*NR*NB*NG*NN*/NL*NP*SK*SR*SB*SC*SG*SN*/SL*SP*CK*CQ*CR*CB*CN*CP* 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
+    // game.updateGame(fen)
 
     const renderer = new BoardRenderer2D(ctx, canvas, game)
 
-    const buttons = createGameButtons(canvas, renderer.UIRatio, game, handleNotif, renderer.switchShopScreen)
+    const buttons = createGameButtons(canvas,
+      renderer.UIRatio,
+      game,
+      handleNotif,
+      renderer.switchShopScreen,
+      game.clearBoardPlace,
+      game.readyUp,
+      game.unreadyUp,
+    )
     buttonsRef.current = buttons
 
     const input = new InputHandler(canvas)

@@ -144,7 +144,15 @@ export class Button {
 }
 
 
-export function createGameButtons(canvas: HTMLCanvasElement, UIRatio: number, game: Game, handleNotif: (err: string) => void, switchShopScreen: () => void): Button[] {
+export function createGameButtons(canvas: HTMLCanvasElement,
+  UIRatio: number,
+  game: Game,
+  handleNotif: (err: string) => void,
+  switchShopScreen: () => void,
+  clearBoard: () => void,
+  readyUp: () => void,
+  unreadyUp: () => void,
+): Button[] {
   const result: Button[] = []
 
   const width = 600 * UIRatio
@@ -209,17 +217,13 @@ export function createGameButtons(canvas: HTMLCanvasElement, UIRatio: number, ga
   const unitSwitchButton = new Button(unitButtonConfig)
   result.push(unitSwitchButton)
 
-  const readyUp = () => {
-    console.log("Ready UP")
-  }
-
   const readyButtonConfig = {
-    x: 200 * UIRatio,
-    y: 250 * UIRatio,
-    width: 600 * UIRatio,
+    x: 0,
+    y: 800 * UIRatio,
+    width: 100 * UIRatio,
     height: 100 * UIRatio,
     strokeSize: 5 * UIRatio,
-    fontSize: 50 * UIRatio,
+    fontSize: 25 * UIRatio,
     subFontSize: 0,
     bgColor: "#ecf0f1",
     bgColorHover: "#7f8c8d",
@@ -236,7 +240,7 @@ export function createGameButtons(canvas: HTMLCanvasElement, UIRatio: number, ga
   }
 
   if (game.userSide === 1) {
-    readyButtonConfig.y = 650 * UIRatio
+    readyButtonConfig.y = 100 * UIRatio
   }
 
   const readyButton = new Button(readyButtonConfig)
@@ -244,8 +248,39 @@ export function createGameButtons(canvas: HTMLCanvasElement, UIRatio: number, ga
 
   readyButtonConfig.text = "Unready"
   readyButtonConfig.screen = "placeReady"
+  readyButtonConfig.onClick = () => unreadyUp()
+
   const unreadyButton = new Button(readyButtonConfig)
   result.push(unreadyButton)
+
+  const clearButtonConfig = {
+    x: 0,
+    y: 700 * UIRatio,
+    width: 100 * UIRatio,
+    height: 100 * UIRatio,
+    strokeSize: 5 * UIRatio,
+    fontSize: 25 * UIRatio,
+    subFontSize: 0,
+    bgColor: "#ecf0f1",
+    bgColorHover: "#7f8c8d",
+    color: "#000",
+    colorHover: "#000",
+    subFontColor: "#000",
+    subFontColorHover: "#000",
+    strokeColor: "#AAA",
+    strokeColorHover: "#BBB",
+    text: "Clear",
+    subtext: "",
+    screen: "place",
+    onClick: () => clearBoard()
+  }
+
+  if (game.userSide === 1) {
+    clearButtonConfig.y = 200 * UIRatio
+  }
+
+  const clearButton = new Button(clearButtonConfig)
+  result.push(clearButton)
 
   return result
 }

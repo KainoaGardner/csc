@@ -1,4 +1,5 @@
 import {
+  PieceTypeToPrice,
   FenStringToPieceInt,
   isCharDigit,
   isCharUppercase,
@@ -21,8 +22,10 @@ export class Game {
 
   mochigoma: number[] = new Array(14).fill(0)
 
-  money: Vec2
-  time: Vec2
+  money: number[]
+  time: number[]
+  ready: boolean[] = [false, false]
+  draw: boolean[] = [false, false]
 
   turn: number = 0
   halfMoves: number = 0
@@ -34,7 +37,7 @@ export class Game {
   winner: number | null = null
   reason: string = ""
 
-  constructor(id: string, width: number, height: number, placeLine: number, userSide: number, money: Vec2, time: Vec2) {
+  constructor(id: string, width: number, height: number, placeLine: number, userSide: number, money: number[], time: number[]) {
     this.id = id
 
     this.board = Array.from({ length: height }, () => Array(width).fill(null))
@@ -45,6 +48,11 @@ export class Game {
     this.time = time
 
     this.userSide = userSide
+
+
+    this.clearBoardPlace = this.clearBoardPlace.bind(this)
+    this.readyUp = this.readyUp.bind(this)
+    this.unreadyUp = this.unreadyUp.bind(this)
   }
 
   #updateBoard(fenPos: string) {
@@ -161,12 +169,11 @@ export class Game {
 
   #updateTime(fenTime: string) {
     const times = fenTime.split("/")
-    this.time.x = parseInt(times[0])
-    this.time.y = parseInt(times[1])
+    this.time[0] = parseInt(times[0])
+    this.time[1] = parseInt(times[1])
   }
 
   updateGame(fen: string) {
-
     const parts = fen.split(" ")
     if (parts.length !== 8) {
       console.log("ERROR fen part size incorrect")
@@ -183,6 +190,38 @@ export class Game {
     this.#updateMoveCounts(parts[5], parts[6])
     this.#updateTime(parts[7])
   }
+
+  clearBoardPlace() {
+    if (this.state !== 1) { return }
+
+    for (let i = 0; i < this.height; i++) {
+      for (let j = 0; j < this.width; j++) {
+        const piece = this.board[i][j]
+        if (piece === null) {
+          continue
+        }
+
+        if (piece.owner !== this.userSide) {
+          continue
+        }
+
+        const price = PieceTypeToPrice.get(piece.type)!
+
+        this.board[i][j] = null
+        this.money[this.userSide] += price
+      }
+    }
+
+  }
+
+  readyUp() {
+    if (this.ready[this.userSide]) return
+    this.ready[this.userSide] = true
+  }
+
+  unreadyUp() {
+    if (!this.ready[this.userSide]) return
+    this.ready[this.userSide] = false
+  }
+
 }
-
-

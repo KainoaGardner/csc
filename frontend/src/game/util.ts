@@ -153,4 +153,17 @@ export function convertLowercaseToNumber(str: string): number {
 }
 
 
+export function fitTextToWidth(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, maxFontSize: number, minFontSize: number): number {
+  let currFontSize = maxFontSize
 
+  while (currFontSize >= minFontSize) {
+    ctx.font = `${currFontSize}px Arial`
+    const textWidth = ctx.measureText(text).width
+    if (textWidth <= maxWidth) {
+      break
+    }
+    currFontSize--
+  }
+
+  return currFontSize
+}

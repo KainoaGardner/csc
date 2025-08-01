@@ -1,6 +1,8 @@
 import { PieceImages, PieceImageDimensions } from "./images.ts"
+import { PieceTypeToPrice } from "./util.ts"
 import { type Vec2 } from "./util.ts"
 import { InputHandler } from "./inputHandler.ts"
+import { Game } from "./game.ts"
 
 export class Piece {
   x: number
@@ -68,7 +70,7 @@ export class Piece {
     }
   }
 
-  update(tileSize: number, input: InputHandler) {
+  placeUpdate(game: Game, tileSize: number, input: InputHandler) {
     const x = (this.x + 1) * tileSize
     const y = (this.y + 1) * tileSize
 
@@ -79,6 +81,67 @@ export class Piece {
 
     if (this.selected && input.mouse.justReleased) {
       this.selected = false
+      const placeX = Math.floor(input.mouse.x / tileSize) - 1
+      const placeY = Math.floor(input.mouse.y / tileSize) - 1
+
+      const shopPiece = !this.checkPieceOnBoardSide(this.x, this.y, game)
+
+
+      if (this.checkPieceOnBoardSide(placeX, placeY, game)) {
+        if (game.board[placeY][placeX] === null) {
+          if (shopPiece) {
+            const price = PieceTypeToPrice.get(this.type)
+            if (price === undefined) { return }
+
+            if (game.money[game.userSide] - price < 0) {
+              console.log("Out of money")
+              return
+            }
+
+            game.money[game.userSide] -= price
+
+            const placePiece = new Piece(placeX, placeY, this.type, this.owner, false)
+            game.board[placeY][placeX] = placePiece
+          } else {
+            game.board[this.y][this.x] = null
+            game.board[placeY][placeX] = this
+            this.x = placeX
+            this.y = placeY
+          }
+        }
+      }
+
+      if (!this.checkPieceOnBoard(placeX, placeY, game)) {
+        if (!shopPiece) {
+          const price = PieceTypeToPrice.get(this.type)
+          if (price === undefined) { return }
+
+          game.money[game.userSide] += price
+          game.board[this.y][this.x] = null
+        }
+      }
+    }
+  }
+
+  checkPieceOnBoard(x: number, y: number, game: Game): boolean {
+    const result = 0 <= x && x < game.width && 0 <= y && y < game.height
+    return result
+  }
+
+  checkPieceOnBoardSide(x: number, y: number, game: Game): boolean {
+    if (game.userSide === 0) {
+      const result = 0 <= x && x < game.width && game.placeLine <= y && y < game.height
+      return result
+    } else {
+      const result = 0 <= x && x < game.width && 0 <= y && y < game.placeLine
+      return result
     }
   }
 }
+
+// if ((game.userSide === 0 && placeY < game.placeLine) ||
+//   (game.userSide === 1 && placeY >= game.placeLine)
+// ) {
+//   return
+// }
+
