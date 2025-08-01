@@ -51,15 +51,16 @@ type PostGame struct {
 }
 
 type PostGameResponse struct {
-	ID        string `json:"_id"`
-	WhiteID   string `json:"whiteID"`
-	BlackID   string `json:"blackID"`
-	Color     string `json:"color"`
-	Width     int    `json:"width"`
-	Height    int    `json:"height"`
-	Money     [2]int `json:"money"`
-	State     int    `json:"state"`
-	PlaceLine int    `json:"placeLine"`
+	ID        string   `json:"_id"`
+	WhiteID   string   `json:"whiteID"`
+	BlackID   string   `json:"blackID"`
+	Color     string   `json:"color"`
+	Width     int      `json:"width"`
+	Height    int      `json:"height"`
+	Money     [2]int   `json:"money"`
+	StartTime [2]int64 `json:"startTime"`
+	State     int      `json:"state"`
+	PlaceLine int      `json:"placeLine"`
 }
 
 type GetGameResponse struct {
@@ -128,6 +129,11 @@ type UpdateUserStats struct {
 type PostLogin struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
+}
+
+type LoginResponse struct {
+	ID          primitive.ObjectID `json:"_id"`
+	AccessToken string             `json:"accessToken"`
 }
 
 type TokenResponse struct {

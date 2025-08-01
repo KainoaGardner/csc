@@ -199,6 +199,7 @@ func joinCase(gameID string, playerID string, client *mongo.Client, config confi
 			Width:     game.Board.Width,
 			Height:    game.Board.Height,
 			Money:     game.Money,
+			StartTime: game.Time,
 			PlaceLine: game.Board.PlaceLine,
 			State:     game.State,
 		}

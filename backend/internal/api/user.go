@@ -225,7 +225,8 @@ func (h *Handler) loginUser(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   24 * 14 * 60 * 60,
 	})
 
-	data := types.TokenResponse{
+	data := types.LoginResponse{
+		ID:          dbUser.ID,
 		AccessToken: accessToken,
 	}
 
