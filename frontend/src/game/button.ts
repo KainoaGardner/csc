@@ -118,6 +118,7 @@ export class Button {
   }
 
   update(input: InputHandler) {
+
     this.checkHoveringButton(input)
     this.clickButton(input)
   }
@@ -160,6 +161,7 @@ export function createGameButtons(canvas: HTMLCanvasElement,
 
   const copyID = (gameID: string) => {
     navigator.clipboard.writeText(gameID);
+    console.log("COPY")
     handleNotif("Text Copied")
   }
 

@@ -11,6 +11,8 @@ interface AppContextType {
   setAccessToken: (token: string | null) => void
   gameID: string | null;
   setGameID: (id: string | null) => void
+  userID: string | null;
+  setUserID: (id: string | null) => void
 }
 
 export type Page =

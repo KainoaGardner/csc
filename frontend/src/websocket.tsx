@@ -12,7 +12,7 @@ const joinRequest: Message<null> = {
   data: null,
 }
 
-export function useGameWebSocket(gameID: string | null, accessToken: string | null, onMessage?: (msg: Message) => void) {
+export function useGameWebSocket(gameID: string | null, accessToken: string | null, onMessage?: (event: MessageEvent) => void) {
   // const { handleError } = useErrorHandler()
   // const { handleNotif } = useNotifHandler()
 
@@ -37,8 +37,7 @@ export function useGameWebSocket(gameID: string | null, accessToken: string | nu
     }
 
     socket.onmessage = (event) => {
-      const data = JSON.parse(event.data)
-      if (onMessage) onMessage(data)
+      if (onMessage) onMessage(event)
     }
 
     socket.onclose = (event) => {

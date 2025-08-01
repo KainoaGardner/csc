@@ -108,10 +108,6 @@ export class BoardRenderer2D {
     this.ctx.font = `${50 * this.UIRatio}px Arial`
     this.ctx.fillStyle = "#fff"
     this.ctx.fillText("Waiting for other player to connect...", this.canvas.width / 2, this.canvas.height / 4)
-
-    this.ctx.font = `${15 * this.UIRatio}px Arial`
-    this.ctx.fillStyle = "#fff"
-    this.ctx.fillText("Click ID Button to copy ID", this.canvas.width / 2, this.canvas.height / 2 + this.UIRatio * 100)
   }
 
   #drawPlace(game: Game, boardTheme: number, input: InputHandler) {

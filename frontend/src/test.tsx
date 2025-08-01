@@ -5,11 +5,13 @@ import { Button, createGameButtons } from "./game/button.ts"
 import { InputHandler } from "./game/inputHandler.ts"
 import { BoardRenderer2D } from "./game/render2d.ts"
 
-import { useNotifHandler } from "./appContext/useApp.tsx"
+import { useErrorHandler, useNotifHandler } from "./appContext/useApp.tsx"
 import { useEffect, useRef } from "react"
 
 function Test() {
   const { handleNotif } = useNotifHandler()
+  const { handleError } = useErrorHandler()
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const frameRef = useRef<number | null>(null)
 
@@ -70,13 +72,14 @@ function Test() {
 
     const update = () => {
       rendererRef.current!.update(gameRef.current!, inputRef.current!)
-      inputRef.current!.update()
       for (const button of buttons) {
         if (!button.visible) {
           continue
         }
         button.update(inputRef.current!)
       }
+
+      inputRef.current!.update()
     }
 
     const render = () => {

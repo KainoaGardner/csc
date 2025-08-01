@@ -1,4 +1,4 @@
-import Game from "./game.jsx";
+import GamePage from "./game.jsx";
 import Test from "./test.jsx";
 
 import Login from "./login.jsx";
@@ -84,7 +84,7 @@ function Tab({ page }: { page: Page }) {
     case "settings":
       return <Settings />
     case "game":
-      return <Game />
+      return <GamePage />
     case "test":
       return <Test />
     default:

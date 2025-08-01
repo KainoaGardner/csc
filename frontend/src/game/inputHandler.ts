@@ -33,9 +33,9 @@ export class InputHandler {
   update() {
     this.mouse.justPressed = this.mouse.pressed && !this.mouse.prevPressed
     this.mouse.justReleased = !this.mouse.pressed && this.mouse.prevPressed
+
     this.mouse.prevPressed = this.mouse.pressed
   }
-
 
   cleanup: () => void;
 }

@@ -1,12 +1,12 @@
 import {
   PieceTypeToPrice,
+  PieceEnum,
   FenStringToPieceInt,
   isCharDigit,
   isCharUppercase,
   convertStringToPosition,
   type Vec2,
 } from "./util.ts"
-
 
 import { Piece } from "./piece.ts"
 
@@ -37,7 +37,15 @@ export class Game {
   winner: number | null = null
   reason: string = ""
 
-  constructor(id: string, width: number, height: number, placeLine: number, userSide: number, money: number[], time: number[]) {
+
+  constructor(id: string,
+    width: number,
+    height: number,
+    placeLine: number,
+    userSide: number,
+    money: number[],
+    time: number[]) {
+
     this.id = id
 
     this.board = Array.from({ length: height }, () => Array(width).fill(null))
@@ -54,6 +62,27 @@ export class Game {
     this.readyUp = this.readyUp.bind(this)
     this.unreadyUp = this.unreadyUp.bind(this)
   }
+
+  updateSettings(id: string,
+    width: number,
+    height: number,
+    placeLine: number,
+    userSide: number,
+    money: number[],
+    time: number[]) {
+
+    this.id = id
+
+    this.board = Array.from({ length: height }, () => Array(width).fill(null))
+    this.width = width
+    this.height = height
+    this.placeLine = placeLine
+    this.money = money
+    this.time = time
+
+    this.userSide = userSide
+  }
+
 
   #updateBoard(fenPos: string) {
     const rows = fenPos.split("/")
@@ -214,9 +243,28 @@ export class Game {
 
   }
 
+  #checkKing(): boolean {
+    for (let i = 0; i < this.height; i++) {
+      for (let j = 0; j < this.width; j++) {
+        const piece = this.board[i][j]
+        if (piece === null) continue
+
+        if (piece.owner === this.userSide && (piece.type === PieceEnum.King || piece.type === PieceEnum.Ou)) {
+          return true
+        }
+      }
+    }
+    return false
+  }
+
   readyUp() {
     if (this.ready[this.userSide]) return
-    this.ready[this.userSide] = true
+
+    if (this.#checkKing()) {
+      this.ready[this.userSide] = true
+    } else {
+      console.log("Error")
+    }
   }
 
   unreadyUp() {
