@@ -23,10 +23,17 @@ type PostMoveResponse struct {
 }
 
 type PostPlace struct {
-	Position string `json:"position"`
-	Type     int    `json:"type"`
-	Place    bool   `json:"place"`
+	Position     string `json:"position"`
+	FromPosition string `json:"fromPosition"`
+	Type         int    `json:"type"`
+	Place        int    `json:"place"`
 }
+
+const (
+	CreatePlaceEnum = iota
+	DeletePlaceEnum
+	MovePlaceEnum
+)
 
 type DeletePlace struct {
 	Position string `json:"position"`

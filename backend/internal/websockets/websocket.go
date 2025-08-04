@@ -2,6 +2,7 @@ package websockets
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/KainoaGardner/csc/internal/config"
 	"github.com/KainoaGardner/csc/internal/db"
 	"github.com/KainoaGardner/csc/internal/engine"
@@ -119,12 +120,11 @@ func DeleteGameRoom(gameID string) {
 	}
 }
 
-// resignCase(gameID, playerID, client, config)
-
 func HandleMessages(gameID string, playerID string, conn *websocket.Conn, client *mongo.Client, config config.Config) {
 	defer func() {
 		log.Printf("Closing connection for player %s", playerID)
 		RemovePlayerFromGame(gameID, playerID)
+		resignCase(gameID, playerID, client, config)
 		// DeleteGameRoom(gameID)
 		conn.Close()
 	}()
@@ -167,6 +167,7 @@ func HandleMessages(gameID string, playerID string, conn *websocket.Conn, client
 }
 
 func broadcastError(gameID string, playerID string, err error) {
+	fmt.Println("Error", err)
 	data := types.Error{
 		Error: err.Error(),
 	}

@@ -55,6 +55,7 @@ type Move struct {
 
 type Place struct {
 	Pos  Vec2
+	From *Vec2
 	Type int
 	Turn int
 	Cost int

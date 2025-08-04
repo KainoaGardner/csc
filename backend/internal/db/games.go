@@ -7,8 +7,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
-
-	"fmt"
 )
 
 func CreateGame(client *mongo.Client, db config.DB, game *types.Game) (string, error) {
@@ -91,10 +89,8 @@ func GamePlaceUpdate(client *mongo.Client, db config.DB, gameID string, place ty
 		return err
 	}
 
-	replaceString := fmt.Sprintf("board.board.%d.%d", place.Pos.Y, place.Pos.X)
-
 	filter := bson.M{"_id": id}
-	update := bson.M{"$set": bson.M{replaceString: game.Board.Board[place.Pos.Y][place.Pos.X], "money": game.Money}}
+	update := bson.M{"$set": bson.M{"board.board": game.Board.Board, "money": game.Money}}
 
 	collection := client.Database(db.Name).Collection(db.Collections.Games)
 	_, err = collection.UpdateOne(context.Background(), filter, update)

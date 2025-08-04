@@ -5,6 +5,7 @@ import (
 	"github.com/KainoaGardner/csc/internal/types"
 	// "github.com/KainoaGardner/csc/internal/utils"
 
+	"fmt"
 	"github.com/KainoaGardner/csc/internal/config"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -87,7 +88,9 @@ func PlaceCase(gameID string, userID string, postPlace types.PostPlace, client *
 
 	var place types.Place
 	//if place else delete placed piece
-	if postPlace.Place {
+
+	switch postPlace.Place {
+	case types.CreatePlaceEnum:
 		place, err = SetupPlace(postPlace, turn, *game)
 		if err != nil {
 			return nil, result, err
@@ -97,8 +100,8 @@ func PlaceCase(gameID string, userID string, postPlace types.PostPlace, client *
 		if err != nil {
 			return nil, result, err
 		}
-	} else {
 
+	case types.DeletePlaceEnum:
 		place, err = SetupDeletePlace(postPlace, turn, *game)
 		if err != nil {
 			return nil, result, err
@@ -107,6 +110,19 @@ func PlaceCase(gameID string, userID string, postPlace types.PostPlace, client *
 		if err != nil {
 			return nil, result, err
 		}
+
+	case types.MovePlaceEnum:
+		place, err = SetupMovePlace(postPlace, turn, *game)
+		if err != nil {
+			return nil, result, err
+		}
+		err = PlacePieceMove(&place, game)
+		if err != nil {
+			return nil, result, err
+		}
+
+	default:
+		return nil, result, fmt.Errorf("Incorrect place selection")
 
 	}
 
@@ -121,10 +137,13 @@ func PlaceCase(gameID string, userID string, postPlace types.PostPlace, client *
 	}
 
 	var cost int
-	if postPlace.Place {
+	switch postPlace.Place {
+	case types.CreatePlaceEnum:
 		cost = place.Cost
-	} else {
+	case types.DeletePlaceEnum:
 		cost = place.Cost * -1
+	case types.MovePlaceEnum:
+		cost = 0
 	}
 
 	result = types.PlaceResponse{

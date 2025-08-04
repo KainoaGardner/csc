@@ -36,6 +36,22 @@ func PlacePieceDelete(place *types.Place, game *types.Game) error {
 	return nil
 }
 
+func PlacePieceMove(place *types.Place, game *types.Game) error {
+	err := checkGameState(types.PlaceState, game.State)
+	if err != nil {
+		return err
+	}
+
+	err = checkValidPlaceMove(*place, *game)
+	if err != nil {
+		return err
+	}
+
+	updateMovePlacePiece(*place, game)
+
+	return nil
+}
+
 func updatePlacePiece(place types.Place, game *types.Game) {
 	piece := types.Piece{}
 	piece.Owner = place.Turn
@@ -105,6 +121,54 @@ func checkValidPlaceDelete(place types.Place, game types.Game) error {
 	return nil
 }
 
+func updateMovePlacePiece(place types.Place, game *types.Game) {
+	piece := game.Board.Board[place.From.Y][place.From.X]
+
+	game.Board.Board[place.Pos.Y][place.Pos.X] = piece
+	game.Board.Board[place.From.Y][place.From.X] = nil
+}
+
+func checkValidPlaceMove(place types.Place, game types.Game) error {
+	if place.From == nil {
+		return fmt.Errorf("From Positon missing")
+	}
+
+	err := checkPlaceInBounds(place, game)
+	if err != nil {
+		return err
+	}
+
+	err = checkPlaceOnYourSide(place, game)
+	if err != nil {
+		return err
+	}
+
+	err = checkPlaceFromYourPiece(place, game)
+	if err != nil {
+		return err
+	}
+
+	err = checkEmptyPlaceSpace(place, game)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func checkPlaceFromYourPiece(place types.Place, game types.Game) error {
+	piece := game.Board.Board[place.From.Y][place.From.X]
+	if piece == nil {
+		return fmt.Errorf("Cannot move empty piece")
+	}
+
+	if piece.Owner != place.Turn {
+		return fmt.Errorf("Cannot move enemy piece")
+	}
+
+	return nil
+}
+
 func checkPlayerPiece(place types.Place, game types.Game) error {
 	piece := game.Board.Board[place.Pos.Y][place.Pos.X]
 	if piece == nil {
@@ -134,6 +198,15 @@ func checkPlaceInBounds(place types.Place, game types.Game) error {
 		return fmt.Errorf("Place y out of board bounds")
 	}
 
+	if place.From != nil {
+		if place.From.X < 0 || place.From.X >= game.Board.Width {
+			return fmt.Errorf("Place x out of board bounds")
+		}
+		if place.From.Y < 0 || place.From.Y >= game.Board.Height {
+			return fmt.Errorf("Place y out of board bounds")
+		}
+	}
+
 	return nil
 }
 
@@ -143,6 +216,15 @@ func checkPlaceOnYourSide(place types.Place, game types.Game) error {
 	}
 	if place.Turn == 1 && place.Pos.Y >= game.Board.PlaceLine {
 		return fmt.Errorf("Cannot place on opponents side")
+	}
+
+	if place.From != nil {
+		if place.Turn == 0 && place.From.Y < game.Board.PlaceLine {
+			return fmt.Errorf("Cannot place on opponents side")
+		}
+		if place.Turn == 1 && place.From.Y >= game.Board.PlaceLine {
+			return fmt.Errorf("Cannot place on opponents side")
+		}
 	}
 
 	return nil
@@ -206,6 +288,26 @@ func SetupDeletePlace(placeConfig types.PostPlace, turn int, game types.Game) (t
 		return result, err
 	}
 	result.Pos = position
+
+	return result, nil
+}
+
+func SetupMovePlace(placeConfig types.PostPlace, turn int, game types.Game) (types.Place, error) {
+	var result types.Place
+
+	result.Turn = turn
+
+	position, err := convertStringToPosition(placeConfig.Position, game.Board.Height)
+	if err != nil {
+		return result, err
+	}
+	result.Pos = position
+
+	from, err := convertStringToPosition(placeConfig.FromPosition, game.Board.Height)
+	if err != nil {
+		return result, err
+	}
+	result.From = &from
 
 	return result, nil
 }
