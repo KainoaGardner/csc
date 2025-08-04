@@ -1,4 +1,5 @@
 import { Game } from "./game.ts"
+import { type Message } from "./util.ts"
 import { InputHandler } from "./inputHandler.ts"
 
 type ButtonAction = (...args: unknown[]) => void
@@ -148,10 +149,11 @@ export function createGameButtons(canvas: HTMLCanvasElement,
   UIRatio: number,
   game: Game,
   handleNotif: (err: string) => void,
+  sendMessage: (msg: Message<unknown>) => void,
   switchShopScreen: () => void,
   clearBoard: () => void,
-  readyUp: () => void,
-  unreadyUp: () => void,
+  readyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  unreadyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
 ): Button[][] {
 
   const result: Button[][] = []
@@ -242,11 +244,10 @@ export function createGameButtons(canvas: HTMLCanvasElement,
     text: "Ready",
     subtext: "",
     screen: "place",
-    onClick: () => readyUp()
+    onClick: () => readyUp(sendMessage)
   }
 
   const whiteReadyButton = new Button(readyButtonConfig)
-
 
   readyButtonConfig.y = 100 * UIRatio
 
@@ -257,7 +258,7 @@ export function createGameButtons(canvas: HTMLCanvasElement,
   readyButtonConfig.y = 800 * UIRatio
   readyButtonConfig.text = "Unready"
   readyButtonConfig.screen = "placeReady"
-  readyButtonConfig.onClick = () => unreadyUp()
+  readyButtonConfig.onClick = () => unreadyUp(sendMessage)
 
   const whiteUnreadyButton = new Button(readyButtonConfig)
 

@@ -6,6 +6,8 @@ import {
   isCharUppercase,
   convertStringToPosition,
   type Vec2,
+  type Message,
+  type ReadyMessage,
 } from "./util.ts"
 
 import { Piece } from "./piece.ts"
@@ -200,6 +202,10 @@ export class Game {
     this.time[1] = parseInt(times[1])
   }
 
+  updateReady(ready: boolean[], state: number) {
+    this.ready = ready
+    this.state = state
+  }
 
   updateGame(fen: string) {
     const parts = fen.split(" ")
@@ -256,19 +262,36 @@ export class Game {
     return false
   }
 
-  readyUp() {
+  readyUp(sendMessage: (msg: Message<unknown>) => void) {
     if (this.ready[this.userSide]) return
 
     if (this.#checkKing()) {
       this.ready[this.userSide] = true
+
+      const readyRequest: Message<ReadyMessage> = {
+        type: "ready",
+        data: {
+          ready: true,
+        },
+      }
+      sendMessage(readyRequest)
+
     } else {
       console.log("Error")
     }
   }
 
-  unreadyUp() {
+  unreadyUp(sendMessage: (msg: Message<unknown>) => void) {
     if (!this.ready[this.userSide]) return
     this.ready[this.userSide] = false
+
+    const unreadyRequest: Message<ReadyMessage> = {
+      type: "ready",
+      data: {
+        ready: false,
+      },
+    }
+    sendMessage(unreadyRequest)
   }
 
 }

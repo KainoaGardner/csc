@@ -116,6 +116,7 @@ export class BoardRenderer2D {
     this.#drawBoardPieces(game, input)
     if (this.screen === "place")
       this.#drawShopPieces(game, input)
+    this.#drawReadyText(game)
   }
 
   #drawMove(game: Game, boardTheme: number, input: InputHandler) {
@@ -186,6 +187,23 @@ export class BoardRenderer2D {
     }
   }
 
+  #drawReadyText(game: Game) {
+    this.ctx.textAlign = "center"
+    this.ctx.textBaseline = "middle";
+    this.ctx.lineWidth = 1 * this.UIRatio;
+    this.ctx.font = `${50 * this.UIRatio}px Arial`
+    this.ctx.fillStyle = "#2ecc71"
+    this.ctx.strokeStyle = "#000"
+
+    if (game.ready[0]) {
+      this.ctx.fillText("Ready", 500 * this.UIRatio, 900 * this.UIRatio + this.tileSize / 2)
+      this.ctx.strokeText("Ready", 500 * this.UIRatio, 900 * this.UIRatio + this.tileSize / 2)
+    }
+    if (game.ready[1]) {
+      this.ctx.fillText("Ready", 500 * this.UIRatio, this.tileSize / 2)
+      this.ctx.strokeText("Ready", 500 * this.UIRatio, this.tileSize / 2)
+    }
+  }
 
   #drawMochigoma(game: Game, boardTheme: number) {
   }

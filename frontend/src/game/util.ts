@@ -83,6 +83,10 @@ export type PlaceMessage = {
   place: number,
 }
 
+export type ReadyMessage = {
+  ready: boolean,
+}
+
 export interface Vec2 {
   x: number;
   y: number;

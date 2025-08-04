@@ -12,9 +12,7 @@ export function useGameWebSocket(gameID: string | null, accessToken: string | nu
   // const { handleError } = useErrorHandler()
   // const { handleNotif } = useNotifHandler()
 
-
   // const { setPage } = useApp()
-
 
   const [messages, setMessages] = useState<Message[]>([])
   const ws = useRef<WebSocket | null>(null)

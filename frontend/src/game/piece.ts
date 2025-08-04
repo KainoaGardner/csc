@@ -71,6 +71,8 @@ export class Piece {
   }
 
   placeUpdate(game: Game, tileSize: number, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
+    if (game.ready[game.userSide]) return
+
     const x = (this.x + 1) * tileSize
     const y = (this.y + 1) * tileSize
 

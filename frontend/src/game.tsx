@@ -2,13 +2,10 @@ import { useApp, useErrorHandler, useNotifHandler } from "./appContext/useApp.ts
 import { useGameWebSocket } from "./websocket.tsx"
 import { useEffect, useRef } from "react"
 
-import { convertStringToPosition } from "./game/util.ts"
 import { Game } from "./game/game.ts"
 import { Button, createGameButtons } from "./game/button.ts"
 import { InputHandler } from "./game/inputHandler.ts"
 import { BoardRenderer2D } from "./game/render2d.ts"
-
-
 
 function GamePage() {
   const { setPage, accessToken, gameID, userID } = useApp()
@@ -59,13 +56,25 @@ function GamePage() {
         break
       }
       case "place": {
-        // const game = gameRef.current!
-        // const positionString = msg.data.position
-        // const position = convertStringToPosition(positionString, game.height)
-        // const type = msg.data.type
-        // const cost = msg.data.cost
-        // const money = msg.data.money
-        // game.updatePlace(position, type, money)
+        break
+      }
+      case "ready": {
+        const game = gameRef.current!
+        const ready = msg.data.ready
+        const state = msg.data.state
+        game.updateReady(ready, state)
+        break
+      }
+      case "move": {
+        const game = gameRef.current!
+
+        console.log(msg)
+        // const fen = msg.data.fen
+        //
+        // game.state = 2
+        // game.updateGame(fen)
+
+        break
       }
 
     }
@@ -110,6 +119,7 @@ function GamePage() {
       renderer.UIRatio,
       game,
       handleNotif,
+      sendMessage,
       renderer.switchShopScreen,
       game.clearBoardPlace,
       game.readyUp,
