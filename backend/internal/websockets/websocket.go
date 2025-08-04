@@ -295,7 +295,7 @@ func readyCase(gameID string, playerID string, msg types.IncomingMessage, client
 			"ready": game.Ready,
 		}
 		response := types.OutgoingMessage{
-			Type: "move",
+			Type: "ready",
 			Data: data,
 		}
 		BroadcastToGame(gameID, response)
