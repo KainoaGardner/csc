@@ -1,11 +1,7 @@
 import API_URL from "./env.tsx"
+import { type Message } from "./game/util.ts"
 import { useEffect, useRef, useState } from "react"
-import { useApp } from "./appContext/useApp.tsx"
 
-type Message<T = unknown> = {
-  type: string;
-  data: T;
-}
 
 const joinRequest: Message<null> = {
   type: "join",

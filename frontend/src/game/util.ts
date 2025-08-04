@@ -23,6 +23,12 @@ export const PieceEnum = {
   CheckerKing: 22,
 }
 
+export const PlaceEnum = {
+  create: 0,
+  delete: 1,
+  move: 2,
+}
+
 export const FenStringToPieceInt = new Map<string, number>()
 FenStringToPieceInt.set("CP", PieceEnum.Pawn)
 FenStringToPieceInt.set("CN", PieceEnum.Knight)
@@ -65,7 +71,17 @@ PieceTypeToPrice.set(PieceEnum.Hi, 35)
 PieceTypeToPrice.set(PieceEnum.Ou, 45)
 PieceTypeToPrice.set(PieceEnum.Checker, 10)
 
+export type Message<T = unknown> = {
+  type: string;
+  data: T;
+}
 
+export type PlaceMessage = {
+  position: string,
+  fromPosition: string,
+  type: number,
+  place: number,
+}
 
 export interface Vec2 {
   x: number;
@@ -108,6 +124,18 @@ export function isCharLowercase(char: string): boolean {
   return /[a-z]/.test(c)
 }
 
+export function convertPositionToString(pos: Vec2, boardHeight: number): string {
+  let result = ""
+
+  const startWidthStr = convertNumberToLowercase(pos.x + 1)
+
+  const startHeightStr = (boardHeight - pos.y).toString()
+
+  result = startWidthStr + startHeightStr
+
+  return result
+}
+
 export function convertStringToPosition(posString: string, boardHeight: number): Vec2 {
   const result: Vec2 = { x: 0, y: 0 }
 
@@ -128,6 +156,19 @@ export function convertStringToPosition(posString: string, boardHeight: number):
 
   result.x = x
   result.y = boardHeight - y
+
+  return result
+}
+
+export function convertNumberToLowercase(x: number): string {
+  let result = ""
+
+  while (x > 0) {
+    const amount = (x - 1) % 26
+    x = Math.floor((x - 1) / 26)
+    const char = String.fromCharCode(amount + 97)
+    result += char
+  }
 
   return result
 }
@@ -167,3 +208,5 @@ export function fitTextToWidth(ctx: CanvasRenderingContext2D, text: string, maxW
 
   return currFontSize
 }
+
+

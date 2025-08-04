@@ -1,6 +1,6 @@
 import { Game } from "./game.ts"
 import { Piece } from "./piece.ts"
-import { PieceEnum, PieceTypeToPrice, fitTextToWidth } from "./util.ts"
+import { PieceEnum, PieceTypeToPrice, fitTextToWidth, type Message } from "./util.ts"
 import { Button } from "./button.ts"
 
 import { BoardThemeColors } from "./themes.ts"
@@ -207,7 +207,7 @@ export class BoardRenderer2D {
       yStartPriceFont = 920 * this.UIRatio
       yStartMoneyFont = 900 * this.UIRatio
     } else {
-      pieces = this.whiteShopPieces[this.shopScreen]
+      pieces = this.blackShopPieces[this.shopScreen]
       yStartPriceFont = 80 * this.UIRatio
       yStartMoneyFont = 0
     }
@@ -263,15 +263,15 @@ export class BoardRenderer2D {
     }
   }
 
-  update(game: Game, input: InputHandler) {
+  update(game: Game, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
     this.updateScreen(game)
 
     switch (game.state) {
       case 1:
-        this.placeUpdate(game, input)
+        this.placeUpdate(game, input, sendMessage)
         break
       case 2:
-        this.moveUpdate(game, input)
+        this.moveUpdate(game, input, sendMessage)
         break
     }
   }
@@ -288,7 +288,7 @@ export class BoardRenderer2D {
     }
   }
 
-  placeUpdate(game: Game, input: InputHandler) {
+  placeUpdate(game: Game, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
     let pieces
     if (game.userSide === 0) {
       pieces = this.whiteShopPieces[this.shopScreen]
@@ -298,7 +298,7 @@ export class BoardRenderer2D {
 
     for (let i = 0; i < pieces.length; i++) {
       const piece = pieces[i]
-      piece.placeUpdate(game, this.tileSize, input)
+      piece.placeUpdate(game, this.tileSize, input, sendMessage)
     }
 
     for (let i = 0; i < game.height; i++) {
@@ -308,12 +308,12 @@ export class BoardRenderer2D {
           continue
         }
 
-        piece.placeUpdate(game, this.tileSize, input)
+        piece.placeUpdate(game, this.tileSize, input, sendMessage)
       }
     }
   }
 
-  moveUpdate(game: Game, input: InputHandler) {
+  moveUpdate(game: Game, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
 
   }
 

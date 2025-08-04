@@ -144,7 +144,6 @@ export class Button {
   }
 }
 
-
 export function createGameButtons(canvas: HTMLCanvasElement,
   UIRatio: number,
   game: Game,
@@ -153,8 +152,11 @@ export function createGameButtons(canvas: HTMLCanvasElement,
   clearBoard: () => void,
   readyUp: () => void,
   unreadyUp: () => void,
-): Button[] {
-  const result: Button[] = []
+): Button[][] {
+
+  const result: Button[][] = []
+  const whiteResult: Button[] = []
+  const blackResult: Button[] = []
 
   const width = 600 * UIRatio
   const height = 100 * UIRatio
@@ -188,7 +190,8 @@ export function createGameButtons(canvas: HTMLCanvasElement,
   }
 
   const idButton = new Button(idButtonConfig)
-  result.push(idButton)
+  whiteResult.push(idButton)
+  blackResult.push(idButton)
 
   const unitButtonConfig = {
     x: 0,
@@ -212,12 +215,13 @@ export function createGameButtons(canvas: HTMLCanvasElement,
     onClick: () => switchShopScreen()
   }
 
+  const whiteUnitSwitchButton = new Button(unitButtonConfig)
 
-  if (game.userSide === 1) {
-    unitButtonConfig.y = 0
-  }
-  const unitSwitchButton = new Button(unitButtonConfig)
-  result.push(unitSwitchButton)
+  unitButtonConfig.y = 0
+  const blackUnitSwitchButton = new Button(unitButtonConfig)
+
+  whiteResult.push(whiteUnitSwitchButton)
+  blackResult.push(blackUnitSwitchButton)
 
   const readyButtonConfig = {
     x: 0,
@@ -241,19 +245,27 @@ export function createGameButtons(canvas: HTMLCanvasElement,
     onClick: () => readyUp()
   }
 
-  if (game.userSide === 1) {
-    readyButtonConfig.y = 100 * UIRatio
-  }
+  const whiteReadyButton = new Button(readyButtonConfig)
 
-  const readyButton = new Button(readyButtonConfig)
-  result.push(readyButton)
 
+  readyButtonConfig.y = 100 * UIRatio
+
+  const blackReadyButton = new Button(readyButtonConfig)
+  whiteResult.push(whiteReadyButton)
+  blackResult.push(blackReadyButton)
+
+  readyButtonConfig.y = 800 * UIRatio
   readyButtonConfig.text = "Unready"
   readyButtonConfig.screen = "placeReady"
   readyButtonConfig.onClick = () => unreadyUp()
 
-  const unreadyButton = new Button(readyButtonConfig)
-  result.push(unreadyButton)
+  const whiteUnreadyButton = new Button(readyButtonConfig)
+
+  readyButtonConfig.y = 100 * UIRatio
+  const blackUnreadyButton = new Button(readyButtonConfig)
+
+  whiteResult.push(whiteUnreadyButton)
+  blackResult.push(blackUnreadyButton)
 
   const clearButtonConfig = {
     x: 0,
@@ -277,12 +289,15 @@ export function createGameButtons(canvas: HTMLCanvasElement,
     onClick: () => clearBoard()
   }
 
-  if (game.userSide === 1) {
-    clearButtonConfig.y = 200 * UIRatio
-  }
+  const whiteClearButton = new Button(clearButtonConfig)
 
-  const clearButton = new Button(clearButtonConfig)
-  result.push(clearButton)
+  clearButtonConfig.y = 200 * UIRatio
+  const blackClearButton = new Button(clearButtonConfig)
+  whiteResult.push(whiteClearButton)
+  blackResult.push(blackClearButton)
+
+  result.push(whiteResult)
+  result.push(blackResult)
 
   return result
 }

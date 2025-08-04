@@ -57,7 +57,6 @@ export class Game {
 
     this.userSide = userSide
 
-
     this.clearBoardPlace = this.clearBoardPlace.bind(this)
     this.readyUp = this.readyUp.bind(this)
     this.unreadyUp = this.unreadyUp.bind(this)
@@ -82,7 +81,6 @@ export class Game {
 
     this.userSide = userSide
   }
-
 
   #updateBoard(fenPos: string) {
     const rows = fenPos.split("/")
@@ -201,6 +199,7 @@ export class Game {
     this.time[0] = parseInt(times[0])
     this.time[1] = parseInt(times[1])
   }
+
 
   updateGame(fen: string) {
     const parts = fen.split(" ")

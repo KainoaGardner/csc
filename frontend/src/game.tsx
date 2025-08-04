@@ -1,17 +1,13 @@
 import { useApp, useErrorHandler, useNotifHandler } from "./appContext/useApp.tsx"
 import { useGameWebSocket } from "./websocket.tsx"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 
+import { convertStringToPosition } from "./game/util.ts"
 import { Game } from "./game/game.ts"
 import { Button, createGameButtons } from "./game/button.ts"
 import { InputHandler } from "./game/inputHandler.ts"
 import { BoardRenderer2D } from "./game/render2d.ts"
 
-
-type Message<T = unknown> = {
-  type: string;
-  data: T;
-}
 
 
 function GamePage() {
@@ -41,7 +37,7 @@ function GamePage() {
 
         const gameID = msg.data._id
         const whiteID = msg.data.whiteID
-        const blackID = msg.data.whiteID
+        const blackID = msg.data.blackID
         const width = msg.data.width
         const height = msg.data.height
         const placeLine = msg.data.placeLine
@@ -58,12 +54,21 @@ function GamePage() {
         )
 
         const game = gameRef.current!
-
         game.updateSettings(gameID, width, height, placeLine, userSide, money, time)
+        game.state = 1
         break
       }
-    }
+      case "place": {
+        // const game = gameRef.current!
+        // const positionString = msg.data.position
+        // const position = convertStringToPosition(positionString, game.height)
+        // const type = msg.data.type
+        // const cost = msg.data.cost
+        // const money = msg.data.money
+        // game.updatePlace(position, type, money)
+      }
 
+    }
     setMessages((prev) => [...prev, msg])
   }
 
@@ -77,7 +82,7 @@ function GamePage() {
   const rendererRef = useRef<BoardRenderer2D | null>(null)
 
   const inputRef = useRef<InputHandler | null>(null)
-  const buttonsRef = useRef<Button[]>([])
+  const buttonsRef = useRef<Button[][]>([])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -132,11 +137,9 @@ function GamePage() {
     }
 
     const update = () => {
-      rendererRef.current!.update(gameRef.current!, inputRef.current!)
+      rendererRef.current!.update(gameRef.current!, inputRef.current!, sendMessage)
 
-
-
-      for (const button of buttons) {
+      for (const button of buttons[gameRef.current!.userSide]) {
         if (!button.visible) {
           continue
         }
@@ -147,7 +150,7 @@ function GamePage() {
     }
 
     const render = () => {
-      rendererRef.current!.draw(gameRef.current!, 0, buttonsRef.current!, inputRef.current!)
+      rendererRef.current!.draw(gameRef.current!, 0, buttonsRef.current![gameRef.current!.userSide], inputRef.current!)
     }
 
     frameRef.current = requestAnimationFrame(frame)
@@ -156,9 +159,6 @@ function GamePage() {
 
   return (
     <>
-      <h1>Game</h1>
-      <hr />
-
       <canvas ref={canvasRef} width={1000} height={1000}></canvas>
     </>
   );

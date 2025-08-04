@@ -64,7 +64,7 @@ function Login() {
         handleNotif("Logged in")
         const accessToken = data.data.accessToken
         setAccessToken(accessToken)
-        const userID = data.data.userID
+        const userID = data.data._id
         setUserID(userID)
         setPage("home")
       } else {

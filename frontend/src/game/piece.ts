@@ -1,5 +1,5 @@
 import { PieceImages, PieceImageDimensions } from "./images.ts"
-import { PieceTypeToPrice } from "./util.ts"
+import { PieceTypeToPrice, PlaceEnum, type Message, type PlaceMessage, convertPositionToString } from "./util.ts"
 import { type Vec2 } from "./util.ts"
 import { InputHandler } from "./inputHandler.ts"
 import { Game } from "./game.ts"
@@ -70,7 +70,7 @@ export class Piece {
     }
   }
 
-  placeUpdate(game: Game, tileSize: number, input: InputHandler) {
+  placeUpdate(game: Game, tileSize: number, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
     const x = (this.x + 1) * tileSize
     const y = (this.y + 1) * tileSize
 
@@ -85,7 +85,6 @@ export class Piece {
       const placeY = Math.floor(input.mouse.y / tileSize) - 1
 
       const shopPiece = !this.checkPieceOnBoardSide(this.x, this.y, game)
-
 
       if (this.checkPieceOnBoardSide(placeX, placeY, game)) {
         if (game.board[placeY][placeX] === null) {
@@ -102,11 +101,40 @@ export class Piece {
 
             const placePiece = new Piece(placeX, placeY, this.type, this.owner, false)
             game.board[placeY][placeX] = placePiece
+
+            const positionString = convertPositionToString({ x: placeX, y: placeY }, game.height)
+            const createPlaceRequest: Message<PlaceMessage> = {
+              type: "place",
+              data: {
+                position: positionString,
+                fromPosition: "",
+                type: this.type,
+                place: PlaceEnum.create,
+              },
+            }
+
+            sendMessage(createPlaceRequest)
           } else {
+            const positionString = convertPositionToString({ x: placeX, y: placeY }, game.height)
+            const fromString = convertPositionToString({ x: this.x, y: this.y }, game.height)
+
             game.board[this.y][this.x] = null
             game.board[placeY][placeX] = this
             this.x = placeX
             this.y = placeY
+
+            const movePlaceRequest: Message<PlaceMessage> = {
+              type: "place",
+              data: {
+                position: positionString,
+                fromPosition: fromString,
+                type: this.type,
+                place: PlaceEnum.move,
+              },
+            }
+
+            console.log(movePlaceRequest)
+            sendMessage(movePlaceRequest)
           }
         }
       }
@@ -118,6 +146,19 @@ export class Piece {
 
           game.money[game.userSide] += price
           game.board[this.y][this.x] = null
+
+          const positionString = convertPositionToString({ x: this.x, y: this.y }, game.height)
+          const deletePlaceRequest: Message<PlaceMessage> = {
+            type: "place",
+            data: {
+              position: positionString,
+              fromPosition: "",
+              type: this.type,
+              place: PlaceEnum.delete,
+            },
+          }
+
+          sendMessage(deletePlaceRequest)
         }
       }
     }
