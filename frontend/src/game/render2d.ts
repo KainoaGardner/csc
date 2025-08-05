@@ -111,7 +111,7 @@ export class BoardRenderer2D {
   }
 
   #drawPlace(game: Game, boardTheme: number, input: InputHandler) {
-    this.#drawBoard(game, boardTheme, input)
+    this.#drawBoard(game, boardTheme)
     this.#drawCover(game)
     this.#drawBoardPieces(game, input)
     if (this.screen === "place")
@@ -120,17 +120,19 @@ export class BoardRenderer2D {
   }
 
   #drawMove(game: Game, boardTheme: number, input: InputHandler) {
-    this.#drawBoard(game, boardTheme, input)
+    this.#drawBoard(game, boardTheme)
+    this.#drawBoardPieces(game, input)
     this.#drawMochigoma(game, boardTheme)
   }
 
   #drawOver(game: Game, boardTheme: number, input: InputHandler) {
-    this.#drawBoard(game, boardTheme, input)
+    this.#drawBoard(game, boardTheme)
+    this.#drawBoardPieces(game, input)
     this.#drawMochigoma(game, boardTheme)
     this.#drawOverMessage(game)
   }
 
-  #drawBoard(game: Game, boardTheme: number, input: InputHandler) {
+  #drawBoard(game: Game, boardTheme: number) {
     this.ctx.fillStyle = "#FFF"
     this.ctx.fillRect(100 * this.UIRatio, 100 * this.UIRatio, 800 * this.UIRatio, 800 * this.UIRatio)
 
@@ -151,18 +153,6 @@ export class BoardRenderer2D {
         }
 
         this.ctx.fillRect(xStart + j * this.tileSize, yStart + i * this.tileSize, this.tileSize, this.tileSize)
-
-        const piece = game.board[i][j]
-        if (piece === null) {
-          continue
-        }
-
-        if (game.state === 1 && piece.owner !== game.userSide) {
-          continue
-        }
-
-
-        piece.draw(this.ctx, this.tileSize, input)
       }
     }
   }
@@ -303,6 +293,8 @@ export class BoardRenderer2D {
       } else {
         this.screen = "place"
       }
+    } else if (game.state === 2) {
+      this.screen = "move"
     }
   }
 
@@ -332,7 +324,16 @@ export class BoardRenderer2D {
   }
 
   moveUpdate(game: Game, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
+    for (let i = 0; i < game.height; i++) {
+      for (let j = 0; j < game.width; j++) {
+        const piece = game.board[i][j]
+        if (piece === null) {
+          continue
+        }
 
+        piece.moveUpdate(game, this.tileSize, input, sendMessage)
+      }
+    }
   }
 
   switchShopScreen() {

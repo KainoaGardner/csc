@@ -1,16 +1,90 @@
-// import { useApp } from "./appContext/useApp.tsx"
+import { useApp, useErrorHandler, useNotifHandler } from "./appContext/useApp.tsx"
+import { useGameWebSocket } from "./websocket.tsx"
+import { useEffect, useRef } from "react"
 
 import { Game } from "./game/game.ts"
 import { Button, createGameButtons } from "./game/button.ts"
 import { InputHandler } from "./game/inputHandler.ts"
 import { BoardRenderer2D } from "./game/render2d.ts"
 
-import { useErrorHandler, useNotifHandler } from "./appContext/useApp.tsx"
-import { useEffect, useRef } from "react"
-
 function Test() {
-  const { handleNotif } = useNotifHandler()
+  const { setPage, accessToken, userID } = useApp()
   const { handleError } = useErrorHandler()
+  const { handleNotif } = useNotifHandler()
+
+  const gameID = "12039871209837"
+
+  // if (accessToken === null) {
+  //   handleError("Not logged in")
+  //   setPage("login")
+  // }
+
+  // if (gameID === null) {
+  //   handleError("Not in a game")
+  //   setPage("home")
+  // }
+
+  const handleMessage = (event: MessageEvent) => {
+    const msg = JSON.parse(event.data)
+    switch (msg.type) {
+      case "join": {
+
+        break
+      }
+      case "start": {
+        //change game settings
+
+        const gameID = msg.data._id
+        const whiteID = msg.data.whiteID
+        const blackID = msg.data.blackID
+        const width = msg.data.width
+        const height = msg.data.height
+        const placeLine = msg.data.placeLine
+        const money = msg.data.money
+        const time = msg.data.startTime
+
+        let userSide = 0
+        if (userID === whiteID) {
+          userSide = 0
+        } else if (userID === blackID) {
+          userSide = 1
+        } else (
+          console.log("BAD USER NOT IN GAME")
+        )
+
+        const game = gameRef.current!
+        game.updateSettings(gameID, width, height, placeLine, userSide, money, time)
+        game.state = 1
+        break
+      }
+      case "place": {
+        break
+      }
+      case "ready": {
+        const game = gameRef.current!
+        const ready = msg.data.ready
+        const state = msg.data.state
+        game.updateReady(ready, state)
+        break
+      }
+      case "move": {
+        const game = gameRef.current!
+
+        console.log(msg)
+        // const fen = msg.data.fen
+        //
+        // game.state = 2
+        // game.updateGame(fen)
+
+        break
+      }
+
+    }
+
+    setMessages((prev) => [...prev, msg])
+  }
+
+  const { messages, setMessages, sendMessage } = useGameWebSocket(gameID, accessToken, handleMessage)
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const frameRef = useRef<number | null>(null)
@@ -19,7 +93,8 @@ function Test() {
   const rendererRef = useRef<BoardRenderer2D | null>(null)
 
   const inputRef = useRef<InputHandler | null>(null)
-  const buttonsRef = useRef<Button[]>([])
+  const buttonsRef = useRef<Button[][]>([])
+
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -30,13 +105,19 @@ function Test() {
     if (!ctx)
       return
 
+    if (gameID === null) {
+      return
+    }
+
     const money = [300, 300]
     const time = [10000, 10000]
-    const game = new Game("123irngrsa98fradakob", 8, 8, 4, 0, money, time)
-    game.state = 1
+    const game = new Game(gameID, 8, 8, 4, 0, money, time)
+    game.state = 2
 
+
+    const fen = "4ck*3/8/8/8/8/8/8/4CK*3 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
     // const fen = "cp*cn*cb*cr*cq*ck*sp*sl*/sn*sg*sc*sb*sr*sk*np*nl*/nn*ng*nb*nr*kc*kk*2/8/8/2KK*KC*NR*NB*NG*NN*/NL*NP*SK*SR*SB*SC*SG*SN*/SL*SP*CK*CQ*CR*CB*CN*CP* 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
-    // game.updateGame(fen)
+    game.updateGame(fen)
 
     const renderer = new BoardRenderer2D(ctx, canvas, game)
 
@@ -44,6 +125,7 @@ function Test() {
       renderer.UIRatio,
       game,
       handleNotif,
+      sendMessage,
       renderer.switchShopScreen,
       game.clearBoardPlace,
       game.readyUp,
@@ -71,8 +153,9 @@ function Test() {
     }
 
     const update = () => {
-      rendererRef.current!.update(gameRef.current!, inputRef.current!)
-      for (const button of buttons) {
+      rendererRef.current!.update(gameRef.current!, inputRef.current!, sendMessage)
+
+      for (const button of buttons[gameRef.current!.userSide]) {
         if (!button.visible) {
           continue
         }
@@ -83,18 +166,10 @@ function Test() {
     }
 
     const render = () => {
-      rendererRef.current!.draw(gameRef.current!, 0, buttonsRef.current!, inputRef.current!)
+      rendererRef.current!.draw(gameRef.current!, 0, buttonsRef.current![gameRef.current!.userSide], inputRef.current!)
     }
 
     frameRef.current = requestAnimationFrame(frame)
-
-    return () => {
-      if (frameRef.current !== null) {
-        cancelAnimationFrame(frameRef.current)
-      }
-      input.cleanup()
-    }
-
   }, [])
 
 
