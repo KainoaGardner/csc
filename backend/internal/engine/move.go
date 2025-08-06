@@ -37,6 +37,7 @@ func MovePiece(move types.Move, game *types.Game) error {
 	}
 
 	takePiece := game.Board.Board[move.End.Y][move.End.X]
+	// takePiece := getTakePiece()
 	validCastle := takePiece != nil && piece.Type == types.King && takePiece.Type == types.Rook && takePiece.Owner == piece.Owner
 
 	dir := getMoveDirection(*game)
@@ -261,7 +262,7 @@ func updateRemoveStartPosition(move types.Move, game *types.Game, offset int, va
 
 func updateEnPassantTakePosition(move types.Move, game *types.Game, dir int) {
 	if game.EnPassant != nil && move.End == *game.EnPassant {
-		game.Board.Board[move.End.Y-dir][move.End.X] = nil
+		game.Board.Board[move.End.Y+dir][move.End.X] = nil
 	}
 }
 

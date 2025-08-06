@@ -99,7 +99,7 @@ func getPawnMoves(pos types.Vec2, piece types.Piece, game types.Game, direction 
 		newPos.Y += pos.Y
 		if checkPositionInbounds(newPos, game) {
 			space := game.Board.Board[newPos.Y][newPos.X]
-			if space != nil && space.Owner == getEnemyTurnInt(game) {
+			if space != nil && space.Owner == piece.Owner {
 				validMovePositions = append(validMovePositions, newPos)
 			} else if space == nil && game.EnPassant != nil && utils.CheckVec2Equal(newPos, *game.EnPassant) {
 				validMovePositions = append(validMovePositions, newPos)
