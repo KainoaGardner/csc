@@ -55,6 +55,10 @@ function Test() {
         const game = gameRef.current!
         game.updateSettings(gameID, width, height, placeLine, userSide, money, time)
         game.state = 1
+
+        const renderer = rendererRef.current!
+        renderer.updateButtonScreen(game)
+
         break
       }
       case "place": {
@@ -65,6 +69,9 @@ function Test() {
         const ready = msg.data.ready
         const state = msg.data.state
         game.updateReady(ready, state)
+
+        const renderer = rendererRef.current!
+        renderer.updateButtonScreen(game)
         break
       }
       case "move": {
@@ -93,8 +100,6 @@ function Test() {
   const rendererRef = useRef<BoardRenderer2D | null>(null)
 
   const inputRef = useRef<InputHandler | null>(null)
-  const buttonsRef = useRef<Button[][]>([])
-
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -115,23 +120,12 @@ function Test() {
     game.state = 2
 
 
-    const fen = "4ck*3/8/8/8/8/8/8/4CK*3 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
+    const fen = "4ck*3/8/8/8/8/8/8/4CK*3 1/0/0/0/3/0/0/0/0/0/0/1/0/0 w e2 h1 0 0 600/600"
     // const fen = "cp*cn*cb*cr*cq*ck*sp*sl*/sn*sg*sc*sb*sr*sk*np*nl*/nn*ng*nb*nr*kc*kk*2/8/8/2KK*KC*NR*NB*NG*NN*/NL*NP*SK*SR*SB*SC*SG*SN*/SL*SP*CK*CQ*CR*CB*CN*CP* 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
     game.updateGame(fen)
 
-    const renderer = new BoardRenderer2D(ctx, canvas, game)
+    const renderer = new BoardRenderer2D(ctx, canvas, game, handleNotif, sendMessage)
 
-    const buttons = createGameButtons(canvas,
-      renderer.UIRatio,
-      game,
-      handleNotif,
-      sendMessage,
-      renderer.switchShopScreen,
-      game.clearBoardPlace,
-      game.readyUp,
-      game.unreadyUp,
-    )
-    buttonsRef.current = buttons
 
     const input = new InputHandler(canvas)
     inputRef.current = input
@@ -155,18 +149,13 @@ function Test() {
     const update = () => {
       rendererRef.current!.update(gameRef.current!, inputRef.current!, sendMessage)
 
-      for (const button of buttons[gameRef.current!.userSide]) {
-        if (!button.visible) {
-          continue
-        }
-        button.update(inputRef.current!)
-      }
+
 
       inputRef.current!.update()
     }
 
     const render = () => {
-      rendererRef.current!.draw(gameRef.current!, 0, buttonsRef.current![gameRef.current!.userSide], inputRef.current!)
+      rendererRef.current!.draw(gameRef.current!, 0, inputRef.current!)
     }
 
     frameRef.current = requestAnimationFrame(frame)

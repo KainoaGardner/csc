@@ -202,7 +202,7 @@ export function fitTextToWidth(ctx: CanvasRenderingContext2D, text: string, maxW
   let currFontSize = maxFontSize
 
   while (currFontSize >= minFontSize) {
-    ctx.font = `${currFontSize}px Arial`
+    ctx.font = `${currFontSize}px Arial Black`
     const textWidth = ctx.measureText(text).width
     if (textWidth <= maxWidth) {
       break
@@ -213,4 +213,33 @@ export function fitTextToWidth(ctx: CanvasRenderingContext2D, text: string, maxW
   return currFontSize
 }
 
+
+export function convertSecondsToTimeString(time: number): string {
+  const sec = time % 60
+  time = Math.floor(time / 60)
+  const min = time % 60
+  time = Math.floor(time / 60)
+  const hour = time % 60
+
+  let secString = sec.toString()
+  let minString = min.toString()
+  let hourString = hour.toString()
+  if (sec === 0) {
+    secString = "00"
+  }
+  if (min === 0) {
+    minString = "00"
+  }
+  if (hour === 0) {
+    hourString = "00"
+  }
+
+  if (hour === 0 && min === 0) {
+    return secString
+  } else if (hour === 0) {
+    return `${minString}:${secString}`
+  } else {
+    return `${hourString}:${minString}:${secString}`
+  }
+}
 

@@ -22,7 +22,6 @@ interface ButtonConfig {
   strokeColorHover: string,
   text: string,
   subtext: string,
-  screen: string,
   onClick: ButtonAction
 }
 
@@ -46,7 +45,6 @@ export class Button {
 
   text: string
   subtext: string
-  screen: string
   onClick: ButtonAction
 
   hovering: boolean = false
@@ -70,7 +68,6 @@ export class Button {
     this.strokeColorHover = buttonConfig.strokeColorHover
     this.text = buttonConfig.text
     this.subtext = buttonConfig.subtext
-    this.screen = buttonConfig.screen
     this.onClick = buttonConfig.onClick
   }
 
@@ -118,10 +115,10 @@ export class Button {
     ctx.strokeRect(this.x - this.width * (increaseSize - 1.0) / 2, this.y - this.height * (increaseSize - 1.0) / 2, this.width * increaseSize, this.height * increaseSize)
   }
 
-  update(input: InputHandler) {
+  update(input: InputHandler, game: Game, updateButtonScreen: (game: Game) => void) {
 
     this.checkHoveringButton(input)
-    this.clickButton(input)
+    this.clickButton(input, game, updateButtonScreen)
   }
 
   checkHoveringButton(input: InputHandler): boolean {
@@ -138,9 +135,10 @@ export class Button {
     return result
   }
 
-  clickButton(input: InputHandler) {
+  clickButton(input: InputHandler, game: Game, updateButtonScreen: (game: Game) => void) {
     if (input.mouse.justPressed && this.checkHoveringButton(input)) {
       this.onClick()
+      updateButtonScreen(game)
     }
   }
 }
@@ -154,14 +152,25 @@ export function createGameButtons(canvas: HTMLCanvasElement,
   clearBoard: () => void,
   readyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
   unreadyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
-): Button[][] {
+): Map<string, Button> {
+  if (game.userSide === 0) {
+    return createWhiteButtons(canvas, UIRatio, game, handleNotif, sendMessage, switchShopScreen, clearBoard, readyUp, unreadyUp)
+  } else {
+    return createBlackButtons(canvas, UIRatio, game, handleNotif, sendMessage, switchShopScreen, clearBoard, readyUp, unreadyUp)
+  }
+}
 
-  const result: Button[][] = []
-  const whiteResult: Button[] = []
-  const blackResult: Button[] = []
-
-  const width = 600 * UIRatio
-  const height = 100 * UIRatio
+function createWhiteButtons(canvas: HTMLCanvasElement,
+  UIRatio: number,
+  game: Game,
+  handleNotif: (err: string) => void,
+  sendMessage: (msg: Message<unknown>) => void,
+  switchShopScreen: () => void,
+  clearBoard: () => void,
+  readyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  unreadyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+): Map<string, Button> {
+  const result: Map<string, Button> = new Map<string, Button>()
 
   const copyID = (gameID: string) => {
     navigator.clipboard.writeText(gameID);
@@ -169,38 +178,12 @@ export function createGameButtons(canvas: HTMLCanvasElement,
     handleNotif("Text Copied")
   }
 
-  const idButtonConfig = {
-    x: canvas.width / 2 - width / 2,
-    y: canvas.height / 2 - height / 2,
-    width: width,
-    height: height,
-    strokeSize: 5 * UIRatio,
-    fontSize: 40 * UIRatio,
-    subFontSize: 15 * UIRatio,
-    bgColor: "#ecf0f1",
-    bgColorHover: "#7f8c8d",
-    color: "#000",
-    colorHover: "#000",
-    subFontColor: "#000",
-    subFontColorHover: "#000",
-    strokeColor: "#AAA",
-    strokeColorHover: "#BBB",
-    text: game.id,
-    subtext: "Click to copy ID",
-    screen: "connect",
-    onClick: () => copyID(game.id)
-  }
-
-  const idButton = new Button(idButtonConfig)
-  whiteResult.push(idButton)
-  blackResult.push(idButton)
-
-  const unitButtonConfig = {
+  const defaultButtonConfig = {
     x: 0,
-    y: 900 * UIRatio,
+    y: 0,
     width: 100 * UIRatio,
     height: 100 * UIRatio,
-    strokeSize: 5 * UIRatio,
+    strokeSize: 0 * UIRatio,
     fontSize: 25 * UIRatio,
     subFontSize: 13 * UIRatio,
     bgColor: "#ecf0f1",
@@ -211,94 +194,198 @@ export function createGameButtons(canvas: HTMLCanvasElement,
     subFontColorHover: "#000",
     strokeColor: "#AAA",
     strokeColorHover: "#BBB",
-    text: "Shop",
-    subtext: "Click to Switch",
-    screen: "place",
-    onClick: () => switchShopScreen()
-  }
-
-  const whiteUnitSwitchButton = new Button(unitButtonConfig)
-
-  unitButtonConfig.y = 0
-  const blackUnitSwitchButton = new Button(unitButtonConfig)
-
-  whiteResult.push(whiteUnitSwitchButton)
-  blackResult.push(blackUnitSwitchButton)
-
-  const readyButtonConfig = {
-    x: 0,
-    y: 800 * UIRatio,
-    width: 100 * UIRatio,
-    height: 100 * UIRatio,
-    strokeSize: 5 * UIRatio,
-    fontSize: 25 * UIRatio,
-    subFontSize: 0,
-    bgColor: "#ecf0f1",
-    bgColorHover: "#7f8c8d",
-    color: "#000",
-    colorHover: "#000",
-    subFontColor: "#000",
-    subFontColorHover: "#000",
-    strokeColor: "#AAA",
-    strokeColorHover: "#BBB",
-    text: "Ready",
+    text: "",
     subtext: "",
-    screen: "place",
-    onClick: () => readyUp(sendMessage)
+    onClick: () => { },
   }
 
-  const whiteReadyButton = new Button(readyButtonConfig)
+  const idConfig = { ...defaultButtonConfig }
+  const width = 600 * UIRatio
+  const height = 100 * UIRatio
 
-  readyButtonConfig.y = 100 * UIRatio
+  idConfig.x = canvas.width / 2 - width / 2
+  idConfig.y = canvas.height / 2 - height / 2
+  idConfig.width = width
+  idConfig.height = height
+  idConfig.strokeSize = 5 * UIRatio
+  idConfig.fontSize = 40 * UIRatio
+  idConfig.text = game.id
+  idConfig.subtext = "Click to copy ID"
+  idConfig.onClick = () => copyID(game.id)
+  const idButton = new Button(idConfig)
+  result.set("id", idButton)
 
-  const blackReadyButton = new Button(readyButtonConfig)
-  whiteResult.push(whiteReadyButton)
-  blackResult.push(blackReadyButton)
+  const unitSwitchConfig = { ...defaultButtonConfig }
+  unitSwitchConfig.x = 0
+  unitSwitchConfig.y = 900 * UIRatio
+  unitSwitchConfig.text = "Shop"
+  unitSwitchConfig.subtext = "Click to switch"
+  unitSwitchConfig.onClick = () => switchShopScreen()
+  const unitSwitchButton = new Button(unitSwitchConfig)
+  result.set("shop", unitSwitchButton)
 
-  readyButtonConfig.y = 800 * UIRatio
-  readyButtonConfig.text = "Unready"
-  readyButtonConfig.screen = "placeReady"
-  readyButtonConfig.onClick = () => unreadyUp(sendMessage)
+  const readyConfig = { ...defaultButtonConfig }
+  readyConfig.x = 0
+  readyConfig.y = 800 * UIRatio
+  readyConfig.text = "Ready"
+  readyConfig.onClick = () => readyUp(sendMessage)
+  const readyButton = new Button(readyConfig)
+  result.set("ready", readyButton)
 
-  const whiteUnreadyButton = new Button(readyButtonConfig)
+  const unreadyConfig = { ...readyConfig }
+  unreadyConfig.text = "Unready"
+  unreadyConfig.onClick = () => unreadyUp(sendMessage)
+  const unreadyButton = new Button(unreadyConfig)
+  result.set("unready", unreadyButton)
 
-  readyButtonConfig.y = 100 * UIRatio
-  const blackUnreadyButton = new Button(readyButtonConfig)
+  const clearConfig = { ...defaultButtonConfig }
+  clearConfig.x = 0
+  clearConfig.y = 700 * UIRatio
+  clearConfig.text = "Clear"
+  clearConfig.onClick = () => clearBoard()
+  const clearButton = new Button(clearConfig)
+  result.set("clear", clearButton)
 
-  whiteResult.push(whiteUnreadyButton)
-  blackResult.push(blackUnreadyButton)
+  //change clearBoard function
+  const resignConfig = { ...defaultButtonConfig }
+  resignConfig.x = 0
+  resignConfig.y = 900 * UIRatio
+  resignConfig.text = "Resign"
+  resignConfig.onClick = () => clearBoard()
+  const resignButton = new Button(resignConfig)
+  result.set("resign", resignButton)
 
-  const clearButtonConfig = {
-    x: 0,
-    y: 700 * UIRatio,
-    width: 100 * UIRatio,
-    height: 100 * UIRatio,
-    strokeSize: 5 * UIRatio,
-    fontSize: 25 * UIRatio,
-    subFontSize: 0,
-    bgColor: "#ecf0f1",
-    bgColorHover: "#7f8c8d",
-    color: "#000",
-    colorHover: "#000",
-    subFontColor: "#000",
-    subFontColorHover: "#000",
-    strokeColor: "#AAA",
-    strokeColorHover: "#BBB",
-    text: "Clear",
-    subtext: "",
-    screen: "place",
-    onClick: () => clearBoard()
-  }
+  //change clearBoard function
+  const drawConfig = { ...defaultButtonConfig }
+  drawConfig.x = 0
+  drawConfig.y = 800 * UIRatio
+  drawConfig.text = "Draw"
+  drawConfig.onClick = () => clearBoard()
+  const drawButton = new Button(drawConfig)
+  result.set("draw", drawButton)
 
-  const whiteClearButton = new Button(clearButtonConfig)
-
-  clearButtonConfig.y = 200 * UIRatio
-  const blackClearButton = new Button(clearButtonConfig)
-  whiteResult.push(whiteClearButton)
-  blackResult.push(blackClearButton)
-
-  result.push(whiteResult)
-  result.push(blackResult)
+  //change to undraw
+  const undrawConfig = { ...drawConfig }
+  undrawConfig.text = "Undraw"
+  undrawConfig.onClick = () => clearBoard()
+  const undrawButton = new Button(undrawConfig)
+  result.set("undraw", undrawButton)
 
   return result
 }
+
+
+function createBlackButtons(canvas: HTMLCanvasElement,
+  UIRatio: number,
+  game: Game,
+  handleNotif: (err: string) => void,
+  sendMessage: (msg: Message<unknown>) => void,
+  switchShopScreen: () => void,
+  clearBoard: () => void,
+  readyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  unreadyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+): Map<string, Button> {
+  const result: Map<string, Button> = new Map<string, Button>()
+
+  const copyID = (gameID: string) => {
+    navigator.clipboard.writeText(gameID);
+    console.log("COPY")
+    handleNotif("Text Copied")
+  }
+
+  const defaultButtonConfig = {
+    x: 0,
+    y: 0,
+    width: 100 * UIRatio,
+    height: 100 * UIRatio,
+    strokeSize: 0 * UIRatio,
+    fontSize: 25 * UIRatio,
+    subFontSize: 13 * UIRatio,
+    bgColor: "#ecf0f1",
+    bgColorHover: "#7f8c8d",
+    color: "#000",
+    colorHover: "#000",
+    subFontColor: "#000",
+    subFontColorHover: "#000",
+    strokeColor: "#AAA",
+    strokeColorHover: "#BBB",
+    text: "",
+    subtext: "",
+    onClick: () => { },
+  }
+
+  const idConfig = { ...defaultButtonConfig }
+  const width = 600 * UIRatio
+  const height = 100 * UIRatio
+
+  idConfig.x = canvas.width / 2 - width / 2
+  idConfig.y = canvas.height / 2 - height / 2
+  idConfig.width = width
+  idConfig.height = height
+  idConfig.strokeSize = 5 * UIRatio
+  idConfig.fontSize = 40 * UIRatio
+  idConfig.text = game.id
+  idConfig.subtext = "Click to copy ID"
+  idConfig.onClick = () => copyID(game.id)
+  const idButton = new Button(idConfig)
+  result.set("id", idButton)
+
+  const unitSwitchConfig = { ...defaultButtonConfig }
+  unitSwitchConfig.x = 0
+  unitSwitchConfig.y = 0
+  unitSwitchConfig.text = "Shop"
+  unitSwitchConfig.subtext = "Click to switch"
+  unitSwitchConfig.onClick = () => switchShopScreen()
+  const unitSwitchButton = new Button(unitSwitchConfig)
+  result.set("shop", unitSwitchButton)
+
+  const readyConfig = { ...defaultButtonConfig }
+  readyConfig.x = 0
+  readyConfig.y = 100 * UIRatio
+  readyConfig.text = "Ready"
+  readyConfig.onClick = () => readyUp(sendMessage)
+  const readyButton = new Button(readyConfig)
+  result.set("ready", readyButton)
+
+  const unreadyConfig = { ...readyConfig }
+  unreadyConfig.text = "Unready"
+  unreadyConfig.onClick = () => unreadyUp(sendMessage)
+  const unreadyButton = new Button(unreadyConfig)
+  result.set("unready", unreadyButton)
+
+  const clearConfig = { ...defaultButtonConfig }
+  clearConfig.x = 0
+  clearConfig.y = 200 * UIRatio
+  clearConfig.text = "Clear"
+  clearConfig.onClick = () => clearBoard()
+  const clearButton = new Button(clearConfig)
+  result.set("clear", clearButton)
+
+  //change clearBoard function
+  const resignConfig = { ...defaultButtonConfig }
+  resignConfig.x = 0
+  resignConfig.y = 0
+  resignConfig.text = "Resign"
+  resignConfig.onClick = () => clearBoard()
+  const resignButton = new Button(resignConfig)
+  result.set("resign", resignButton)
+
+  //change clearBoard function
+  const drawConfig = { ...defaultButtonConfig }
+  drawConfig.x = 0
+  drawConfig.y = 100 * UIRatio
+  drawConfig.text = "Draw"
+  drawConfig.onClick = () => clearBoard()
+  const drawButton = new Button(drawConfig)
+  result.set("draw", drawButton)
+
+  //change to undraw
+  const undrawConfig = { ...drawConfig }
+  undrawConfig.text = "Undraw"
+  undrawConfig.onClick = () => clearBoard()
+  const undrawButton = new Button(undrawConfig)
+  result.set("undraw", undrawButton)
+
+  return result
+}
+
