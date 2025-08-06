@@ -243,3 +243,7 @@ export function convertSecondsToTimeString(time: number): string {
   }
 }
 
+export function checkVec2Equal(a: Vec2, b: Vec2): boolean {
+  return (a.x === b.x && a.y === b.y)
+}
+
