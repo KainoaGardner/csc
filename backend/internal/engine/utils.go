@@ -41,5 +41,12 @@ func copyGame(game types.Game) *types.Game {
 		gameCopy.EnPassant = nil
 	}
 
+	if game.CheckerJump != nil {
+		checkerJump := types.Vec2{X: game.CheckerJump.X, Y: game.CheckerJump.Y}
+		gameCopy.CheckerJump = &checkerJump
+	} else {
+		gameCopy.CheckerJump = nil
+	}
+
 	return &gameCopy
 }

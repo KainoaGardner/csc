@@ -532,7 +532,7 @@ func checkEndPosInPossibleMoves(possibleMoves []types.Vec2, move types.Move) err
 	for i := 0; i < len(possibleMoves); i++ {
 		possibleMove := possibleMoves[i]
 
-		if move.End == possibleMove {
+		if utils.CheckVec2Equal(move.End, possibleMove) {
 			return nil
 		}
 	}
