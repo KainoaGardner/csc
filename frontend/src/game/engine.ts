@@ -19,8 +19,6 @@ export function checkValidPieceMove(start: Vec2, end: Vec2, piece: Piece, game: 
   const dir = getMoveDirection(game.turn)
   const possibleMoves = getPieceMoves(start, piece, game, dir)
   const filteredMoves = filterPossibleMoves(start, possibleMoves, game)
-  console.log("Possible", possibleMoves)
-  console.log("Filtered", filteredMoves)
 
   return checkEndPosInPossibleMoves(end, filteredMoves)
 }
@@ -722,7 +720,6 @@ function getKingPos(game: Game): Vec2[] {
       const space = game.board[i][j]
 
       if (space !== null && space.owner === game.turn && (space.type === PieceEnum.King || space.type === PieceEnum.Ou)) {
-        console.log({ x: j, y: i })
         result.push({ x: j, y: i })
       }
     }
@@ -848,4 +845,11 @@ function checkCheckerTake(startPos: Vec2, endPos: Vec2): boolean {
   }
 
   return false
+}
+
+
+
+export function checkPieceOnBoard(x: number, y: number, game: Game): boolean {
+  const result = 0 <= x && x < game.width && 0 <= y && y < game.height
+  return result
 }

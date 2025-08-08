@@ -1,7 +1,14 @@
 import { type Mouse } from "./util.ts"
 
 export class InputHandler {
-  mouse: Mouse = { x: 0, y: 0, pressed: false, prevPressed: false, justPressed: false, justReleased: false }
+  mouse: Mouse = {
+    x: 0,
+    y: 0,
+    pressed: [false, false, false],
+    prevPressed: [false, false, false],
+    justPressed: [false, false, false],
+    justReleased: [false, false, false]
+  }
 
   constructor(canvas: HTMLCanvasElement) {
     const handleMouseMove = (e: MouseEvent) => {
@@ -10,31 +17,44 @@ export class InputHandler {
       this.mouse.y = e.clientY - rect.top
     }
 
-    const handleMouseDown = () => {
-      this.mouse.pressed = true
-
+    const handleMouseDown = (event: MouseEvent) => {
+      if (event.button <= 2) {
+        this.mouse.pressed[event.button] = true
+      }
     }
 
-    const handleMouseUp = () => {
-      this.mouse.pressed = false
+    const handleMouseUp = (event: MouseEvent) => {
+      if (event.button <= 2) {
+        this.mouse.pressed[event.button] = false
+      }
     }
+
+    const handleContextMenu = (event: MouseEvent) => {
+      event.preventDefault()
+    }
+
 
     canvas.addEventListener("mousemove", handleMouseMove)
     canvas.addEventListener("mousedown", handleMouseDown)
     canvas.addEventListener("mouseup", handleMouseUp)
+    document.addEventListener("contextmenu", handleContextMenu)
 
     this.cleanup = () => {
       canvas.removeEventListener("mousemove", handleMouseMove)
       canvas.removeEventListener("mousedown", handleMouseDown)
       window.removeEventListener("mouseup", handleMouseUp)
+      document.removeEventListener("contextmenu", handleContextMenu)
     }
   }
 
   update() {
-    this.mouse.justPressed = this.mouse.pressed && !this.mouse.prevPressed
-    this.mouse.justReleased = !this.mouse.pressed && this.mouse.prevPressed
+    for (let i = 0; i < 3; i++) {
+      this.mouse.justPressed[i] = this.mouse.pressed[i] && !this.mouse.prevPressed[i]
+      this.mouse.justReleased[i] = !this.mouse.pressed[i] && this.mouse.prevPressed[i]
 
-    this.mouse.prevPressed = this.mouse.pressed
+      this.mouse.prevPressed[i] = this.mouse.pressed[i]
+
+    }
   }
 
   cleanup: () => void;

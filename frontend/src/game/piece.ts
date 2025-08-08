@@ -1,9 +1,9 @@
 import { PieceImages, PieceImageDimensions } from "./images.ts"
 import { PieceTypeToPrice, PlaceEnum, type Message, type PlaceMessage, convertPositionToString } from "./util.ts"
-import { type Vec2 } from "./util.ts"
+import { type Vec2, PieceEnum } from "./util.ts"
 import { InputHandler } from "./inputHandler.ts"
 import { Game } from "./game.ts"
-import { checkValidPieceMove } from "./engine.ts"
+import { checkValidPieceMove, checkPieceOnBoard } from "./engine.ts"
 
 export class Piece {
   x: number
@@ -74,11 +74,11 @@ export class Piece {
   placeUpdate(game: Game, tileSize: number, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
     if (game.ready[game.userSide]) return
 
-    if (this.checkHovering(tileSize, input) && input.mouse.justPressed && game.userSide === this.owner) {
+    if (this.checkHovering(tileSize, input) && input.mouse.justPressed[0] && game.userSide === this.owner) {
       this.selected = true
     }
 
-    if (this.selected && input.mouse.justReleased) {
+    if (this.selected && input.mouse.justReleased[0]) {
       this.selected = false
       const placeX = Math.floor(input.mouse.x / tileSize) - 1
       const placeY = Math.floor(input.mouse.y / tileSize) - 1
@@ -118,7 +118,7 @@ export class Piece {
         }
       }
 
-      if (!this.checkPieceOnBoard(placeX, placeY, game)) {
+      if (!checkPieceOnBoard(placeX, placeY, game)) {
         if (!shopPiece) {
           const price = PieceTypeToPrice.get(this.type)
           if (price === undefined) { return }
@@ -135,11 +135,11 @@ export class Piece {
 
 
   moveUpdate(game: Game, tileSize: number, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
-    if (this.checkHovering(tileSize, input) && input.mouse.justPressed && game.userSide == this.owner) {
+    if (this.checkHovering(tileSize, input) && input.mouse.justPressed[0] && game.userSide == this.owner) {
       this.selected = true
     }
 
-    if (this.selected && input.mouse.justReleased) {
+    if (this.selected && input.mouse.justReleased[0]) {
       this.selected = false
       const placeX = Math.floor(input.mouse.x / tileSize) - 1
       const placeY = Math.floor(input.mouse.y / tileSize) - 1
@@ -155,22 +155,39 @@ export class Piece {
         this.x = placeX
         this.y = placeY
 
-      } else {
-        // nothing
       }
     }
-
-
   }
+
+  moveMochigomaUpdate(game: Game, tileSize: number, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
+    if (this.checkHovering(tileSize, input) && input.mouse.justPressed[0] && game.userSide == this.owner) {
+      this.selected = true
+    }
+
+    if (this.selected && input.mouse.justReleased[0]) {
+      this.selected = false
+      const placeX = Math.floor(input.mouse.x / tileSize) - 1
+      const placeY = Math.floor(input.mouse.y / tileSize) - 1
+
+      const start = { x: this.x, y: this.y }
+      const end = { x: placeX, y: placeY }
+
+      if (checkPieceOnBoard(end.x, end.y, game)) {
+        const mochigomaIndex = game.userSide * 7 + this.type - PieceEnum.Fu
+        game.mochigoma[mochigomaIndex]--
+
+        const dropPiece = new Piece(placeX, placeY, this.type, this.owner, false)
+        game.board[placeY][placeX] = dropPiece
+      }
+
+    }
+  }
+
 
   checkValidMove(): boolean {
     return false
   }
 
-  checkPieceOnBoard(x: number, y: number, game: Game): boolean {
-    const result = 0 <= x && x < game.width && 0 <= y && y < game.height
-    return result
-  }
 
   checkPieceOnBoardSide(x: number, y: number, game: Game): boolean {
     if (game.userSide === 0) {

@@ -148,9 +148,6 @@ function Test() {
 
     const update = () => {
       rendererRef.current!.update(gameRef.current!, inputRef.current!, sendMessage)
-
-
-
       inputRef.current!.update()
     }
 
@@ -159,6 +156,11 @@ function Test() {
     }
 
     frameRef.current = requestAnimationFrame(frame)
+
+    return () => {
+      cancelAnimationFrame(frameRef.current!)
+      input.cleanup()
+    }
   }, [])
 
 

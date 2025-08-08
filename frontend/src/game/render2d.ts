@@ -1,6 +1,17 @@
 import { Game } from "./game.ts"
 import { Piece } from "./piece.ts"
-import { PieceEnum, PieceTypeToPrice, fitTextToWidth, type Message, convertSecondsToTimeString } from "./util.ts"
+
+import { getMoveDirection, getPieceMoves, filterPossibleMoves, checkPieceOnBoard } from "./engine.ts"
+import {
+  PieceEnum,
+  PieceTypeToPrice,
+  fitTextToWidth,
+  type Message,
+  convertSecondsToTimeString,
+  type Annotation,
+  checkEqualAnnotation
+
+} from "./util.ts"
 import { Button, createGameButtons } from "./button.ts"
 
 import { BoardThemeColors } from "./themes.ts"
@@ -88,6 +99,9 @@ export class BoardRenderer2D {
   whiteMochigomaPieces: Piece[] = whiteMochigomaPieces
   blackMochigomaPieces: Piece[] = blackMochigomaPieces
 
+  currAnnotation: Annotation = { start: null, end: null }
+  annotations: Annotation[] = []
+
   buttons: Map<string, Button>
 
   constructor(ctx: CanvasRenderingContext2D,
@@ -165,15 +179,18 @@ export class BoardRenderer2D {
 
   #drawMove(game: Game, boardTheme: number, input: InputHandler) {
     this.#drawBoard(game, boardTheme)
+    this.#drawAnnotations()
     this.#drawTime(game,)
     this.#drawMochigoma(game, input)
     this.#drawBoardPieces(game, input)
+    this.#drawMovableSpaces(game)
   }
 
   #drawOver(game: Game, boardTheme: number, input: InputHandler) {
     this.#drawBoard(game, boardTheme)
-    this.#drawBoardPieces(game, input)
+    this.#drawTime(game,)
     this.#drawMochigoma(game, input)
+    this.#drawBoardPieces(game, input)
     this.#drawOverMessage(game)
   }
 
@@ -199,6 +216,12 @@ export class BoardRenderer2D {
 
         this.ctx.fillRect(xStart + j * this.tileSize, yStart + i * this.tileSize, this.tileSize, this.tileSize)
       }
+    }
+  }
+
+  #drawAnnotations() {
+    for (let i = 0; i < this.annotations.length; i++) {
+      const anno = this.annotations[i]
     }
   }
 
@@ -407,6 +430,52 @@ export class BoardRenderer2D {
     this.ctx.globalAlpha = 1.0
   }
 
+  #drawMovableSpaces(game: Game) {
+    let selectedPiece: Piece | null = null
+    for (let i = 0; i < game.height; i++) {
+      for (let j = 0; j < game.width; j++) {
+        const piece = game.board[i][j]
+        if (piece === null || piece.owner !== game.userSide) {
+          continue
+        }
+
+        if (piece.selected) {
+          selectedPiece = piece
+        }
+      }
+    }
+
+    if (selectedPiece === null) {
+      return
+    }
+
+    const dir = getMoveDirection(game.turn)
+    const startPos = { x: selectedPiece.x, y: selectedPiece.y }
+    const possibleMoves = getPieceMoves(startPos, selectedPiece, game, dir)
+    const filteredMoves = filterPossibleMoves(startPos, possibleMoves, game)
+
+    if (game.userSide === 0) {
+      this.ctx.fillStyle = "#FFF"
+      this.ctx.strokeStyle = "#000"
+    } else {
+      this.ctx.fillStyle = "#000"
+      this.ctx.strokeStyle = "#FFF"
+    }
+
+    this.ctx.globalAlpha = 0.8
+    this.ctx.lineWidth = 2 * this.UIRatio
+
+    for (let i = 0; i < filteredMoves.length; i++) {
+      const move = filteredMoves[i]
+      this.ctx.beginPath()
+      this.ctx.arc((move.x + 1) * this.tileSize + this.tileSize / 2, (move.y + 1) * this.tileSize + this.tileSize / 2, this.tileSize / 10, 0, 2 * Math.PI)
+      this.ctx.fill()
+      this.ctx.stroke()
+    }
+
+    this.ctx.globalAlpha = 1.0
+  }
+
   #drawOverMessage(game: Game) {
 
   }
@@ -421,8 +490,6 @@ export class BoardRenderer2D {
 
   update(game: Game, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
     this.#updateButtons(input, game)
-
-
 
     switch (game.state) {
       case 1:
@@ -503,6 +570,8 @@ export class BoardRenderer2D {
   }
 
   #moveUpdate(game: Game, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
+    this.#annotationUpdate(game, input)
+
     for (let i = 0; i < game.height; i++) {
       for (let j = 0; j < game.width; j++) {
         const piece = game.board[i][j]
@@ -512,6 +581,68 @@ export class BoardRenderer2D {
 
         piece.moveUpdate(game, this.tileSize, input, sendMessage)
       }
+    }
+
+    let mochigomaPieces
+    let mochigomaOffset
+    if (game.userSide === 0) {
+      mochigomaPieces = this.whiteMochigomaPieces
+      mochigomaOffset = 0
+    } else {
+      mochigomaPieces = this.blackMochigomaPieces
+      mochigomaOffset = 7
+    }
+
+    for (let i = 0; i < mochigomaPieces.length; i++) {
+      const piece = mochigomaPieces[i]
+      const amount = game.mochigoma[mochigomaOffset + i]
+      if (amount > 0) {
+        piece.moveMochigomaUpdate(game, this.tileSize, input, sendMessage)
+      }
+    }
+  }
+
+  #annotationUpdate(game: Game, input: InputHandler) {
+    if (input.mouse.justPressed[0]) {
+      this.annotations = []
+    }
+
+    if (input.mouse.justPressed[2]) {
+      const placeX = Math.floor(input.mouse.x / this.tileSize) - 1
+      const placeY = Math.floor(input.mouse.y / this.tileSize) - 1
+
+      if (checkPieceOnBoard(placeX, placeY, game)) {
+        this.currAnnotation.start = { x: placeX, y: placeY }
+      } else {
+        this.annotations = []
+      }
+    }
+    if (input.mouse.justReleased[2]) {
+      if (this.currAnnotation.start !== null) {
+        const placeX = Math.floor(input.mouse.x / this.tileSize) - 1
+        const placeY = Math.floor(input.mouse.y / this.tileSize) - 1
+
+        if (checkPieceOnBoard(placeX, placeY, game)) {
+          this.currAnnotation.end = { x: placeX, y: placeY }
+          const newStartPos = { x: this.currAnnotation.start.x, y: this.currAnnotation.start.y }
+          const newEndPos = { x: placeX, y: placeY }
+          const newAnnotation = { start: newStartPos, end: newEndPos }
+
+          let found = false
+          for (let i = this.annotations.length - 1; i >= 0; i--) {
+            const anno = this.annotations[i]
+            if (checkEqualAnnotation(newAnnotation, anno)) {
+              this.annotations.splice(i, 1)
+              found = true
+            }
+          }
+
+          if (!found) {
+            this.annotations.push(newAnnotation)
+          }
+        }
+      }
+      this.currAnnotation = { start: null, end: null }
     }
   }
 

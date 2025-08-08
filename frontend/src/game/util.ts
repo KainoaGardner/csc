@@ -92,13 +92,18 @@ export interface Vec2 {
   y: number;
 }
 
+export interface Annotation {
+  start: Vec2 | null
+  end: Vec2 | null
+}
+
 export interface Mouse {
   x: number;
   y: number;
-  pressed: boolean;
-  prevPressed: boolean;
-  justPressed: boolean;
-  justReleased: boolean;
+  pressed: boolean[];
+  prevPressed: boolean[];
+  justPressed: boolean[];
+  justReleased: boolean[];
 }
 
 export function isCharDigit(char: string): boolean {
@@ -245,5 +250,14 @@ export function convertSecondsToTimeString(time: number): string {
 
 export function checkVec2Equal(a: Vec2, b: Vec2): boolean {
   return (a.x === b.x && a.y === b.y)
+}
+
+
+export function checkEqualAnnotation(a: Annotation, b: Annotation): boolean {
+  if (a.start === null || a.end === null || b.start === null || b.end === null) {
+    return false
+  }
+
+  return checkVec2Equal(a.start, b.start) && checkVec2Equal(a.end, b.end)
 }
 
