@@ -9,7 +9,9 @@ import {
   type Message,
   convertSecondsToTimeString,
   type Annotation,
-  checkEqualAnnotation
+  checkEqualAnnotation,
+  getAnnotationType,
+  AnnotationEnum,
 
 } from "./util.ts"
 import { Button, createGameButtons } from "./button.ts"
@@ -171,6 +173,8 @@ export class BoardRenderer2D {
   #drawPlace(game: Game, boardTheme: number, input: InputHandler) {
     this.#drawBoard(game, boardTheme)
     this.#drawCover(game)
+    this.#drawSelectedSpace(game)
+    this.#drawPlaceSpace(game, input)
     this.#drawBoardPieces(game, input)
     if (!game.ready[game.userSide])
       this.#drawShopPieces(game, input)
@@ -180,7 +184,10 @@ export class BoardRenderer2D {
   #drawMove(game: Game, boardTheme: number, input: InputHandler) {
     this.#drawBoard(game, boardTheme)
     this.#drawAnnotations()
+    this.#drawSelectedSpace(game)
+    this.#drawPlaceSpace(game, input)
     this.#drawTime(game,)
+
     this.#drawMochigoma(game, input)
     this.#drawBoardPieces(game, input)
     this.#drawMovableSpaces(game)
@@ -220,10 +227,204 @@ export class BoardRenderer2D {
   }
 
   #drawAnnotations() {
+    this.ctx.globalAlpha = 0.75
+    this.ctx.fillStyle = "#e74c3c"
+    this.ctx.strokeStyle = "#e74c3c"
     for (let i = 0; i < this.annotations.length; i++) {
       const anno = this.annotations[i]
+      const annoType = getAnnotationType(anno)
+      switch (annoType) {
+        case AnnotationEnum.singleSpace: {
+          this.#drawSingleSpaceAnnotation(anno)
+          break
+        }
+        case AnnotationEnum.straightArrow: {
+          this.#drawArrowAnnotation(anno)
+          break
+        }
+        case AnnotationEnum.diagonalArrow: {
+          this.#drawArrowAnnotation(anno)
+          break
+        }
+        case AnnotationEnum.turnArrow: {
+          this.#drawTurnAnnotation(anno)
+          break
+        }
+      }
     }
+
+    this.ctx.globalAlpha = 1.0
   }
+
+  #drawSingleSpaceAnnotation(anno: Annotation) {
+    if (anno.start === null || anno.end === null) {
+      return
+    }
+
+    this.ctx.fillRect((anno.start.x + 1) * this.tileSize, (anno.start.y + 1) * this.tileSize, this.tileSize, this.tileSize)
+  }
+
+  #drawArrowAnnotation(anno: Annotation) {
+    if (anno.start === null || anno.end === null) {
+      return
+    }
+
+    this.ctx.lineWidth = this.tileSize * 0.25
+    const boxSize = this.tileSize * 0.5
+
+    const dx = anno.start.x - anno.end.x
+    const dy = anno.start.y - anno.end.y
+    const angle = Math.atan2(dy, dx)
+
+    const startX = (anno.start.x + 1) * this.tileSize + this.tileSize * 0.5
+    const startY = (anno.start.y + 1) * this.tileSize + this.tileSize * 0.5
+    const endX = (anno.end.x + 1) * this.tileSize + this.tileSize * 0.5
+    const endY = (anno.end.y + 1) * this.tileSize + this.tileSize * 0.5
+    const endXLine = endX + boxSize * 0.5 * Math.cos(angle)
+    const endYLine = endY + boxSize * 0.5 * Math.sin(angle)
+
+    this.ctx.beginPath()
+
+    this.ctx.moveTo(startX, startY)
+    this.ctx.lineTo(endXLine, endYLine)
+    this.ctx.stroke()
+
+    this.ctx.save()
+    this.ctx.translate(endX, endY)
+    this.ctx.rotate(angle)
+    this.ctx.fillRect(-boxSize * 0.5, -boxSize * 0.5, boxSize, boxSize)
+    this.ctx.restore()
+  }
+
+  #drawTurnAnnotation(anno: Annotation) {
+    if (anno.start === null || anno.end === null) {
+      return
+    }
+
+    this.ctx.lineWidth = this.tileSize * 0.25
+    const boxSize = this.tileSize * 0.5
+
+
+    const startX = (anno.start.x + 1) * this.tileSize + this.tileSize * 0.5
+    const startY = (anno.start.y + 1) * this.tileSize + this.tileSize * 0.5
+    const endX = (anno.end.x + 1) * this.tileSize + this.tileSize * 0.5
+    const endY = (anno.end.y + 1) * this.tileSize + this.tileSize * 0.5
+
+    const turndx = Math.abs(anno.start.x - anno.end.x)
+    const turndy = Math.abs(anno.start.y - anno.end.y)
+
+    let turnX
+    let turnY
+    if (turndx === 1 && turndy === 2) {
+      turnX = startX
+      turnY = endY
+    } else {
+      turnX = endX
+      turnY = startY
+    }
+
+    const dx = turnX - endX
+    const dy = turnY - endY
+    const angle = Math.atan2(dy, dx)
+    const endXLine = endX + boxSize * 0.5 * Math.cos(angle)
+    const endYLine = endY + boxSize * 0.5 * Math.sin(angle)
+
+
+    this.ctx.beginPath()
+
+    this.ctx.moveTo(startX, startY)
+    this.ctx.lineTo(turnX, turnY)
+    this.ctx.lineTo(endXLine, endYLine)
+    this.ctx.stroke()
+
+    this.ctx.fillRect(endX - boxSize * 0.5, endY - boxSize * 0.5, boxSize, boxSize)
+  }
+
+  #drawSelectedSpace(game: Game) {
+    this.ctx.globalAlpha = 0.5
+    this.ctx.fillStyle = "#e74c3c"
+    for (let i = 0; i < game.height; i++) {
+      for (let j = 0; j < game.width; j++) {
+        const piece = game.board[i][j]
+        if (piece === null) {
+          continue
+        }
+
+        if (piece.selected) {
+          this.ctx.fillRect((j + 1) * this.tileSize, (i + 1) * this.tileSize, this.tileSize, this.tileSize)
+          break
+        }
+      }
+    }
+
+    this.ctx.globalAlpha = 1.0
+  }
+
+  #drawPlaceSpace(game: Game, input: InputHandler) {
+    this.ctx.globalAlpha = 0.5
+    this.ctx.fillStyle = "#2ecc71"
+
+    let selectedFound: boolean = false
+    for (let i = 0; i < game.height; i++) {
+      for (let j = 0; j < game.width; j++) {
+        const piece = game.board[i][j]
+        if (piece === null) {
+          continue
+        }
+
+        if (piece.selected) {
+          selectedFound = true
+          break
+        }
+      }
+    }
+
+    if (game.state === 1) {
+      let pieces
+      if (game.userSide === 0) {
+        pieces = this.whiteShopPieces[this.shopScreen]
+      } else {
+        pieces = this.blackShopPieces[this.shopScreen]
+      }
+
+      for (let i = 0; i < pieces.length; i++) {
+        const piece = pieces[i]
+        if (piece === null) {
+          continue
+        }
+
+        if (piece.selected) {
+          selectedFound = true
+          break
+        }
+      }
+    } else if (game.state === 2) {
+      for (let i = 0; i < 14; i++) {
+        let piece: Piece
+        if (i < 7) {
+          piece = this.whiteMochigomaPieces[i]
+        } else {
+          piece = this.blackMochigomaPieces[i - 7]
+        }
+
+        if (piece !== null && piece.selected) {
+          selectedFound = true
+          break
+        }
+      }
+    }
+
+    if (selectedFound) {
+      const placeX = Math.floor(input.mouse.x / this.tileSize)
+      const placeY = Math.floor(input.mouse.y / this.tileSize)
+      if (placeX - 1 >= 0 && placeX - 1 < game.width && placeY - 1 >= 0 && placeY - 1 < game.height) {
+        this.ctx.fillRect(placeX * this.tileSize, placeY * this.tileSize, this.tileSize, this.tileSize)
+      }
+    }
+
+    this.ctx.globalAlpha = 1.0
+  }
+
 
   #drawBoardPieces(game: Game, input: InputHandler) {
     let selectedPiece: Piece | null = null

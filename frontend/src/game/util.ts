@@ -261,3 +261,37 @@ export function checkEqualAnnotation(a: Annotation, b: Annotation): boolean {
   return checkVec2Equal(a.start, b.start) && checkVec2Equal(a.end, b.end)
 }
 
+
+export const AnnotationEnum = {
+  singleSpace: 0,
+  straightArrow: 1,
+  diagonalArrow: 2,
+  turnArrow: 3,
+}
+
+
+export function getAnnotationType(anno: Annotation): number {
+  if (anno.start === null || anno.end === null) {
+    return -1
+  }
+
+  //single spacce
+  if (checkVec2Equal(anno.start, anno.end)) {
+    return AnnotationEnum.singleSpace
+  }
+
+  //straightArrow
+  if (anno.start.x === anno.end.x || anno.start.y === anno.end.y) {
+    return AnnotationEnum.straightArrow
+  }
+
+  //turnArrow
+  const dx = Math.abs(anno.start.x - anno.end.x)
+  const dy = Math.abs(anno.start.y - anno.end.y)
+
+  if (dx === 1 && dy === 2 || dx === 2 && dy === 1) {
+    return AnnotationEnum.turnArrow
+  }
+
+  return AnnotationEnum.diagonalArrow
+}
