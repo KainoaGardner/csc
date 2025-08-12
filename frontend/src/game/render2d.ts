@@ -114,6 +114,8 @@ export class BoardRenderer2D {
 
   buttons: Map<string, Button>
 
+  resignPressed: boolean = false
+
   constructor(ctx: CanvasRenderingContext2D,
     canvas: HTMLCanvasElement,
     game: Game,
@@ -126,6 +128,11 @@ export class BoardRenderer2D {
     this.tileSize = 800 * this.UIRatio / Math.max(game.width, game.height)
     this.switchShopScreen = this.switchShopScreen.bind(this)
 
+    this.pressResign = this.pressResign.bind(this)
+    this.cancelResign = this.cancelResign.bind(this)
+    this.confirmResign = this.confirmResign.bind(this)
+
+
     this.buttons = createGameButtons(canvas,
       this.UIRatio,
       game,
@@ -135,6 +142,11 @@ export class BoardRenderer2D {
       game.clearBoardPlace,
       game.readyUp,
       game.unreadyUp,
+      game.drawUp,
+      game.undrawUp,
+      this.pressResign,
+      this.cancelResign,
+      this.confirmResign,
     )
 
     this.updateButtonScreen(game)
@@ -195,6 +207,7 @@ export class BoardRenderer2D {
     this.#drawSelectedSpace(game)
     this.#drawPlaceSpace(game, input)
     this.#drawTime(game,)
+    this.#drawDrawText(game)
 
     this.#drawMochigoma(game, input)
     this.#drawBoardPieces(game, input)
@@ -504,6 +517,25 @@ export class BoardRenderer2D {
     }
   }
 
+  #drawDrawText(game: Game) {
+    this.ctx.textAlign = "center"
+    this.ctx.textBaseline = "middle";
+    this.ctx.lineWidth = 2 * this.UIRatio;
+    this.ctx.font = `${50 * this.UIRatio}px Arial Black`
+    this.ctx.fillStyle = "#2ecc71"
+    this.ctx.strokeStyle = "#000"
+
+    if (game.draw[0]) {
+      this.ctx.fillText("Draw", 500 * this.UIRatio, 900 * this.UIRatio + this.tileSize / 2)
+      this.ctx.strokeText("Draw", 500 * this.UIRatio, 900 * this.UIRatio + this.tileSize / 2)
+    }
+    if (game.draw[1]) {
+      this.ctx.fillText("Draw", 500 * this.UIRatio, this.tileSize / 2)
+      this.ctx.strokeText("Draw", 500 * this.UIRatio, this.tileSize / 2)
+    }
+  }
+
+
   #drawMochigomaCover(game: Game) {
     this.ctx.globalAlpha = 0.5
     this.ctx.fillStyle = "#000"
@@ -765,10 +797,21 @@ export class BoardRenderer2D {
         break
       }
       case 2: {
-        this.buttons.get("resign")!.visible = true
+        if (this.resignPressed) {
+          this.buttons.get("resign")!.visible = false
+          this.buttons.get("confirm")!.visible = true
+          this.buttons.get("cancel")!.visible = true
+        } else {
+          this.buttons.get("resign")!.visible = true
+          this.buttons.get("confirm")!.visible = false
+          this.buttons.get("cancel")!.visible = false
+        }
+
         if (game.draw[game.userSide]) {
           this.buttons.get("undraw")!.visible = true
+          this.buttons.get("draw")!.visible = false
         } else {
+          this.buttons.get("undraw")!.visible = false
           this.buttons.get("draw")!.visible = true
         }
         break
@@ -883,6 +926,20 @@ export class BoardRenderer2D {
 
   switchShopScreen() {
     this.shopScreen = (this.shopScreen + 1) % 3
+  }
+
+
+  pressResign() {
+    if (this.resignPressed) return
+    this.resignPressed = true
+  }
+
+  cancelResign() {
+    if (!this.resignPressed) return
+    this.resignPressed = false
+  }
+
+  confirmResign(sendMessage: (msg: Message<unknown>) => void) {
   }
 
 }

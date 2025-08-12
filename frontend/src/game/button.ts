@@ -136,8 +136,9 @@ export class Button {
   }
 
   clickButton(input: InputHandler, game: Game, updateButtonScreen: (game: Game) => void) {
-    if (input.mouse.justPressed && this.checkHoveringButton(input)) {
+    if (input.mouse.justPressed[0] && this.checkHoveringButton(input)) {
       this.onClick()
+      input.mouse.justPressed[0] = false
       updateButtonScreen(game)
     }
   }
@@ -152,11 +153,47 @@ export function createGameButtons(canvas: HTMLCanvasElement,
   clearBoard: () => void,
   readyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
   unreadyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  drawUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  undrawUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  pressResign: () => void,
+  cancelResign: () => void,
+  confirmResign: (sendMessage: (msg: Message<unknown>) => void) => void,
+
 ): Map<string, Button> {
   if (game.userSide === 0) {
-    return createWhiteButtons(canvas, UIRatio, game, handleNotif, sendMessage, switchShopScreen, clearBoard, readyUp, unreadyUp)
+    return createWhiteButtons(
+      canvas,
+      UIRatio,
+      game,
+      handleNotif,
+      sendMessage,
+      switchShopScreen,
+      clearBoard,
+      readyUp,
+      unreadyUp,
+      drawUp,
+      undrawUp,
+      pressResign,
+      cancelResign,
+      confirmResign,
+    )
   } else {
-    return createBlackButtons(canvas, UIRatio, game, handleNotif, sendMessage, switchShopScreen, clearBoard, readyUp, unreadyUp)
+    return createBlackButtons(
+      canvas,
+      UIRatio,
+      game,
+      handleNotif,
+      sendMessage,
+      switchShopScreen,
+      clearBoard,
+      readyUp,
+      unreadyUp,
+      drawUp,
+      undrawUp,
+      pressResign,
+      cancelResign,
+      confirmResign,
+    )
   }
 }
 
@@ -169,6 +206,13 @@ function createWhiteButtons(canvas: HTMLCanvasElement,
   clearBoard: () => void,
   readyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
   unreadyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  drawUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  undrawUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  pressResign: () => void,
+  cancelResign: () => void,
+  confirmResign: (sendMessage: (msg: Message<unknown>) => void) => void,
+
+
 ): Map<string, Button> {
   const result: Map<string, Button> = new Map<string, Button>()
 
@@ -251,23 +295,41 @@ function createWhiteButtons(canvas: HTMLCanvasElement,
   resignConfig.x = 0
   resignConfig.y = 900 * UIRatio
   resignConfig.text = "Resign"
-  resignConfig.onClick = () => clearBoard()
+  resignConfig.onClick = () => pressResign()
   const resignButton = new Button(resignConfig)
   result.set("resign", resignButton)
+
+  const confirmConfig = { ...defaultButtonConfig }
+  confirmConfig.x = 0
+  confirmConfig.y = 900 * UIRatio
+  confirmConfig.height = 50 * UIRatio
+  confirmConfig.text = "Confirm"
+  confirmConfig.fontSize = 15 * UIRatio
+  confirmConfig.onClick = () => confirmResign(sendMessage)
+  const confirmButton = new Button(confirmConfig)
+  result.set("confirm", confirmButton)
+
+  const cancelConfig = { ...confirmConfig }
+  cancelConfig.y = 950 * UIRatio
+  cancelConfig.height = 50 * UIRatio
+  cancelConfig.text = "Cancel"
+  cancelConfig.onClick = () => cancelResign()
+  const cancelButton = new Button(cancelConfig)
+  result.set("cancel", cancelButton)
 
   //change clearBoard function
   const drawConfig = { ...defaultButtonConfig }
   drawConfig.x = 0
   drawConfig.y = 800 * UIRatio
   drawConfig.text = "Draw"
-  drawConfig.onClick = () => clearBoard()
+  drawConfig.onClick = () => drawUp(sendMessage)
   const drawButton = new Button(drawConfig)
   result.set("draw", drawButton)
 
   //change to undraw
   const undrawConfig = { ...drawConfig }
   undrawConfig.text = "Undraw"
-  undrawConfig.onClick = () => clearBoard()
+  undrawConfig.onClick = () => undrawUp(sendMessage)
   const undrawButton = new Button(undrawConfig)
   result.set("undraw", undrawButton)
 
@@ -275,7 +337,8 @@ function createWhiteButtons(canvas: HTMLCanvasElement,
 }
 
 
-function createBlackButtons(canvas: HTMLCanvasElement,
+function createBlackButtons(
+  canvas: HTMLCanvasElement,
   UIRatio: number,
   game: Game,
   handleNotif: (err: string) => void,
@@ -284,6 +347,13 @@ function createBlackButtons(canvas: HTMLCanvasElement,
   clearBoard: () => void,
   readyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
   unreadyUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  drawUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  undrawUp: (sendMessage: (msg: Message<unknown>) => void) => void,
+  pressResign: () => void,
+  cancelResign: () => void,
+  confirmResign: (sendMessage: (msg: Message<unknown>) => void) => void,
+
+
 ): Map<string, Button> {
   const result: Map<string, Button> = new Map<string, Button>()
 
@@ -366,23 +436,41 @@ function createBlackButtons(canvas: HTMLCanvasElement,
   resignConfig.x = 0
   resignConfig.y = 0
   resignConfig.text = "Resign"
-  resignConfig.onClick = () => clearBoard()
+  resignConfig.onClick = () => pressResign()
   const resignButton = new Button(resignConfig)
   result.set("resign", resignButton)
+
+  const confirmConfig = { ...defaultButtonConfig }
+  confirmConfig.x = 0
+  confirmConfig.y = 900 * UIRatio
+  confirmConfig.height = 50 * UIRatio
+  confirmConfig.text = "Confirm"
+  confirmConfig.fontSize = 15 * UIRatio
+  confirmConfig.onClick = () => confirmResign(sendMessage)
+  const confirmButton = new Button(confirmConfig)
+  result.set("confirm", confirmButton)
+
+  const cancelConfig = { ...confirmConfig }
+  cancelConfig.y = 950 * UIRatio
+  cancelConfig.height = 50 * UIRatio
+  cancelConfig.text = "Cancel"
+  cancelConfig.onClick = () => cancelResign()
+  const cancelButton = new Button(cancelConfig)
+  result.set("cancel", cancelButton)
 
   //change clearBoard function
   const drawConfig = { ...defaultButtonConfig }
   drawConfig.x = 0
   drawConfig.y = 100 * UIRatio
   drawConfig.text = "Draw"
-  drawConfig.onClick = () => clearBoard()
+  drawConfig.onClick = () => drawUp(sendMessage)
   const drawButton = new Button(drawConfig)
   result.set("draw", drawButton)
 
   //change to undraw
   const undrawConfig = { ...drawConfig }
   undrawConfig.text = "Undraw"
-  undrawConfig.onClick = () => clearBoard()
+  undrawConfig.onClick = () => undrawUp(sendMessage)
   const undrawButton = new Button(undrawConfig)
   result.set("undraw", undrawButton)
 

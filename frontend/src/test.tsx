@@ -1,15 +1,14 @@
-import { useApp, useErrorHandler, useNotifHandler } from "./appContext/useApp.tsx"
+import { useApp, useNotifHandler } from "./appContext/useApp.tsx"
 import { useGameWebSocket } from "./websocket.tsx"
 import { useEffect, useRef } from "react"
 
 import { Game } from "./game/game.ts"
-import { Button, createGameButtons } from "./game/button.ts"
 import { InputHandler } from "./game/inputHandler.ts"
 import { BoardRenderer2D } from "./game/render2d.ts"
 
 function Test() {
-  const { setPage, accessToken, userID } = useApp()
-  const { handleError } = useErrorHandler()
+  const { accessToken, userID } = useApp()
+  // const { handleError } = useErrorHandler()
   const { handleNotif } = useNotifHandler()
 
   const gameID = "12039871209837"
@@ -75,7 +74,7 @@ function Test() {
         break
       }
       case "move": {
-        const game = gameRef.current!
+        // const game = gameRef.current!
 
         console.log(msg)
         // const fen = msg.data.fen
@@ -88,10 +87,9 @@ function Test() {
 
     }
 
-    setMessages((prev) => [...prev, msg])
   }
 
-  const { messages, setMessages, sendMessage } = useGameWebSocket(gameID, accessToken, handleMessage)
+  const { sendMessage } = useGameWebSocket(gameID, accessToken, handleMessage)
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const frameRef = useRef<number | null>(null)
@@ -133,12 +131,7 @@ function Test() {
     gameRef.current = game
     rendererRef.current = renderer
 
-    let lastFrame = performance.now()
-
-    const frame = (nowFrame: number) => {
-      const dt = (nowFrame - lastFrame) / 1000
-      lastFrame = nowFrame
-
+    const frame = () => {
       update()
       render()
 

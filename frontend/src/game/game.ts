@@ -62,6 +62,9 @@ export class Game {
     this.clearBoardPlace = this.clearBoardPlace.bind(this)
     this.readyUp = this.readyUp.bind(this)
     this.unreadyUp = this.unreadyUp.bind(this)
+    this.drawUp = this.drawUp.bind(this)
+    this.undrawUp = this.undrawUp.bind(this)
+
   }
 
   updateSettings(id: string,
@@ -292,6 +295,20 @@ export class Game {
       },
     }
     sendMessage(unreadyRequest)
+  }
+
+  drawUp(sendMessage: (msg: Message<unknown>) => void) {
+    if (this.draw[this.userSide]) return
+
+    this.draw[this.userSide] = true
+    console.log("draw")
+  }
+
+  undrawUp(sendMessage: (msg: Message<unknown>) => void) {
+    if (!this.draw[this.userSide]) return
+
+    this.draw[this.userSide] = false
+    console.log("undraw")
   }
 
 }
