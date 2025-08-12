@@ -3,7 +3,7 @@ import { PieceTypeToPrice, PlaceEnum, type Message, type PlaceMessage, convertPo
 import { type Vec2, PieceEnum } from "./util.ts"
 import { InputHandler } from "./inputHandler.ts"
 import { Game } from "./game.ts"
-import { checkValidPieceMove, checkPieceOnBoard } from "./engine.ts"
+import { checkValidPieceMove, checkPieceOnBoard, checkValidDropMove, getEnemyTurnInt } from "./engine.ts"
 
 export class Piece {
   x: number
@@ -147,14 +147,14 @@ export class Piece {
       const start = { x: this.x, y: this.y }
       const end = { x: placeX, y: placeY }
 
-      if (checkValidPieceMove(start, end, this, game)) {
+      if (checkValidPieceMove(start, end, this, game) && game.turn === game.userSide) {
         //send Move Message
 
         game.board[this.y][this.x] = null
         game.board[placeY][placeX] = this
         this.x = placeX
         this.y = placeY
-
+        game.turn = getEnemyTurnInt(game)
       }
     }
   }
@@ -172,12 +172,13 @@ export class Piece {
       const start = { x: this.x, y: this.y }
       const end = { x: placeX, y: placeY }
 
-      if (checkPieceOnBoard(end.x, end.y, game)) {
+      if (checkValidDropMove(end, this, game) && game.turn === game.userSide) {
         const mochigomaIndex = game.userSide * 7 + this.type - PieceEnum.Fu
         game.mochigoma[mochigomaIndex]--
 
         const dropPiece = new Piece(placeX, placeY, this.type, this.owner, false)
         game.board[placeY][placeX] = dropPiece
+        game.turn = getEnemyTurnInt(game)
       }
 
     }

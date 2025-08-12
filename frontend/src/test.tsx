@@ -120,7 +120,7 @@ function Test() {
     game.state = 2
 
 
-    const fen = "3cq*ck*3/8/8/8/8/8/8/4CK*3 1/0/0/0/3/0/0/0/0/0/0/1/0/0 w e2 h1 0 0 600/600"
+    const fen = "4ck*3/8/8/8/8/8/8/3CQ*CK*3 5/5/5/5/5/5/5/0/0/0/0/1/0/0 w e2 h1 0 0 600/600"
     // const fen = "cp*cn*cb*cr*cq*ck*sp*sl*/sn*sg*sc*sb*sr*sk*np*nl*/nn*ng*nb*nr*kc*kk*2/8/8/2KK*KC*NR*NB*NG*NN*/NL*NP*SK*SR*SB*SC*SG*SN*/SL*SP*CK*CQ*CR*CB*CN*CP* 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
     game.updateGame(fen)
 
@@ -132,7 +132,6 @@ function Test() {
 
     gameRef.current = game
     rendererRef.current = renderer
-
 
     let lastFrame = performance.now()
 

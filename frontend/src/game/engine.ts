@@ -7,7 +7,7 @@ export function getMoveDirection(owner: number): number {
   else { return -1 }
 }
 
-function getEnemyTurnInt(game: Game): number {
+export function getEnemyTurnInt(game: Game): number {
   if (game.turn === 0) {
     return 1
   } else {
@@ -16,6 +16,10 @@ function getEnemyTurnInt(game: Game): number {
 }
 
 export function checkValidPieceMove(start: Vec2, end: Vec2, piece: Piece, game: Game): boolean {
+  if (!checkPieceOnBoard(start.x, start.y, game) || !checkPieceOnBoard(end.x, end.y, game)) {
+    return false
+  }
+
   const dir = getMoveDirection(game.turn)
   const possibleMoves = getPieceMoves(start, piece, game, dir)
   const filteredMoves = filterPossibleMoves(start, possibleMoves, game)
@@ -154,6 +158,22 @@ export function checkEndPosInPossibleMoves(end: Vec2, possibleMoves: Vec2[]): bo
   }
 
   return false
+}
+
+export function getPieceDrops(piece: Piece, game: Game): Vec2[] {
+  const possibleDrops: Vec2[] = []
+
+  for (let i = 0; i < game.height; i++) {
+    for (let j = 0; j < game.width; j++) {
+      const endPos: Vec2 = { x: j, y: i }
+      const result = checkValidDropMove(endPos, piece, game)
+      if (result) {
+        possibleDrops.push(endPos)
+      }
+    }
+  }
+
+  return possibleDrops
 }
 
 
@@ -662,7 +682,7 @@ function getCheckerKingMoves(pos: Vec2, piece: Piece, game: Game): Vec2[] {
 }
 
 
-function copyGame(game: Game): Game {
+export function copyGame(game: Game): Game {
   const gameCopy = new Game(game.id, game.width, game.height, game.placeLine, game.userSide, game.money, game.time)
 
   const boardCopy = Array.from({ length: gameCopy.height }, () => Array(gameCopy.width).fill(null))
@@ -680,6 +700,7 @@ function copyGame(game: Game): Game {
   }
 
   gameCopy.board = boardCopy
+  gameCopy.turn = game.turn
 
   if (game.enPassant !== null) {
     const enPassantPos = { x: game.enPassant.x, y: game.enPassant.y }
@@ -696,6 +717,80 @@ function copyGame(game: Game): Game {
   }
 
   return gameCopy
+}
+
+function getInCheckmate(game: Game): boolean {
+  if (!getInCheck(game)) {
+    return false
+  }
+
+  const possibleMoves = getAllPossibleMovesCheckmate(game)
+  if (possibleMoves.length > 0) {
+    return false
+  }
+
+  const possibleDrops = getAllPossibleDrops(game)
+  for (let i = 0; i < possibleDrops.length; i++) {
+    const movePos = possibleDrops[i]
+
+    const piece = new Piece(movePos.x, movePos.y, PieceEnum.Fu, game.turn, false)
+    const gameCopy = copyGame(game)
+    gameCopy.board[movePos.y][movePos.x] = piece
+    if (!getInCheck(gameCopy)) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function getAllPossibleMovesCheckmate(game: Game): Vec2[] {
+  const possibleMoves: Vec2[] = []
+  //check normal moves
+  for (let i = 0; i < game.height; i++) {
+    for (let j = 0; j < game.width; j++) {
+      const space = game.board[i][j]
+      if (space !== null && space.owner === game.turn) {
+        const pos: Vec2 = { x: j, y: i }
+        possibleMoves.push(...getValidPieceMovesForCheckmate(pos, space, game))
+      }
+    }
+  }
+
+  return possibleMoves
+}
+
+function getValidPieceMovesForCheckmate(pos: Vec2, piece: Piece, game: Game): Vec2[] {
+  const dir = getMoveDirection(game.turn)
+  let possibleMoves: Vec2[] = []
+  if (piece.type == PieceEnum.King) {
+    possibleMoves = getKingMoves(pos, piece, game)
+  } else {
+    possibleMoves = getPieceMoves(pos, piece, game, dir)
+  }
+
+  possibleMoves = filterPossibleMoves(pos, possibleMoves, game)
+
+  return possibleMoves
+}
+
+function getAllPossibleDrops(game: Game): Vec2[] {
+  const possibleDrops: Vec2[] = []
+
+  for (let i = 0; i < game.height; i++) {
+    for (let j = 0; j < game.width; j++) {
+      for (let k = 0; k < 7; k++) {
+        const endPos: Vec2 = { x: j, y: i }
+        const piece = new Piece(endPos.x, endPos.y, PieceEnum.Fu + k, game.turn, false)
+        const result = checkValidDropMove(endPos, piece, game)
+        if (result) {
+          possibleDrops.push(endPos)
+        }
+      }
+    }
+  }
+
+  return possibleDrops
 }
 
 
@@ -729,17 +824,18 @@ function getKingPos(game: Game): Vec2[] {
 }
 
 function checkUnderAttack(pos: Vec2, game: Game): boolean {
+  const gameCopy = copyGame(game)
   const attackSpace: Map<string, boolean> = new Map<string, boolean>()
 
-  game.turn = getEnemyTurnInt(game)
-  for (let i = 0; i < game.height; i++) {
-    for (let j = 0; j < game.width; j++) {
-      const space = game.board[i][j]
+  gameCopy.turn = getEnemyTurnInt(game)
+  for (let i = 0; i < gameCopy.height; i++) {
+    for (let j = 0; j < gameCopy.width; j++) {
+      const space = gameCopy.board[i][j]
 
-      if (space !== null && space.owner === game.turn) {
+      if (space !== null && space.owner === gameCopy.turn) {
         const pos = { x: j, y: i }
-        const dir = getMoveDirection(game.turn)
-        const possibleMoves = getPieceMoves(pos, space, game, dir)
+        const dir = getMoveDirection(gameCopy.turn)
+        const possibleMoves = getPieceMoves(pos, space, gameCopy, dir)
         for (let k = 0; k < possibleMoves.length; k++) {
           const move = possibleMoves[k]
           const moveString = `${move.x},${move.y}`
@@ -747,7 +843,6 @@ function checkUnderAttack(pos: Vec2, game: Game): boolean {
         }
       }
     }
-
   }
 
 
@@ -847,7 +942,96 @@ function checkCheckerTake(startPos: Vec2, endPos: Vec2): boolean {
   return false
 }
 
+export function checkValidDropMove(end: Vec2, piece: Piece, game: Game): boolean {
+  if (!checkPieceOnBoard(end.x, end.y, game)) {
+    return false
+  }
 
+  if (!checkHaveDropPiece(piece, game)) { return false }
+
+  if (!checkEmptySpace(end, game)) { return false }
+
+  if (!checkNifu(end, piece, game)) { return false }
+
+  if (!checkIkidokoronoNaiKoma(end, piece, game)) { return false }
+
+  if (!checkUtifudume(end, piece, game)) { return false }
+
+  return true
+}
+
+
+function checkHaveDropPiece(piece: Piece, game: Game): boolean {
+  if (!(PieceEnum.Fu <= piece.type && piece.type <= PieceEnum.Hi)) { return false }
+
+  const mochigomaIndex = game.userSide * 7 + piece.type - PieceEnum.Fu
+  if (game.mochigoma[mochigomaIndex] <= 0) {
+    return false
+  }
+
+  return true
+}
+
+function checkEmptySpace(end: Vec2, game: Game): boolean {
+  if (game.board[end.y][end.x] !== null) { return false }
+
+  return true
+}
+
+function checkNifu(end: Vec2, piece: Piece, game: Game): boolean {
+  if (piece.type !== PieceEnum.Fu) { return true }
+
+  for (let i = 0; i < game.height; i++) {
+    const space = game.board[i][end.x]
+    if (space !== null && space.type === PieceEnum.Fu && space.owner == piece.owner) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function checkIkidokoronoNaiKoma(end: Vec2, piece: Piece, game: Game): boolean {
+  let row0
+  let row1
+
+  if (piece.owner == 0) {
+    row0 = 0
+    row1 = 1
+  } else {
+    row0 = game.height - 1
+    row1 = game.height - 2
+  }
+
+  if (piece.type === PieceEnum.Fu || piece.type === PieceEnum.Kyou) {
+    if (end.y === row0) {
+      return false
+    }
+  } else if (piece.type === PieceEnum.Kei) {
+    if (end.y == row0 || end.y === row1) {
+      return false
+    }
+  }
+
+  return true
+}
+
+function checkUtifudume(end: Vec2, piece: Piece, game: Game): boolean {
+  if (piece.type !== PieceEnum.Fu) {
+    return true
+  }
+
+  const gameCopy = copyGame(game)
+  gameCopy.board[end.y][end.x] = piece
+
+  gameCopy.turn = getEnemyTurnInt(gameCopy)
+
+  const result = getInCheckmate(gameCopy)
+
+  if (result) { return false }
+
+  return true
+}
 
 export function checkPieceOnBoard(x: number, y: number, game: Game): boolean {
   const result = 0 <= x && x < game.width && 0 <= y && y < game.height

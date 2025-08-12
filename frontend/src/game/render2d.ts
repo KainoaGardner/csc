@@ -1,7 +1,14 @@
 import { Game } from "./game.ts"
 import { Piece } from "./piece.ts"
 
-import { getMoveDirection, getPieceMoves, filterPossibleMoves, checkPieceOnBoard } from "./engine.ts"
+import {
+  getMoveDirection,
+  getPieceMoves,
+  filterPossibleMoves,
+  checkPieceOnBoard,
+  getPieceDrops,
+  copyGame,
+} from "./engine.ts"
 import {
   PieceEnum,
   PieceTypeToPrice,
@@ -12,6 +19,7 @@ import {
   checkEqualAnnotation,
   getAnnotationType,
   AnnotationEnum,
+  type Vec2,
 
 } from "./util.ts"
 import { Button, createGameButtons } from "./button.ts"
@@ -632,6 +640,9 @@ export class BoardRenderer2D {
   }
 
   #drawMovableSpaces(game: Game) {
+    let filteredMoves: Vec2[] = []
+
+    let selectedPieceType: string = ""
     let selectedPiece: Piece | null = null
     for (let i = 0; i < game.height; i++) {
       for (let j = 0; j < game.width; j++) {
@@ -642,7 +653,24 @@ export class BoardRenderer2D {
 
         if (piece.selected) {
           selectedPiece = piece
+          selectedPieceType = "board"
         }
+      }
+    }
+
+    let mochigomaPieces: Piece[]
+    if (game.userSide === 0) {
+      mochigomaPieces = this.whiteMochigomaPieces
+    } else {
+      mochigomaPieces = this.blackMochigomaPieces
+    }
+
+    for (let i = 0; i < mochigomaPieces.length; i++) {
+      const piece = mochigomaPieces[i]
+
+      if (piece.selected) {
+        selectedPiece = piece
+        selectedPieceType = "mochigoma"
       }
     }
 
@@ -650,10 +678,16 @@ export class BoardRenderer2D {
       return
     }
 
-    const dir = getMoveDirection(game.turn)
-    const startPos = { x: selectedPiece.x, y: selectedPiece.y }
-    const possibleMoves = getPieceMoves(startPos, selectedPiece, game, dir)
-    const filteredMoves = filterPossibleMoves(startPos, possibleMoves, game)
+    if (selectedPieceType === "board") {
+      const dir = getMoveDirection(game.userSide)
+      const startPos = { x: selectedPiece.x, y: selectedPiece.y }
+      const gameCopy = copyGame(game)
+      gameCopy.turn = game.userSide
+      const possibleMoves = getPieceMoves(startPos, selectedPiece, gameCopy, dir)
+      filteredMoves = filterPossibleMoves(startPos, possibleMoves, gameCopy)
+    } else {
+      filteredMoves = getPieceDrops(selectedPiece, game)
+    }
 
     if (game.userSide === 0) {
       this.ctx.fillStyle = "#FFF"
