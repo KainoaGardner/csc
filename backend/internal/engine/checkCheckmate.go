@@ -66,8 +66,6 @@ func GetInCheckmate(game types.Game) bool {
 	possibleDrops := getAllPossibleDrops(game)
 	for i := 0; i < len(possibleDrops); i++ {
 		movePos := possibleDrops[i]
-		move := types.Move{}
-		move.End = movePos
 		piece := types.Piece{}
 		piece.Owner = game.Turn
 		piece.Type = types.Fu
