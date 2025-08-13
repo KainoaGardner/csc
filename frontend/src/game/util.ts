@@ -23,6 +23,16 @@ export const PieceEnum = {
   CheckerKing: 22,
 }
 
+export const MochigomaEnum = {
+  MochiFu: 0,
+  MochiKyou: 1,
+  MochiKei: 2,
+  MochiGin: 3,
+  MochiKin: 4,
+  MochiKaku: 5,
+  MochiHi: 6,
+}
+
 export const PlaceEnum = {
   create: 0,
   delete: 1,
@@ -53,6 +63,21 @@ FenStringToPieceInt.set("NR", PieceEnum.Ryuu)
 FenStringToPieceInt.set("KC", PieceEnum.Checker)
 FenStringToPieceInt.set("KK", PieceEnum.CheckerKing)
 
+export const ShogiMochiPieceToChar = new Map<number, string>()
+ShogiMochiPieceToChar.set(MochigomaEnum.MochiFu, "P")
+ShogiMochiPieceToChar.set(MochigomaEnum.MochiKyou, "L")
+ShogiMochiPieceToChar.set(MochigomaEnum.MochiKei, "N")
+ShogiMochiPieceToChar.set(MochigomaEnum.MochiGin, "S")
+ShogiMochiPieceToChar.set(MochigomaEnum.MochiKin, "G")
+ShogiMochiPieceToChar.set(MochigomaEnum.MochiKaku, "B")
+ShogiMochiPieceToChar.set(MochigomaEnum.MochiHi, "R")
+
+export const ChessPromotePieceToChar = new Map<number, string>()
+ChessPromotePieceToChar.set(PieceEnum.Pawn, "P")
+ChessPromotePieceToChar.set(PieceEnum.Knight, "N")
+ChessPromotePieceToChar.set(PieceEnum.Bishop, "B")
+ChessPromotePieceToChar.set(PieceEnum.Rook, "R")
+ChessPromotePieceToChar.set(PieceEnum.Queen, "Q")
 
 export const PieceTypeToPrice = new Map<number, number>()
 PieceTypeToPrice.set(PieceEnum.Pawn, 3)
@@ -87,9 +112,24 @@ export type ReadyMessage = {
   ready: boolean,
 }
 
+export type MoveMessage = {
+  move: string,
+}
+
+export type DrawMessage = {
+  draw: boolean,
+}
+
 export interface Vec2 {
   x: number;
   y: number;
+}
+
+export interface Move {
+  start: Vec2,
+  end: Vec2,
+  Drop: number | null
+  Promote: number | null
 }
 
 export interface Annotation {
@@ -105,6 +145,56 @@ export interface Mouse {
   justPressed: boolean[];
   justReleased: boolean[];
 }
+
+export function sendPlaceMessage(position: string, from: string, type: number, place: number, sendMessage: (msg: Message<unknown>) => void) {
+  const placeRequest: Message<PlaceMessage> = {
+    type: "place",
+    data: {
+      position: position,
+      fromPosition: from,
+      type: type,
+      place: place,
+    },
+  }
+
+  sendMessage(placeRequest)
+}
+
+export function sendMoveMessage(move: string, sendMessage: (msg: Message<unknown>) => void) {
+  const moveRequest: Message<MoveMessage> = {
+    type: "move",
+    data: {
+      move: move,
+    },
+  }
+
+  sendMessage(moveRequest)
+}
+
+
+
+
+export function sendDrawMessage(draw: boolean, sendMessage: (msg: Message<unknown>) => void) {
+  const drawRequest: Message<DrawMessage> = {
+    type: "draw",
+    data: {
+      draw: draw,
+    },
+  }
+
+  sendMessage(drawRequest)
+}
+
+export function sendResignMessage(sendMessage: (msg: Message<unknown>) => void) {
+  const resignRequest: Message<null> = {
+    type: "resign",
+    data: null,
+  }
+
+  sendMessage(resignRequest)
+}
+
+
 
 export function isCharDigit(char: string): boolean {
   if (char.length !== 1) {
@@ -294,4 +384,54 @@ export function getAnnotationType(anno: Annotation): number {
   }
 
   return AnnotationEnum.diagonalArrow
+}
+
+export function convertMoveToString(move: Move, boardHeight: number): string {
+  let result = ""
+
+  const startStr = convertStartMoveToString(move, boardHeight)
+
+  result += startStr
+
+  const endStr = convertEndMoveToString(move, boardHeight)
+
+  result += "," + endStr
+
+  return result
+}
+
+function convertStartMoveToString(move: Move, boardHeight: number): string {
+  let result = convertPositionToString(move.start, boardHeight)
+
+  if (move.Drop !== null) {
+    const dropPiece = move.Drop
+    const pieceChar = ShogiMochiPieceToChar.get(dropPiece)
+    if (pieceChar === undefined) return ""
+
+    result = pieceChar + "*"
+  }
+
+  return result
+}
+
+function convertEndMoveToString(move: Move, boardHeight: number): string {
+  let result = ""
+
+  const endWidthStr = convertNumberToLowercase(move.end.x + 1)
+
+  const endHeightStr = (boardHeight - move.end.y).toString()
+  result = endWidthStr + endHeightStr
+
+  if (move.Promote !== null) {
+    if (move.Promote !== 0) {
+      const promotePiece = ChessPromotePieceToChar.get(move.Promote)
+      if (promotePiece === undefined) { return "" }
+
+      result += promotePiece
+    } else {
+      result += "+"
+    }
+  }
+
+  return result
 }

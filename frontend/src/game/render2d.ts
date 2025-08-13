@@ -20,6 +20,7 @@ import {
   getAnnotationType,
   AnnotationEnum,
   type Vec2,
+  sendResignMessage,
 
 } from "./util.ts"
 import { Button, createGameButtons } from "./button.ts"
@@ -53,25 +54,25 @@ const whiteShopPieces = [
 
 const blackShopPieces = [
   [
-    new Piece(0, -1, PieceEnum.Pawn, 1, false),
-    new Piece(1, -1, PieceEnum.Knight, 1, false),
-    new Piece(2, -1, PieceEnum.Bishop, 1, false),
-    new Piece(3, -1, PieceEnum.Rook, 1, false),
-    new Piece(4, -1, PieceEnum.Queen, 1, false),
-    new Piece(5, -1, PieceEnum.King, 1, false),
+    new Piece(7, -1, PieceEnum.Pawn, 1, false),
+    new Piece(6, -1, PieceEnum.Knight, 1, false),
+    new Piece(5, -1, PieceEnum.Bishop, 1, false),
+    new Piece(4, -1, PieceEnum.Rook, 1, false),
+    new Piece(3, -1, PieceEnum.Queen, 1, false),
+    new Piece(2, -1, PieceEnum.King, 1, false),
   ],
   [
-    new Piece(0, -1, PieceEnum.Fu, 1, false),
-    new Piece(1, -1, PieceEnum.Kyou, 1, false),
-    new Piece(2, -1, PieceEnum.Kei, 1, false),
-    new Piece(3, -1, PieceEnum.Gin, 1, false),
-    new Piece(4, -1, PieceEnum.Kin, 1, false),
-    new Piece(5, -1, PieceEnum.Kaku, 1, false),
-    new Piece(6, -1, PieceEnum.Hi, 1, false),
-    new Piece(7, -1, PieceEnum.Ou, 1, false),
+    new Piece(7, -1, PieceEnum.Fu, 1, false),
+    new Piece(6, -1, PieceEnum.Kyou, 1, false),
+    new Piece(5, -1, PieceEnum.Kei, 1, false),
+    new Piece(4, -1, PieceEnum.Gin, 1, false),
+    new Piece(3, -1, PieceEnum.Kin, 1, false),
+    new Piece(2, -1, PieceEnum.Kaku, 1, false),
+    new Piece(1, -1, PieceEnum.Hi, 1, false),
+    new Piece(0, -1, PieceEnum.Ou, 1, false),
   ],
   [
-    new Piece(0, -1, PieceEnum.Checker, 1, false),
+    new Piece(7, -1, PieceEnum.Checker, 1, false),
   ]
 
 ]
@@ -154,6 +155,29 @@ export class BoardRenderer2D {
     this.updateButtonScreen = this.updateButtonScreen.bind(this)
   }
 
+  updateButtons(
+    canvas: HTMLCanvasElement,
+    game: Game,
+    handleNotif: (err: string) => void,
+    sendMessage: (msg: Message<unknown>) => void) {
+
+    this.buttons = createGameButtons(
+      canvas,
+      this.UIRatio,
+      game,
+      handleNotif,
+      sendMessage,
+      this.switchShopScreen,
+      game.clearBoardPlace,
+      game.readyUp,
+      game.unreadyUp,
+      game.drawUp,
+      game.undrawUp,
+      this.pressResign,
+      this.cancelResign,
+      this.confirmResign,
+    )
+  }
 
   draw(game: Game, boardTheme: number, input: InputHandler) {
     this.ctx.fillStyle = "#111"
@@ -457,9 +481,9 @@ export class BoardRenderer2D {
           continue
         }
 
-        if (game.state === 1 &&
+        if (game.state === 1 && (
           (game.userSide === 0 && i < game.placeLine) ||
-          (game.userSide === 1 && i >= game.placeLine)
+          (game.userSide === 1 && i >= game.placeLine))
         ) {
           continue
         }
@@ -609,21 +633,27 @@ export class BoardRenderer2D {
     this.ctx.fillStyle = "#FFF"
     this.ctx.strokeStyle = "#000"
 
-
     let pieces
     let yStartPriceFont
-    let yStartMoneyFont
     let xStartPriceFont
+    let xStartMoneyFont
+    let yStartMoneyFont
+    let shopDirection
     if (game.userSide === 0) {
       pieces = this.whiteShopPieces[this.shopScreen]
       yStartPriceFont = 920 * this.UIRatio
-      yStartMoneyFont = 900 * this.UIRatio
       xStartPriceFont = 125 * this.UIRatio
+      xStartMoneyFont = 900 * this.UIRatio
+      yStartMoneyFont = 900 * this.UIRatio
+      shopDirection = 1
     } else {
       pieces = this.blackShopPieces[this.shopScreen]
       yStartPriceFont = 80 * this.UIRatio
+      // xStartPriceFont = 75 * this.UIRatio
+      xStartPriceFont = 825 * this.UIRatio
+      xStartMoneyFont = 0 * this.UIRatio
       yStartMoneyFont = 0
-      xStartPriceFont = 75 * this.UIRatio
+      shopDirection = -1
     }
 
     let selectedPiece: Piece | null = null
@@ -641,14 +671,14 @@ export class BoardRenderer2D {
         continue
       }
 
-      this.ctx.fillText(price.toString(), xStartPriceFont + this.tileSize * i + this.tileSize / 2, yStartPriceFont)
-      this.ctx.strokeText(price.toString(), xStartPriceFont + this.tileSize * i + this.tileSize / 2, yStartPriceFont)
+      this.ctx.fillText(price.toString(), xStartPriceFont + this.tileSize * i * shopDirection + this.tileSize / 2, yStartPriceFont)
+      this.ctx.strokeText(price.toString(), xStartPriceFont + this.tileSize * i * shopDirection + this.tileSize / 2, yStartPriceFont)
     }
 
     const moneyFontSize = fitTextToWidth(this.ctx, game.money[game.userSide].toString(), 90 * this.UIRatio, 50 * this.UIRatio, 5 * this.UIRatio)
     this.ctx.font = `${moneyFontSize}px Arial Black`
-    this.ctx.fillText(game.money[game.userSide].toString(), 900 * this.UIRatio + this.tileSize / 2, yStartMoneyFont + this.tileSize / 2)
-    this.ctx.strokeText(game.money[game.userSide].toString(), 900 * this.UIRatio + this.tileSize / 2, yStartMoneyFont + this.tileSize / 2)
+    this.ctx.fillText(game.money[game.userSide].toString(), xStartMoneyFont + this.tileSize / 2, yStartMoneyFont + this.tileSize / 2)
+    this.ctx.strokeText(game.money[game.userSide].toString(), xStartMoneyFont + this.tileSize / 2, yStartMoneyFont + this.tileSize / 2)
 
 
     if (selectedPiece) {
@@ -940,6 +970,7 @@ export class BoardRenderer2D {
   }
 
   confirmResign(sendMessage: (msg: Message<unknown>) => void) {
+    sendResignMessage(sendMessage)
   }
 
 }

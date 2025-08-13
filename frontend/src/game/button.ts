@@ -401,7 +401,7 @@ function createBlackButtons(
   result.set("id", idButton)
 
   const unitSwitchConfig = { ...defaultButtonConfig }
-  unitSwitchConfig.x = 0
+  unitSwitchConfig.x = 900 * UIRatio
   unitSwitchConfig.y = 0
   unitSwitchConfig.text = "Shop"
   unitSwitchConfig.subtext = "Click to switch"
@@ -410,7 +410,7 @@ function createBlackButtons(
   result.set("shop", unitSwitchButton)
 
   const readyConfig = { ...defaultButtonConfig }
-  readyConfig.x = 0
+  readyConfig.x = 900 * UIRatio
   readyConfig.y = 100 * UIRatio
   readyConfig.text = "Ready"
   readyConfig.onClick = () => readyUp(sendMessage)
@@ -424,7 +424,7 @@ function createBlackButtons(
   result.set("unready", unreadyButton)
 
   const clearConfig = { ...defaultButtonConfig }
-  clearConfig.x = 0
+  clearConfig.x = 900 * UIRatio
   clearConfig.y = 200 * UIRatio
   clearConfig.text = "Clear"
   clearConfig.onClick = () => clearBoard()
@@ -433,7 +433,7 @@ function createBlackButtons(
 
   //change clearBoard function
   const resignConfig = { ...defaultButtonConfig }
-  resignConfig.x = 0
+  resignConfig.x = 900 * UIRatio
   resignConfig.y = 0
   resignConfig.text = "Resign"
   resignConfig.onClick = () => pressResign()
@@ -441,8 +441,8 @@ function createBlackButtons(
   result.set("resign", resignButton)
 
   const confirmConfig = { ...defaultButtonConfig }
-  confirmConfig.x = 0
-  confirmConfig.y = 900 * UIRatio
+  confirmConfig.x = 900 * UIRatio
+  confirmConfig.y = 0 * UIRatio
   confirmConfig.height = 50 * UIRatio
   confirmConfig.text = "Confirm"
   confirmConfig.fontSize = 15 * UIRatio
@@ -451,7 +451,7 @@ function createBlackButtons(
   result.set("confirm", confirmButton)
 
   const cancelConfig = { ...confirmConfig }
-  cancelConfig.y = 950 * UIRatio
+  cancelConfig.y = 50 * UIRatio
   cancelConfig.height = 50 * UIRatio
   cancelConfig.text = "Cancel"
   cancelConfig.onClick = () => cancelResign()
@@ -460,7 +460,7 @@ function createBlackButtons(
 
   //change clearBoard function
   const drawConfig = { ...defaultButtonConfig }
-  drawConfig.x = 0
+  drawConfig.x = 900 * UIRatio
   drawConfig.y = 100 * UIRatio
   drawConfig.text = "Draw"
   drawConfig.onClick = () => drawUp(sendMessage)

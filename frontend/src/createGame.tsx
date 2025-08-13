@@ -45,7 +45,6 @@ function CreateGame() {
       ...prev,
       [name]: parseInt(value),
     }))
-    console.log(gameConfig)
   }
 
   const handleCheckBoxChange = (e: React.ChangeEvent<HTMLInputElement>) => {

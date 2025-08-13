@@ -8,6 +8,7 @@ import {
   type Vec2,
   type Message,
   type ReadyMessage,
+  sendDrawMessage,
 } from "./util.ts"
 
 import { Piece } from "./piece.ts"
@@ -300,15 +301,17 @@ export class Game {
   drawUp(sendMessage: (msg: Message<unknown>) => void) {
     if (this.draw[this.userSide]) return
 
+    sendDrawMessage(true, sendMessage)
     this.draw[this.userSide] = true
-    console.log("draw")
   }
 
   undrawUp(sendMessage: (msg: Message<unknown>) => void) {
     if (!this.draw[this.userSide]) return
 
+    sendDrawMessage(false, sendMessage)
     this.draw[this.userSide] = false
-    console.log("undraw")
   }
+
+
 
 }

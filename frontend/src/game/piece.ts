@@ -1,6 +1,6 @@
 import { PieceImages, PieceImageDimensions } from "./images.ts"
-import { PieceTypeToPrice, PlaceEnum, type Message, type PlaceMessage, convertPositionToString } from "./util.ts"
-import { type Vec2, PieceEnum } from "./util.ts"
+import { PieceTypeToPrice, PlaceEnum, type Message, sendPlaceMessage, sendMoveMessage, convertPositionToString } from "./util.ts"
+import { type Vec2, PieceEnum, convertMoveToString, type Move } from "./util.ts"
 import { InputHandler } from "./inputHandler.ts"
 import { Game } from "./game.ts"
 import { checkValidPieceMove, checkPieceOnBoard, checkValidDropMove, getEnemyTurnInt } from "./engine.ts"
@@ -102,7 +102,7 @@ export class Piece {
             game.board[placeY][placeX] = placePiece
 
             const positionString = convertPositionToString({ x: placeX, y: placeY }, game.height)
-            this.sendPlaceMessage(positionString, "", this.type, PlaceEnum.create, sendMessage)
+            sendPlaceMessage(positionString, "", this.type, PlaceEnum.create, sendMessage)
 
           } else {
             const positionString = convertPositionToString({ x: placeX, y: placeY }, game.height)
@@ -113,7 +113,7 @@ export class Piece {
             this.x = placeX
             this.y = placeY
 
-            this.sendPlaceMessage(positionString, fromString, this.type, PlaceEnum.move, sendMessage)
+            sendPlaceMessage(positionString, fromString, this.type, PlaceEnum.move, sendMessage)
           }
         }
       }
@@ -127,7 +127,7 @@ export class Piece {
           game.board[this.y][this.x] = null
 
           const positionString = convertPositionToString({ x: this.x, y: this.y }, game.height)
-          this.sendPlaceMessage(positionString, "", this.type, PlaceEnum.delete, sendMessage)
+          sendPlaceMessage(positionString, "", this.type, PlaceEnum.delete, sendMessage)
         }
       }
     }
@@ -150,11 +150,23 @@ export class Piece {
       if (checkValidPieceMove(start, end, this, game) && game.turn === game.userSide) {
         //send Move Message
 
+        const move: Move = {
+          start: { x: this.x, y: this.y },
+          end: { x: placeX, y: placeY },
+          Drop: null,
+          Promote: null,
+        }
+        //fix promote 
+
+        const moveString = convertMoveToString(move, game.height)
+        sendMoveMessage(moveString, sendMessage)
+
         game.board[this.y][this.x] = null
         game.board[placeY][placeX] = this
         this.x = placeX
         this.y = placeY
         game.turn = getEnemyTurnInt(game)
+
       }
     }
   }
@@ -173,6 +185,16 @@ export class Piece {
       const end = { x: placeX, y: placeY }
 
       if (checkValidDropMove(end, this, game) && game.turn === game.userSide) {
+        const move: Move = {
+          start: start,
+          end: end,
+          Drop: this.type - PieceEnum.Fu,
+          Promote: null,
+        }
+
+        const moveString = convertMoveToString(move, game.height)
+        sendMoveMessage(moveString, sendMessage)
+
         const mochigomaIndex = game.userSide * 7 + this.type - PieceEnum.Fu
         game.mochigoma[mochigomaIndex]--
 
@@ -180,10 +202,8 @@ export class Piece {
         game.board[placeY][placeX] = dropPiece
         game.turn = getEnemyTurnInt(game)
       }
-
     }
   }
-
 
   checkValidMove(): boolean {
     return false
@@ -207,24 +227,6 @@ export class Piece {
     return x <= input.mouse.x && input.mouse.x <= x + tileSize && y <= input.mouse.y && input.mouse.y <= y + tileSize
   }
 
-  sendPlaceMessage(position: string, from: string, type: number, place: number, sendMessage: (msg: Message<unknown>) => void) {
-    const placeRequest: Message<PlaceMessage> = {
-      type: "place",
-      data: {
-        position: position,
-        fromPosition: from,
-        type: type,
-        place: place,
-      },
-    }
-
-    sendMessage(placeRequest)
-  }
 }
 
-// if ((game.userSide === 0 && placeY < game.placeLine) ||
-//   (game.userSide === 1 && placeY >= game.placeLine)
-// ) {
-//   return
-// }
 
