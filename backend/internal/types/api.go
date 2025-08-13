@@ -96,6 +96,13 @@ type PostReady struct {
 	Ready bool `json:"ready"`
 }
 
+type ReadyResponse struct {
+	ID    primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+	State int                `json:"state"`
+	Ready [2]bool            `bson:"ready" json:"ready"`
+	FEN   string             `json:"fen"`
+}
+
 type GameOverResponse struct {
 	ID            primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
 	WhiteID       string             `bson:"whiteID" json:"whiteID"`

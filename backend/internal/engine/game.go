@@ -158,28 +158,33 @@ func PlaceCase(gameID string, userID string, postPlace types.PostPlace, client *
 	return game, result, nil
 }
 
-func ReadyCase(gameID string, userID string, postReady types.PostReady, client *mongo.Client, config config.Config) (*types.Game, error) {
+func ReadyCase(gameID string, userID string, postReady types.PostReady, client *mongo.Client, config config.Config) (*types.Game, string, error) {
 	game, err := db.FindGame(client, config.DB, gameID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	turn, err := GetTurnFromID(*game, userID)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	err = ReadyPlayer(postReady.Ready, turn, game)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	err = db.GameReadyUpdate(client, config.DB, gameID, *game)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
-	return game, nil
+	fen, err := ConvertBoardToString(*game)
+	if err != nil {
+		return nil, "", err
+	}
+
+	return game, fen, nil
 }
 
 func DrawCase(gameID string, userID string, postDraw types.PostDrawRequest, client *mongo.Client, config config.Config) (*types.Game, error) {

@@ -275,7 +275,7 @@ func readyCase(gameID string, playerID string, msg types.IncomingMessage, client
 		return false
 	}
 
-	game, err := engine.ReadyCase(gameID, playerID, postReady, client, config)
+	game, fen, err := engine.ReadyCase(gameID, playerID, postReady, client, config)
 	if err != nil {
 		broadcastError(gameID, playerID, err)
 		return false
@@ -289,11 +289,13 @@ func readyCase(gameID string, playerID string, msg types.IncomingMessage, client
 			return false
 		}
 
-		data := map[string]interface{}{
-			"_id":   game.ID,
-			"state": game.State,
-			"ready": game.Ready,
+		data := types.ReadyResponse{
+			ID:    game.ID,
+			FEN:   fen,
+			Ready: game.Ready,
+			State: game.State,
 		}
+
 		response := types.OutgoingMessage{
 			Type: "ready",
 			Data: data,
@@ -310,10 +312,11 @@ func readyCase(gameID string, playerID string, msg types.IncomingMessage, client
 
 		return gameOver(game, gameID, playerID, client, config)
 	} else {
-		data := map[string]interface{}{
-			"_id":   game.ID,
-			"state": game.State,
-			"ready": game.Ready,
+		data := types.ReadyResponse{
+			ID:    game.ID,
+			FEN:   fen,
+			Ready: game.Ready,
+			State: game.State,
 		}
 
 		response := types.OutgoingMessage{
