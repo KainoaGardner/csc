@@ -1,4 +1,4 @@
-import { type Vec2, PieceEnum, checkVec2Equal } from "./util.ts"
+import { type Vec2, PieceEnum, checkVec2Equal, PromoteTypeEnum } from "./util.ts"
 import { Piece } from "./piece.ts"
 import { Game } from "./game.ts"
 
@@ -129,14 +129,37 @@ export function getPieceMoves(start: Vec2, piece: Piece, game: Game, dir: number
 export function filterPossibleMoves(start: Vec2, possibleMoves: Vec2[], game: Game): Vec2[] {
   for (let i = possibleMoves.length - 1; i >= 0; i--) {
     const movePos = possibleMoves[i]
-    const gameCopy: Game = copyGame(game)
+    let gameCopy: Game = copyGame(game)
     const piece = gameCopy.board[start.y][start.x]
 
     if (piece !== null && piece.type >= PieceEnum.Pawn && piece.type <= PieceEnum.Ryuu) {
-      gameCopy.board[start.y][start.x] = null
-      gameCopy.board[movePos.y][movePos.x] = piece
-      if (getInCheck(gameCopy)) {
-        possibleMoves.splice(i, 1)
+      const takePiece = gameCopy.board[movePos.y][movePos.x]
+      const validCastle = takePiece !== null && piece.type == PieceEnum.King && takePiece.type === PieceEnum.Rook && takePiece.owner === piece.owner
+
+      if (validCastle) {
+        const castleDir = getCastleDirection(start, movePos)
+        const dx = Math.abs(movePos.x - start.x) - 1
+        const kingX = (dx / 2 + 1) * castleDir + start.x
+        const startToKingDist = Math.abs(start.x - kingX)
+        for (let j = 0; j < startToKingDist + 1; j++) {
+          gameCopy = copyGame(game)
+          gameCopy.board[start.y][start.x] = null
+          gameCopy.board[movePos.y][start.x + j * castleDir] = piece
+          if (getInCheck(gameCopy)) {
+            possibleMoves.splice(i, 1)
+            break
+          }
+        }
+      } else {
+        const dir = getMoveDirection(game.turn)
+        if (checkEnPassantTake(movePos, gameCopy, piece)) {
+          game.board[movePos.y + dir][movePos.x] = null
+        }
+        gameCopy.board[start.y][start.x] = null
+        gameCopy.board[movePos.y][movePos.x] = piece
+        if (getInCheck(gameCopy)) {
+          possibleMoves.splice(i, 1)
+        }
       }
     } else if (piece !== null && piece.type >= PieceEnum.Checker && piece.type <= PieceEnum.CheckerKing) {
       if (checkerMovesInCheck(start, movePos, piece, gameCopy)) {
@@ -147,6 +170,42 @@ export function filterPossibleMoves(start: Vec2, possibleMoves: Vec2[], game: Ga
 
   return possibleMoves
 }
+
+function getCastleDirection(start: Vec2, end: Vec2): number {
+  if (end.x < start.x) {
+    return -1
+  } else {
+    return 1
+  }
+}
+
+function checkEnPassantTake(end: Vec2, game: Game, piece: Piece) {
+  if (game.enPassant !== null && checkVec2Equal(end, game.enPassant) && piece.type === PieceEnum.Pawn) {
+    return true
+  }
+  return false
+}
+
+// 			} else {
+// 				dir := getMoveDirection(*gameCopy)
+// 				if checkEnPassantTake(move, *gameCopy, piece) {
+// 					game.Board.Board[move.End.Y+dir][move.End.X] = nil
+// 				}
+// 				gameCopy.Board.Board[startPos.Y][startPos.X] = nil
+// 				gameCopy.Board.Board[movePos.Y][movePos.X] = piece
+// 				if GetInCheck(*gameCopy) {
+// 					*possibleMoves = append((*possibleMoves)[:i], (*possibleMoves)[i+1:]...)
+// 				}
+// 			}
+// 		} else if piece != nil && piece.Type >= types.Checker && piece.Type <= types.CheckerKing {
+// 			if checkerMovesInCheck(startPos, movePos, piece, *gameCopy) {
+// 				*possibleMoves = append((*possibleMoves)[:i], (*possibleMoves)[i+1:]...)
+// 			}
+// 		}
+// 	}
+// }
+
+
 
 export function checkEndPosInPossibleMoves(end: Vec2, possibleMoves: Vec2[]): boolean {
   for (let i = 0; i < possibleMoves.length; i++) {
@@ -1036,4 +1095,95 @@ function checkUtifudume(end: Vec2, piece: Piece, game: Game): boolean {
 export function checkPieceOnBoard(x: number, y: number, game: Game): boolean {
   const result = 0 <= x && x < game.width && 0 <= y && y < game.height
   return result
+}
+
+export function checkPromote(start: Vec2, end: Vec2, piece: Piece, boardHeight: number): number | null {
+  if (piece.type === PieceEnum.Pawn) {
+    if (checkPawnCheckerPromote(end, piece, boardHeight)) { return PromoteTypeEnum.chess }
+  } else if (piece.type === PieceEnum.Checker) {
+    if (checkPawnCheckerPromote(end, piece, boardHeight)) { return PromoteTypeEnum.checkers }
+  } else if (piece.type >= PieceEnum.Fu && piece.type <= PieceEnum.Hi && piece.type !== PieceEnum.Kin) {
+    if (checkShogiPromote(start, end, piece, boardHeight)) { return PromoteTypeEnum.shogi }
+  }
+
+  return null
+}
+
+function checkPawnCheckerPromote(end: Vec2, piece: Piece, boardHeight: number): boolean {
+  let row: number
+  if (piece.owner === 0) {
+    row = 0
+  } else {
+    row = boardHeight - 1
+  }
+
+  if (end.y !== row) {
+    return false
+  }
+
+  return true
+}
+
+function checkShogiPromote(start: Vec2, end: Vec2, piece: Piece, boardHeight: number): boolean {
+  let rowStart: number
+  let rowEnd: number
+  if (piece.owner === 0) {
+    rowStart = 0
+    rowEnd = 2
+  } else {
+    rowStart = boardHeight - 3
+    rowEnd = boardHeight - 1
+  }
+
+  if (start.y >= rowStart && start.y <= rowEnd) {
+    return true
+  }
+  if (end.y >= rowStart && end.y <= rowEnd) {
+    return true
+  }
+
+  return false
+}
+
+export function checkMustPromote(end: Vec2, piece: Piece, boardHeight: number): boolean {
+  if (piece.type === PieceEnum.Pawn || piece.type === PieceEnum.Checker || piece.type === PieceEnum.Fu || piece.type === PieceEnum.Kyou) {
+    if (checkMustPromoteLastLine(end, piece, boardHeight)) { return true }
+  } else if (piece.type === PieceEnum.Kei) {
+    if (checkMustPromoteLastTwoLines(end, piece, boardHeight)) { return true }
+  }
+
+  return false
+}
+
+function checkMustPromoteLastLine(end: Vec2, piece: Piece, boardHeight: number): boolean {
+  let row0: number
+  if (piece.owner === 0) {
+    row0 = 0
+  } else {
+    row0 = boardHeight - 1
+  }
+
+  if (end.y === row0) {
+    return true
+  }
+
+  return false
+}
+
+function checkMustPromoteLastTwoLines(end: Vec2, piece: Piece, boardHeight: number): boolean {
+  let row0: number
+  let row1: number
+  if (piece.owner == 0) {
+    row0 = 0
+    row1 = 1
+  } else {
+    row0 = boardHeight - 1
+    row1 = boardHeight - 2
+  }
+
+  if (end.y === row0 || end.y == row1) {
+    return true
+  }
+
+  return false
 }

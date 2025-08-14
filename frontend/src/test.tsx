@@ -27,7 +27,6 @@ function Test() {
     const msg = JSON.parse(event.data)
     switch (msg.type) {
       case "join": {
-
         break
       }
       case "start": {
@@ -114,11 +113,12 @@ function Test() {
 
     const money = [300, 300]
     const time = [10000, 10000]
-    const game = new Game(gameID, 8, 8, 4, 0, money, time)
+    const game = new Game(gameID, 8, 8, 4, 1, money, time)
     game.state = 2
 
-
-    const fen = "4ck*3/8/8/8/8/8/8/3CQ*CK*3 5/5/5/5/5/5/5/0/0/0/0/1/0/0 w e2 h1 0 0 600/600"
+    // const fen = "4ck*3/8/8/8/8/8/8/3CQ*CK*3 5/5/5/5/5/5/5/0/0/0/0/1/0/0 w e2 h1 0 0 600/600"
+    // const fen = "3ck*cr*3/CP-4CP-1CP-/8/8/8/8/4SC*3/4CK*1SR*CR* 5/5/5/5/5/5/5/0/0/0/0/1/0/0 w e2 h1 0 0 600/600"
+    const fen = "3ck*cr*3/CP-4CP-1CP-/8/8/8/4sb-3/cp-3SC*2cp-/4CK*1SR*1 5/5/5/5/5/5/5/0/0/0/0/1/0/0 b e2 h1 0 0 600/600"
     // const fen = "cp*cn*cb*cr*cq*ck*sp*sl*/sn*sg*sc*sb*sr*sk*np*nl*/nn*ng*nb*nr*kc*kk*2/8/8/2KK*KC*NR*NB*NG*NN*/NL*NP*SK*SR*SB*SC*SG*SN*/SL*SP*CK*CQ*CR*CB*CN*CP* 0/0/0/0/0/0/0/0/0/0/0/0/0/0 w e2 h1 0 0 600/600"
     game.updateGame(fen)
 

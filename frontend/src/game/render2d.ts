@@ -8,19 +8,25 @@ import {
   checkPieceOnBoard,
   getPieceDrops,
   copyGame,
+  getEnemyTurnInt,
 } from "./engine.ts"
 import {
   PieceEnum,
   PieceTypeToPrice,
   fitTextToWidth,
-  type Message,
   convertSecondsToTimeString,
-  type Annotation,
   checkEqualAnnotation,
   getAnnotationType,
   AnnotationEnum,
-  type Vec2,
   sendResignMessage,
+  convertMoveToString,
+  sendMoveMessage,
+  PromoteTypeEnum,
+  type PendingMove,
+  type Message,
+  type Annotation,
+  type Vec2,
+  type Move,
 
 } from "./util.ts"
 import { Button, createGameButtons } from "./button.ts"
@@ -97,6 +103,20 @@ const blackMochigomaPieces = [
   new Piece(-1, 6, PieceEnum.Hi, 1, false),
 ]
 
+const whitePromotePieces = [
+  new Piece(0, 0, PieceEnum.Knight, 0, false),
+  new Piece(0, 0, PieceEnum.Bishop, 0, false),
+  new Piece(0, 0, PieceEnum.Rook, 0, false),
+  new Piece(0, 0, PieceEnum.Queen, 0, false),
+]
+
+const blackPromotePieces = [
+  new Piece(0, 0, PieceEnum.Knight, 1, false),
+  new Piece(0, 0, PieceEnum.Bishop, 1, false),
+  new Piece(0, 0, PieceEnum.Rook, 1, false),
+  new Piece(0, 0, PieceEnum.Queen, 1, false),
+]
+
 
 export class BoardRenderer2D {
   ctx: CanvasRenderingContext2D;
@@ -109,11 +129,15 @@ export class BoardRenderer2D {
   blackShopPieces: Piece[][] = blackShopPieces
   whiteMochigomaPieces: Piece[] = whiteMochigomaPieces
   blackMochigomaPieces: Piece[] = blackMochigomaPieces
+  whitePromotePieces: Piece[] = whitePromotePieces
+  blackPromotePieces: Piece[] = blackPromotePieces
 
   currAnnotation: Annotation = { start: null, end: null }
   annotations: Annotation[] = []
 
   buttons: Map<string, Button>
+
+  pendingMove: PendingMove | null = null
 
   resignPressed: boolean = false
 
@@ -134,6 +158,9 @@ export class BoardRenderer2D {
     this.confirmResign = this.confirmResign.bind(this)
 
 
+    this.setPendingMove = this.setPendingMove.bind(this)
+    this.sendPendingMove = this.sendPendingMove.bind(this)
+
     this.buttons = createGameButtons(canvas,
       this.UIRatio,
       game,
@@ -148,6 +175,7 @@ export class BoardRenderer2D {
       this.pressResign,
       this.cancelResign,
       this.confirmResign,
+      this.sendPendingMove,
     )
 
     this.updateButtonScreen(game)
@@ -176,6 +204,7 @@ export class BoardRenderer2D {
       this.pressResign,
       this.cancelResign,
       this.confirmResign,
+      this.sendPendingMove,
     )
   }
 
@@ -184,7 +213,6 @@ export class BoardRenderer2D {
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
 
-    this.#drawButtons()
     switch (game.state) {
       case 0: {
         this.#drawConnect()
@@ -204,6 +232,8 @@ export class BoardRenderer2D {
       }
     }
 
+    this.#drawButtons(game, input)
+
   }
 
   #drawConnect() {
@@ -217,32 +247,38 @@ export class BoardRenderer2D {
   #drawPlace(game: Game, boardTheme: number, input: InputHandler) {
     this.#drawBoard(game, boardTheme)
     this.#drawCover(game)
+    this.#drawSpaceAnnotations()
     this.#drawSelectedSpace(game)
     this.#drawPlaceSpace(game, input)
     this.#drawBoardPieces(game, input)
     if (!game.ready[game.userSide])
       this.#drawShopPieces(game, input)
+    this.#drawAnnotations()
     this.#drawReadyText(game)
   }
 
   #drawMove(game: Game, boardTheme: number, input: InputHandler) {
     this.#drawBoard(game, boardTheme)
-    this.#drawAnnotations()
+    this.#drawSpaceAnnotations()
     this.#drawSelectedSpace(game)
     this.#drawPlaceSpace(game, input)
-    this.#drawTime(game,)
+    this.#drawTime(game)
     this.#drawDrawText(game)
+    this.#drawTurnText(game)
 
     this.#drawMochigoma(game, input)
     this.#drawBoardPieces(game, input)
+    this.#drawAnnotations()
     this.#drawMovableSpaces(game)
   }
 
   #drawOver(game: Game, boardTheme: number, input: InputHandler) {
     this.#drawBoard(game, boardTheme)
+    this.#drawSpaceAnnotations()
     this.#drawTime(game,)
     this.#drawMochigoma(game, input)
     this.#drawBoardPieces(game, input)
+    this.#drawAnnotations()
     this.#drawOverMessage(game)
   }
 
@@ -279,10 +315,6 @@ export class BoardRenderer2D {
       const anno = this.annotations[i]
       const annoType = getAnnotationType(anno)
       switch (annoType) {
-        case AnnotationEnum.singleSpace: {
-          this.#drawSingleSpaceAnnotation(anno)
-          break
-        }
         case AnnotationEnum.straightArrow: {
           this.#drawArrowAnnotation(anno)
           break
@@ -300,6 +332,25 @@ export class BoardRenderer2D {
 
     this.ctx.globalAlpha = 1.0
   }
+
+  #drawSpaceAnnotations() {
+    this.ctx.globalAlpha = 0.75
+    this.ctx.fillStyle = "#e74c3c"
+    this.ctx.strokeStyle = "#e74c3c"
+    for (let i = 0; i < this.annotations.length; i++) {
+      const anno = this.annotations[i]
+      const annoType = getAnnotationType(anno)
+      switch (annoType) {
+        case AnnotationEnum.singleSpace: {
+          this.#drawSingleSpaceAnnotation(anno)
+          break
+        }
+      }
+    }
+
+    this.ctx.globalAlpha = 1.0
+  }
+
 
   #drawSingleSpaceAnnotation(anno: Annotation) {
     if (anno.start === null || anno.end === null) {
@@ -545,19 +596,39 @@ export class BoardRenderer2D {
     this.ctx.textAlign = "center"
     this.ctx.textBaseline = "middle";
     this.ctx.lineWidth = 2 * this.UIRatio;
-    this.ctx.font = `${50 * this.UIRatio}px Arial Black`
+    this.ctx.font = `${35 * this.UIRatio}px Arial Black`
     this.ctx.fillStyle = "#2ecc71"
     this.ctx.strokeStyle = "#000"
 
-    if (game.draw[0]) {
-      this.ctx.fillText("Draw", 500 * this.UIRatio, 900 * this.UIRatio + this.tileSize / 2)
-      this.ctx.strokeText("Draw", 500 * this.UIRatio, 900 * this.UIRatio + this.tileSize / 2)
+    if (game.draw[0] && game.userSide !== 0) {
+      this.ctx.fillText("Draw", 50 * this.UIRatio, 900 * this.UIRatio + this.tileSize / 2)
+      this.ctx.strokeText("Draw", 50 * this.UIRatio, 900 * this.UIRatio + this.tileSize / 2)
     }
-    if (game.draw[1]) {
-      this.ctx.fillText("Draw", 500 * this.UIRatio, this.tileSize / 2)
-      this.ctx.strokeText("Draw", 500 * this.UIRatio, this.tileSize / 2)
+    if (game.draw[1] && game.userSide !== 1) {
+      this.ctx.fillText("Draw", 950 * this.UIRatio, this.tileSize / 2)
+      this.ctx.strokeText("Draw", 950 * this.UIRatio, this.tileSize / 2)
     }
   }
+
+  #drawTurnText(game: Game) {
+    this.ctx.textAlign = "center"
+    this.ctx.textBaseline = "middle";
+    this.ctx.lineWidth = 2 * this.UIRatio;
+    this.ctx.font = `${50 * this.UIRatio}px Arial Black`
+
+    if (game.turn === 0) {
+      this.ctx.fillStyle = "#FFF"
+      this.ctx.strokeStyle = "#000"
+      this.ctx.fillText("White Turn", 500 * this.UIRatio, 900 * this.UIRatio + this.tileSize / 2)
+      this.ctx.strokeText("White Turn", 500 * this.UIRatio, 900 * this.UIRatio + this.tileSize / 2)
+    } else {
+      this.ctx.fillStyle = "#000"
+      this.ctx.strokeStyle = "#FFF"
+      this.ctx.fillText("Black Turn", 500 * this.UIRatio, this.tileSize / 2)
+      this.ctx.strokeText("Black Turn", 500 * this.UIRatio, this.tileSize / 2)
+    }
+  }
+
 
 
   #drawMochigomaCover(game: Game) {
@@ -702,6 +773,7 @@ export class BoardRenderer2D {
   }
 
   #drawMovableSpaces(game: Game) {
+    if (game.turn !== game.userSide) return
     let filteredMoves: Vec2[] = []
 
     let selectedPieceType: string = ""
@@ -774,15 +846,92 @@ export class BoardRenderer2D {
   }
 
   #drawOverMessage(game: Game) {
+    this.ctx.textAlign = "center"
+    this.ctx.textBaseline = "middle";
+    if (game.winner === null) return
+
+    let winnerText
+    let reasonText
+
+    const winnerTextY = 450 * this.UIRatio
+    const reasonTextY = 550 * this.UIRatio
+    if (game.winner === 0) {
+      this.ctx.fillStyle = "#FFF"
+      this.ctx.strokeStyle = "#000"
+      winnerText = "White Wins"
+      reasonText = game.reason
+    } else if (game.winner === 1) {
+      this.ctx.fillStyle = "#000"
+      this.ctx.strokeStyle = "#FFF"
+      winnerText = "Black Wins"
+      reasonText = game.reason
+    } else {
+      this.ctx.fillStyle = "#DDD"
+      this.ctx.strokeStyle = "#333"
+      winnerText = "Draw"
+      reasonText = game.reason
+    }
+
+
+    this.ctx.lineWidth = 3 * this.UIRatio;
+    this.ctx.font = `${75 * this.UIRatio}px Arial Black`
+
+    this.ctx.fillText(winnerText, 500 * this.UIRatio, winnerTextY)
+    this.ctx.strokeText(winnerText, 500 * this.UIRatio, winnerTextY)
+
+    this.ctx.lineWidth = 2 * this.UIRatio;
+    this.ctx.font = `${50 * this.UIRatio}px Arial Black`
+    this.ctx.fillText(reasonText, 500 * this.UIRatio, reasonTextY)
+    this.ctx.strokeText(reasonText, 500 * this.UIRatio, reasonTextY)
+
 
   }
 
-  #drawButtons() {
+  #drawButtons(game: Game, input: InputHandler) {
     for (const button of this.buttons.values()) {
-      if (button.visible) {
-        button.draw(this.ctx)
-      }
+      if (!button.visible) { continue }
+
+      button.draw(this.ctx)
+
+      this.#drawChessPromoteButtons(button, game, input)
     }
+  }
+
+  #drawChessPromoteButtons(button: Button, game: Game, input: InputHandler) {
+    if (button.text === "K" || button.text === "B" || button.text === "R" || button.text === "Q") {
+      let pieceIndex
+      let pieces
+      if (game.userSide === 0) {
+        pieces = this.whitePromotePieces
+      } else {
+        pieces = this.blackPromotePieces
+      }
+
+      switch (button.text) {
+        case "K": {
+          pieceIndex = 0
+          break
+        }
+        case "B": {
+          pieceIndex = 1
+          break
+        }
+        case "R": {
+          pieceIndex = 2
+          break
+        }
+        case "Q": {
+          pieceIndex = 3
+          break
+        }
+      }
+
+      const piece = pieces[pieceIndex]
+      piece.x = (button.x / this.tileSize) - 1
+      piece.y = (button.y / this.tileSize) - 1
+      piece.draw(this.ctx, this.tileSize, input)
+    }
+
   }
 
   update(game: Game, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
@@ -790,11 +939,17 @@ export class BoardRenderer2D {
 
     switch (game.state) {
       case 1:
+        this.#annotationUpdate(game, input)
         this.#placeUpdate(game, input, sendMessage)
         break
       case 2:
+        this.#annotationUpdate(game, input)
         this.#moveUpdate(game, input, sendMessage)
         break
+      case 3:
+        this.#annotationUpdate(game, input)
+        break
+
     }
   }
 
@@ -844,6 +999,9 @@ export class BoardRenderer2D {
           this.buttons.get("undraw")!.visible = false
           this.buttons.get("draw")!.visible = true
         }
+
+        this.#updatePromoteButtons(game)
+
         break
       }
       case 3: {
@@ -852,7 +1010,94 @@ export class BoardRenderer2D {
     }
   }
 
+  #updatePromoteButtons(game: Game) {
+    if (this.pendingMove === null) { return }
+
+    if (this.pendingMove.type === PromoteTypeEnum.chess) {
+      this.#updateChessPromoteButtons(game)
+    } else if (this.pendingMove.type === PromoteTypeEnum.shogi) {
+      this.#updateShogiPromoteButtons(game)
+    }
+  }
+
+  #updateChessPromoteButtons(game: Game) {
+    if (this.pendingMove === null) { return }
+
+    const end = this.pendingMove.move.end
+    const knightButton = this.buttons.get("chessPromoteK")!
+    const bishopButton = this.buttons.get("chessPromoteB")!
+    const rookButton = this.buttons.get("chessPromoteR")!
+    const queenButton = this.buttons.get("chessPromoteQ")!
+
+    let startY
+    let startX = (end.x - 1) * this.tileSize + this.tileSize / 2
+    if (game.userSide === 0) {
+      startY = end.y * this.tileSize
+    } else {
+      startY = (end.y + 2) * this.tileSize
+      startX = (end.x - 1) * this.tileSize + this.tileSize / 2
+    }
+
+    if (startX < 100 * this.UIRatio) {
+      startX = 100 * this.UIRatio
+    }
+    if (startX + 4 * this.tileSize > 900 * this.UIRatio) {
+      startX = 500 * this.UIRatio
+    }
+
+    knightButton.x = startX
+    bishopButton.x = startX + this.tileSize * 1
+    rookButton.x = startX + this.tileSize * 2
+    queenButton.x = startX + this.tileSize * 3
+
+    knightButton.y = startY
+    bishopButton.y = startY
+    rookButton.y = startY
+    queenButton.y = startY
+
+    knightButton.visible = true
+    bishopButton.visible = true
+    rookButton.visible = true
+    queenButton.visible = true
+
+
+  }
+
+  #updateShogiPromoteButtons(game: Game) {
+    if (this.pendingMove === null) { return }
+
+    const end = this.pendingMove.move.end
+    const cancelButton = this.buttons.get("shogiPromoteCancel")!
+    const promoteButton = this.buttons.get("shogiPromote")!
+
+    let startY
+    let startX = end.x * this.tileSize + this.tileSize / 2
+    if (game.userSide === 0) {
+      startY = end.y * this.tileSize
+    } else {
+      startY = (end.y + 2) * this.tileSize
+    }
+
+    if (startX < 100 * this.UIRatio) {
+      startX = 100 * this.UIRatio
+    }
+    if (startX + 2 * this.tileSize > 900 * this.UIRatio) {
+      startX = 700 * this.UIRatio
+    }
+
+    cancelButton.x = startX
+    promoteButton.x = startX + this.tileSize
+
+    cancelButton.y = startY
+    promoteButton.y = startY
+
+    cancelButton.visible = true
+    promoteButton.visible = true
+
+  }
+
   #placeUpdate(game: Game, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
+
     let pieces
     if (game.userSide === 0) {
       pieces = this.whiteShopPieces[this.shopScreen]
@@ -878,7 +1123,6 @@ export class BoardRenderer2D {
   }
 
   #moveUpdate(game: Game, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
-    this.#annotationUpdate(game, input)
 
     for (let i = 0; i < game.height; i++) {
       for (let j = 0; j < game.width; j++) {
@@ -887,7 +1131,7 @@ export class BoardRenderer2D {
           continue
         }
 
-        piece.moveUpdate(game, this.tileSize, input, sendMessage)
+        piece.moveUpdate(game, this.tileSize, input, sendMessage, this.setPendingMove)
       }
     }
 
@@ -909,6 +1153,7 @@ export class BoardRenderer2D {
       }
     }
   }
+
 
   #annotationUpdate(game: Game, input: InputHandler) {
     if (input.mouse.justPressed[0]) {
@@ -973,4 +1218,29 @@ export class BoardRenderer2D {
     sendResignMessage(sendMessage)
   }
 
+  setPendingMove(move: Move, type: number, game: Game) {
+    const pendingMove: PendingMove = {
+      move: move,
+      type: type
+    }
+
+    this.pendingMove = pendingMove
+    this.updateButtonScreen(game)
+  }
+
+  sendPendingMove(promoteType: number | null, game: Game, sendMessage: (msg: Message<unknown>) => void) {
+    if (this.pendingMove === null) {
+      return
+    }
+
+    game.turn = getEnemyTurnInt(game)
+    const move = this.pendingMove.move
+    move.Promote = promoteType
+
+    const moveString = convertMoveToString(move, game.height)
+    sendMoveMessage(moveString, sendMessage)
+    this.pendingMove = null
+
+    this.updateButtonScreen(game)
+  }
 }

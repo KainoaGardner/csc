@@ -1,9 +1,9 @@
 import { PieceImages, PieceImageDimensions } from "./images.ts"
 import { PieceTypeToPrice, PlaceEnum, type Message, sendPlaceMessage, sendMoveMessage, convertPositionToString } from "./util.ts"
-import { type Vec2, PieceEnum, convertMoveToString, type Move } from "./util.ts"
+import { type Vec2, PieceEnum, convertMoveToString, PromoteTypeEnum, type Move } from "./util.ts"
 import { InputHandler } from "./inputHandler.ts"
 import { Game } from "./game.ts"
-import { checkValidPieceMove, checkPieceOnBoard, checkValidDropMove, getEnemyTurnInt } from "./engine.ts"
+import { checkValidPieceMove, checkPieceOnBoard, checkValidDropMove, getEnemyTurnInt, checkPromote, checkMustPromote } from "./engine.ts"
 
 export class Piece {
   x: number
@@ -134,7 +134,13 @@ export class Piece {
   }
 
 
-  moveUpdate(game: Game, tileSize: number, input: InputHandler, sendMessage: (msg: Message<unknown>) => void) {
+  moveUpdate(
+    game: Game,
+    tileSize: number,
+    input: InputHandler,
+    sendMessage: (msg: Message<unknown>) => void,
+    setPendingMove: (move: Move, type: number, game: Game) => void
+  ) {
     if (this.checkHovering(tileSize, input) && input.mouse.justPressed[0] && game.userSide == this.owner) {
       this.selected = true
     }
@@ -150,22 +156,57 @@ export class Piece {
       if (checkValidPieceMove(start, end, this, game) && game.turn === game.userSide) {
         //send Move Message
 
-        const move: Move = {
-          start: { x: this.x, y: this.y },
-          end: { x: placeX, y: placeY },
-          Drop: null,
-          Promote: null,
+        const promoteType = checkPromote(start, end, this, game.height)
+        if (promoteType !== null) {
+          const mustPromote = checkMustPromote(end, this, game.height)
+
+          if (mustPromote) {
+            if (this.type === PieceEnum.Checker || (this.type >= PieceEnum.Fu && this.type <= PieceEnum.Hi)) { //shogi checkers must promote no choice
+              const move: Move = {
+                start: { x: this.x, y: this.y },
+                end: { x: placeX, y: placeY },
+                Drop: null,
+                Promote: 0,
+              }
+              const moveString = convertMoveToString(move, game.height)
+              sendMoveMessage(moveString, sendMessage)
+              game.turn = getEnemyTurnInt(game)
+            } else { //pawn chess must promote with choice
+              const move: Move = {
+                start: { x: this.x, y: this.y },
+                end: { x: placeX, y: placeY },
+                Drop: null,
+                Promote: null,
+              }
+
+              setPendingMove(move, PromoteTypeEnum.chess, game)
+            }
+          } else { //shogi promote not required can choose
+            const move: Move = {
+              start: { x: this.x, y: this.y },
+              end: { x: placeX, y: placeY },
+              Drop: null,
+              Promote: null,
+            }
+
+            setPendingMove(move, PromoteTypeEnum.shogi, game)
+          }
+        } else {
+          const move: Move = {
+            start: { x: this.x, y: this.y },
+            end: { x: placeX, y: placeY },
+            Drop: null,
+            Promote: null,
+          }
+
+          const moveString = convertMoveToString(move, game.height)
+          sendMoveMessage(moveString, sendMessage)
+          game.turn = getEnemyTurnInt(game)
         }
-        //fix promote 
-
-        const moveString = convertMoveToString(move, game.height)
-        sendMoveMessage(moveString, sendMessage)
-
         game.board[this.y][this.x] = null
         game.board[placeY][placeX] = this
         this.x = placeX
         this.y = placeY
-        game.turn = getEnemyTurnInt(game)
 
       }
     }

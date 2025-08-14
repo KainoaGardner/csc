@@ -202,12 +202,22 @@ export class Game {
 
   #updateTime(fenTime: string) {
     const times = fenTime.split("/")
-    this.time[0] = parseInt(times[0])
-    this.time[1] = parseInt(times[1])
+    this.time[0] = Math.floor(parseInt(times[0]) / 1000)
+    this.time[1] = Math.floor(parseInt(times[1]) / 1000)
   }
 
   updateReady(ready: boolean[], state: number) {
     this.ready = ready
+    this.state = state
+  }
+
+  updateDraw(draw: boolean[]) {
+    this.draw = draw
+  }
+
+  updateOver(winner: number, reason: string, state: number) {
+    this.winner = winner
+    this.reason = reason
     this.state = state
   }
 

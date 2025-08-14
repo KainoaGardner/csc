@@ -39,6 +39,12 @@ export const PlaceEnum = {
   move: 2,
 }
 
+export const PromoteTypeEnum = {
+  chess: 0,
+  shogi: 1,
+  checkers: 2,
+}
+
 export const FenStringToPieceInt = new Map<string, number>()
 FenStringToPieceInt.set("CP", PieceEnum.Pawn)
 FenStringToPieceInt.set("CN", PieceEnum.Knight)
@@ -131,6 +137,12 @@ export interface Move {
   Drop: number | null
   Promote: number | null
 }
+
+export interface PendingMove {
+  move: Move,
+  type: number,
+}
+
 
 export interface Annotation {
   start: Vec2 | null

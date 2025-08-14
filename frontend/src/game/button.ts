@@ -1,5 +1,5 @@
 import { Game } from "./game.ts"
-import { type Message } from "./util.ts"
+import { type Message, PieceEnum } from "./util.ts"
 import { InputHandler } from "./inputHandler.ts"
 
 type ButtonAction = (...args: unknown[]) => void
@@ -122,9 +122,9 @@ export class Button {
   }
 
   checkHoveringButton(input: InputHandler): boolean {
-    let increaseSize = 1.1
-    if (!this.hovering)
-      increaseSize = 1.0
+    // let increaseSize = 1.1
+    // if (!this.hovering)
+    const increaseSize = 1.0
 
     const result = (this.x - this.width * (increaseSize - 1.0) / 2 <= input.mouse.x
       && input.mouse.x <= this.x + this.width + this.width * (increaseSize - 1.0) / 2
@@ -158,6 +158,7 @@ export function createGameButtons(canvas: HTMLCanvasElement,
   pressResign: () => void,
   cancelResign: () => void,
   confirmResign: (sendMessage: (msg: Message<unknown>) => void) => void,
+  sendPendingMove: (promoteType: number | null, game: Game, sendMessage: (msg: Message<unknown>) => void) => void,
 
 ): Map<string, Button> {
   if (game.userSide === 0) {
@@ -176,6 +177,7 @@ export function createGameButtons(canvas: HTMLCanvasElement,
       pressResign,
       cancelResign,
       confirmResign,
+      sendPendingMove,
     )
   } else {
     return createBlackButtons(
@@ -193,6 +195,7 @@ export function createGameButtons(canvas: HTMLCanvasElement,
       pressResign,
       cancelResign,
       confirmResign,
+      sendPendingMove,
     )
   }
 }
@@ -211,7 +214,7 @@ function createWhiteButtons(canvas: HTMLCanvasElement,
   pressResign: () => void,
   cancelResign: () => void,
   confirmResign: (sendMessage: (msg: Message<unknown>) => void) => void,
-
+  sendPendingMove: (promoteType: number | null, game: Game, sendMessage: (msg: Message<unknown>) => void) => void,
 
 ): Map<string, Button> {
   const result: Map<string, Button> = new Map<string, Button>()
@@ -333,6 +336,42 @@ function createWhiteButtons(canvas: HTMLCanvasElement,
   const undrawButton = new Button(undrawConfig)
   result.set("undraw", undrawButton)
 
+  const shogiPromoteCancelConfig = { ...defaultButtonConfig }
+  shogiPromoteCancelConfig.text = "Cancel"
+  shogiPromoteCancelConfig.onClick = () => sendPendingMove(null, game, sendMessage)
+  const shogiPromoteCancelButton = new Button(shogiPromoteCancelConfig)
+  result.set("shogiPromoteCancel", shogiPromoteCancelButton)
+
+  const shogiPromoteConfig = { ...shogiPromoteCancelButton }
+  shogiPromoteConfig.text = "成"
+  shogiPromoteConfig.color = "#e74c3c"
+  shogiPromoteConfig.colorHover = "#e74c3c"
+  shogiPromoteConfig.fontSize = 50 * UIRatio
+  shogiPromoteConfig.onClick = () => sendPendingMove(0, game, sendMessage)
+  const shogiPromoteButton = new Button(shogiPromoteConfig)
+  result.set("shogiPromote", shogiPromoteButton)
+
+  const chessPromoteConfig = { ...defaultButtonConfig }
+  chessPromoteConfig.text = "K"
+  chessPromoteConfig.onClick = () => sendPendingMove(PieceEnum.Knight, game, sendMessage)
+  const chessPromoteKnightButton = new Button(chessPromoteConfig)
+  result.set("chessPromoteK", chessPromoteKnightButton)
+
+  chessPromoteConfig.text = "B"
+  chessPromoteConfig.onClick = () => sendPendingMove(PieceEnum.Bishop, game, sendMessage)
+  const chessPromoteBishopButton = new Button(chessPromoteConfig)
+  result.set("chessPromoteB", chessPromoteBishopButton)
+
+  chessPromoteConfig.text = "R"
+  chessPromoteConfig.onClick = () => sendPendingMove(PieceEnum.Rook, game, sendMessage)
+  const chessPromoteRookButton = new Button(chessPromoteConfig)
+  result.set("chessPromoteR", chessPromoteRookButton)
+
+  chessPromoteConfig.text = "Q"
+  chessPromoteConfig.onClick = () => sendPendingMove(PieceEnum.Queen, game, sendMessage)
+  const chessPromoteQueenButton = new Button(chessPromoteConfig)
+  result.set("chessPromoteQ", chessPromoteQueenButton)
+
   return result
 }
 
@@ -352,7 +391,7 @@ function createBlackButtons(
   pressResign: () => void,
   cancelResign: () => void,
   confirmResign: (sendMessage: (msg: Message<unknown>) => void) => void,
-
+  sendPendingMove: (promoteType: number | null, game: Game, sendMessage: (msg: Message<unknown>) => void) => void,
 
 ): Map<string, Button> {
   const result: Map<string, Button> = new Map<string, Button>()
@@ -368,7 +407,7 @@ function createBlackButtons(
     y: 0,
     width: 100 * UIRatio,
     height: 100 * UIRatio,
-    strokeSize: 0 * UIRatio,
+    strokeSize: 0,
     fontSize: 25 * UIRatio,
     subFontSize: 13 * UIRatio,
     bgColor: "#ecf0f1",
@@ -473,6 +512,44 @@ function createBlackButtons(
   undrawConfig.onClick = () => undrawUp(sendMessage)
   const undrawButton = new Button(undrawConfig)
   result.set("undraw", undrawButton)
+
+  const shogiPromoteCancelConfig = { ...defaultButtonConfig }
+  shogiPromoteCancelConfig.text = "Cancel"
+  shogiPromoteCancelConfig.onClick = () => sendPendingMove(null, game, sendMessage)
+  const shogiPromoteCancelButton = new Button(shogiPromoteCancelConfig)
+  result.set("shogiPromoteCancel", shogiPromoteCancelButton)
+
+  const shogiPromoteConfig = { ...shogiPromoteCancelButton }
+  shogiPromoteConfig.text = "成"
+  shogiPromoteConfig.color = "#e74c3c"
+  shogiPromoteConfig.colorHover = "#e74c3c"
+  shogiPromoteConfig.fontSize = 50 * UIRatio
+
+  shogiPromoteConfig.onClick = () => sendPendingMove(0, game, sendMessage)
+  const shogiPromoteButton = new Button(shogiPromoteConfig)
+  result.set("shogiPromote", shogiPromoteButton)
+
+  const chessPromoteConfig = { ...defaultButtonConfig }
+  chessPromoteConfig.fontSize = 0
+  chessPromoteConfig.text = "K"
+  chessPromoteConfig.onClick = () => sendPendingMove(PieceEnum.Knight, game, sendMessage)
+  const chessPromoteKnightButton = new Button(chessPromoteConfig)
+  result.set("chessPromoteK", chessPromoteKnightButton)
+
+  chessPromoteConfig.text = "B"
+  chessPromoteConfig.onClick = () => sendPendingMove(PieceEnum.Bishop, game, sendMessage)
+  const chessPromoteBishopButton = new Button(chessPromoteConfig)
+  result.set("chessPromoteB", chessPromoteBishopButton)
+
+  chessPromoteConfig.text = "R"
+  chessPromoteConfig.onClick = () => sendPendingMove(PieceEnum.Rook, game, sendMessage)
+  const chessPromoteRookButton = new Button(chessPromoteConfig)
+  result.set("chessPromoteR", chessPromoteRookButton)
+
+  chessPromoteConfig.text = "Q"
+  chessPromoteConfig.onClick = () => sendPendingMove(PieceEnum.Queen, game, sendMessage)
+  const chessPromoteQueenButton = new Button(chessPromoteConfig)
+  result.set("chessPromoteQ", chessPromoteQueenButton)
 
   return result
 }

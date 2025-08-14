@@ -21,11 +21,15 @@ function GamePage() {
     setPage("home")
   }
 
+  let lastFen: string | null = null
   const handleMessage = (event: MessageEvent) => {
     const msg = JSON.parse(event.data)
     switch (msg.type) {
-      case "join": {
-
+      case "error": {
+        const game = gameRef.current!
+        if (lastFen !== null) {
+          game.updateGame(lastFen)
+        }
         break
       }
       case "start": {
@@ -49,9 +53,6 @@ function GamePage() {
           console.log("BAD USER NOT IN GAME")
         )
 
-        console.log("white", whiteID)
-        console.log("black", blackID)
-
         const game = gameRef.current!
         game.updateSettings(gameID, width, height, placeLine, userSide, money, time)
         game.state = 1
@@ -62,9 +63,6 @@ function GamePage() {
 
         break
       }
-      case "place": {
-        break
-      }
       case "ready": {
         const game = gameRef.current!
         const ready = msg.data.ready
@@ -72,6 +70,7 @@ function GamePage() {
         const fen = msg.data.fen
         game.updateReady(ready, state)
         game.updateGame(fen)
+        lastFen = fen
 
         const renderer = rendererRef.current!
         renderer.updateButtonScreen(game)
@@ -83,7 +82,28 @@ function GamePage() {
         game.state = 2
         const fen = msg.data.fen
         game.updateGame(fen)
+        lastFen = fen
 
+        break
+      }
+      case "draw": {
+        const game = gameRef.current!
+        const draw = msg.data.draw
+
+        game.updateDraw(draw)
+        break
+      }
+      case "over": {
+        const game = gameRef.current!
+
+        const fen = msg.data.fen
+        const state = msg.data.state
+        const reason = msg.data.reason
+        const winner = msg.data.winner
+
+        game.updateGame(fen)
+        game.updateOver(winner, reason, state)
+        lastFen = fen
         break
       }
     }
