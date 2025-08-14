@@ -617,10 +617,37 @@ func filterPossibleMoves(startPos types.Vec2, possibleMoves *[]types.Vec2, game 
 		gameCopy := copyGame(game)
 		piece := gameCopy.Board.Board[startPos.Y][startPos.X]
 		if piece != nil && piece.Type >= types.Pawn && piece.Type <= types.Ryuu {
-			gameCopy.Board.Board[startPos.Y][startPos.X] = nil
-			gameCopy.Board.Board[movePos.Y][movePos.X] = piece
-			if GetInCheck(*gameCopy) {
-				*possibleMoves = append((*possibleMoves)[:i], (*possibleMoves)[i+1:]...)
+			takePiece := gameCopy.Board.Board[movePos.Y][movePos.X]
+			validCastle := takePiece != nil && piece.Type == types.King && takePiece.Type == types.Rook && takePiece.Owner == piece.Owner
+			move := types.Move{
+				Start:   startPos,
+				End:     movePos,
+				Promote: nil,
+				Drop:    nil,
+			}
+			if validCastle {
+				castleDir := getCastleDirection(move)
+				dx := utils.AbsoluteValueInt(move.End.X-move.Start.X) - 1
+				kingX := (dx/2+1)*castleDir + move.Start.X
+				startToKingDist := utils.AbsoluteValueInt(startPos.X - kingX)
+				for j := 0; j < startToKingDist+1; j++ {
+					gameCopy.Board.Board[startPos.Y][startPos.X] = nil
+					gameCopy.Board.Board[movePos.Y][startPos.X+j*castleDir] = piece
+					if GetInCheck(*gameCopy) {
+						*possibleMoves = append((*possibleMoves)[:i], (*possibleMoves)[i+1:]...)
+						break
+					}
+				}
+			} else {
+				dir := getMoveDirection(*gameCopy)
+				if checkEnPassantTake(move, *gameCopy, piece) {
+					game.Board.Board[move.End.Y+dir][move.End.X] = nil
+				}
+				gameCopy.Board.Board[startPos.Y][startPos.X] = nil
+				gameCopy.Board.Board[movePos.Y][movePos.X] = piece
+				if GetInCheck(*gameCopy) {
+					*possibleMoves = append((*possibleMoves)[:i], (*possibleMoves)[i+1:]...)
+				}
 			}
 		} else if piece != nil && piece.Type >= types.Checker && piece.Type <= types.CheckerKing {
 			if checkerMovesInCheck(startPos, movePos, piece, *gameCopy) {

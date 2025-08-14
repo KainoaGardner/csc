@@ -185,7 +185,6 @@ var ChessPromotePieceToChar = map[int]byte{
 }
 
 var ChessPromoteCharToPiece = map[byte]int{
-	'P': Pawn,
 	'N': Knight,
 	'B': Bishop,
 	'R': Rook,

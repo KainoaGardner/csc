@@ -113,6 +113,7 @@ type GameOverResponse struct {
 	Reason        string             `bson:"reason" json:"reason"`
 	State         int                `bson:"state" json:"state"` //0 place,1 move,2 over
 	LastMoveTime  time.Time          `bson:"lastMoveTime" json:"lastMoveTime"`
+	FEN           string             `json:"fen"`
 }
 
 type PostDrawRequest struct {

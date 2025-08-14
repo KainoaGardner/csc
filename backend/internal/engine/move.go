@@ -38,20 +38,7 @@ func MovePiece(move types.Move, game *types.Game) error {
 
 	dir := getMoveDirection(*game)
 	takePiece := getTakePiece(move, *game, piece, dir)
-	validCastle := takePiece != nil && piece.Type == types.King && takePiece.Type == types.Rook && takePiece.Owner == piece.Owner
-
-	updateEndPosition(move, game, piece, takePiece, validCastle)
-
-	updateEnPassantTakePosition(move, game, piece, dir)
-	updateEnPassantPosition(piece, move, game, dir)
-
-	offset := getMochigomaOffset(*game)
-	updateRemoveStartPosition(move, game, offset, validCastle)
-
-	err = updateMochigoma(takePiece, game, offset)
-	if err != nil {
-		return err
-	}
+	doMovePiece(game, move, piece, takePiece, dir)
 
 	if checkCheckerNextJumps(move.Start, move.End, *piece, *game) {
 		game.CheckerJump = &move.End
@@ -68,12 +55,38 @@ func MovePiece(move types.Move, game *types.Game) error {
 	return nil
 }
 
+func doMovePiece(game *types.Game, move types.Move, piece *types.Piece, takePiece *types.Piece, dir int) error {
+	validCastle := takePiece != nil && piece.Type == types.King && takePiece.Type == types.Rook && takePiece.Owner == piece.Owner
+
+	updateEndPosition(move, game, piece, takePiece, validCastle)
+
+	updateEnPassantTakePosition(move, game, piece, dir)
+	updateEnPassantPosition(piece, move, game, dir)
+	updateRemoveCheckerTakePiece(move, game, piece, dir)
+
+	updateRemoveCheckerTakePiece(move, game, piece, dir)
+
+	offset := getMochigomaOffset(*game)
+	updateRemoveStartPosition(move, game, offset, validCastle)
+
+	err := updateMochigoma(takePiece, game, offset)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func getTakePiece(move types.Move, game types.Game, piece *types.Piece, dir int) *types.Piece {
 	if checkCheckerTake(move.Start, move.End) {
 		jumpDir := getCastleDirection(move)
 		return game.Board.Board[move.Start.Y-dir][move.Start.X+jumpDir]
 	} else if checkEnPassantTake(move, game, piece) {
 		return game.Board.Board[move.End.Y+dir][move.End.X]
+	} else if checkCheckerTake(move.Start, move.End) {
+		dir := getCheckerJumpDir(move)
+		takePos := types.Vec2{X: move.Start.X + dir.X, Y: move.Start.Y + dir.Y}
+		return game.Board.Board[takePos.Y][takePos.X]
 	} else {
 		return game.Board.Board[move.End.Y][move.End.X]
 	}
@@ -86,14 +99,14 @@ func checkCheckmateOrDraw(game *types.Game) error {
 		game.Reason = "Checkmate"
 		game.State = types.OverState
 	} else {
-		result, err := GetDraw(game)
+		result, reason, err := GetDraw(game)
 		if err != nil {
 			return err
 		}
 		if result {
 			tie := types.Tie
 			game.Winner = &tie
-			game.Reason = "Draw"
+			game.Reason = reason
 			game.State = types.OverState
 		}
 	}
@@ -263,13 +276,16 @@ func updateMochigoma(takePiece *types.Piece, game *types.Game, offset int) error
 func updateRemoveStartPosition(move types.Move, game *types.Game, offset int, validCastle bool) {
 	if move.Drop != nil {
 		game.Mochigoma[*move.Drop+offset]--
-	} else if !validCastle {
+	} else if validCastle {
+		game.Board.Board[move.Start.Y][move.Start.X] = nil
+		game.Board.Board[move.End.Y][move.End.X] = nil
+	} else {
 		game.Board.Board[move.Start.Y][move.Start.X] = nil
 	}
 }
 
 func checkEnPassantTake(move types.Move, game types.Game, piece *types.Piece) bool {
-	if game.EnPassant != nil && move.End == *game.EnPassant && piece.Type == types.Pawn {
+	if game.EnPassant != nil && utils.CheckVec2Equal(move.End, *game.EnPassant) && piece.Type == types.Pawn {
 		return true
 	}
 	return false
@@ -279,6 +295,33 @@ func updateEnPassantTakePosition(move types.Move, game *types.Game, piece *types
 	if checkEnPassantTake(move, *game, piece) {
 		game.Board.Board[move.End.Y+dir][move.End.X] = nil
 	}
+}
+
+func updateRemoveCheckerTakePiece(move types.Move, game *types.Game, piece *types.Piece, dir int) {
+	if checkCheckerTake(move.Start, move.End) {
+		dir := getCheckerJumpDir(move)
+		takePos := types.Vec2{
+			X: move.Start.X + dir.X,
+			Y: move.Start.Y + dir.Y,
+		}
+		game.Board.Board[takePos.Y][takePos.X] = nil
+	}
+}
+
+func getCheckerJumpDir(move types.Move) types.Vec2 {
+	result := types.Vec2{}
+	if move.End.X < move.Start.X {
+		result.X = -1
+	} else {
+		result.X = 1
+	}
+	if move.End.Y < move.Start.Y {
+		result.Y = -1
+	} else {
+		result.Y = 1
+	}
+
+	return result
 }
 
 func getCastleDirection(move types.Move) int {
@@ -298,6 +341,7 @@ func updateEndPosition(move types.Move, game *types.Game, piece *types.Piece, ta
 
 		game.Board.Board[move.End.Y][kingX] = piece
 		game.Board.Board[move.End.Y][rookX] = takePiece
+
 		takePiece.Moved = true
 	} else {
 		game.Board.Board[move.End.Y][move.End.X] = piece

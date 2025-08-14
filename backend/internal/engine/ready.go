@@ -72,17 +72,16 @@ func checkGameOverAtStart(game *types.Game) error {
 		game.Reason = "Checkmate"
 		game.State = types.OverState
 	} else {
-		result, err := GetDraw(game)
+		result, reason, err := GetDraw(game)
 		if err != nil {
 			return err
 		}
 		if result {
 			tie := types.Tie
 			game.Winner = &tie
-			game.Reason = "Draw"
+			game.Reason = reason
 			game.State = types.OverState
 		}
-
 	}
 
 	return nil

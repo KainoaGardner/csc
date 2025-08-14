@@ -382,6 +382,13 @@ func gameOver(game *types.Game, gameID string, playerID string, client *mongo.Cl
 		broadcastError(gameID, playerID, err)
 		return false
 	}
+
+	fen, err := engine.ConvertBoardToString(*game)
+	if err != nil {
+		broadcastError(gameID, playerID, err)
+		return false
+	}
+
 	engine.SetupFinalGameLog(*game, gameLog)
 	err = db.GameLogFinalUpdate(client, config.DB, gameID, *gameLog)
 	if err != nil {
@@ -405,6 +412,7 @@ func gameOver(game *types.Game, gameID string, playerID string, client *mongo.Cl
 		Reason:        game.Reason,
 		State:         game.State,
 		LastMoveTime:  game.LastMoveTime,
+		FEN:           fen,
 	}
 
 	response := types.OutgoingMessage{

@@ -4,29 +4,29 @@ import (
 	"github.com/KainoaGardner/csc/internal/types"
 )
 
-func GetDraw(game *types.Game) (bool, error) {
+func GetDraw(game *types.Game) (bool, string, error) {
 	if checkStalemate(*game) {
-		return true, nil
+		return true, "Stalemate", nil
 	}
 
 	boardString, err := ConvertBoardToStringPositionKey(*game)
 	if err != nil {
-		return false, err
+		return false, "", err
 	}
 	updateMoveHistory(boardString, game)
 	if checkThreefoldRepetition(boardString, *game) {
-		return true, nil
+		return true, "Repitition", nil
 	}
 
 	if checkFiftyMoveRule(*game) {
-		return true, nil
+		return true, "Fifty Move Rule", nil
 	}
 
 	if checkInsufficientMaterial(*game) {
-		return true, nil
+		return true, "Insufficient Material", nil
 	}
 
-	return false, nil
+	return false, "", nil
 }
 
 func checkStalemate(game types.Game) bool {

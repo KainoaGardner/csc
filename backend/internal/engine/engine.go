@@ -15,6 +15,8 @@ func SetupNewGame(gameConfig types.PostGame, userID string) (*types.Game, error)
 
 	// game.WhiteID = userID
 	game.Time = gameConfig.StartTime
+	game.Time[0] *= 1000
+	game.Time[1] *= 1000
 	game.Money = gameConfig.Money
 
 	game.PositionHistory = map[string]int{}

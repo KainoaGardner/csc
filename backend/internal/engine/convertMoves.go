@@ -107,7 +107,7 @@ func checkPromotePiece(move string) *int {
 		return result
 	}
 
-	if move[moveLength-1] == '+' { //if shogi promotion or chess
+	if move[moveLength-1] == '+' { //if shogi promotion or checkers
 		found := 0
 		result = &found
 		return result

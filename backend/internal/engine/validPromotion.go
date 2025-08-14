@@ -43,6 +43,10 @@ func checkPawnCheckerPromote(move types.Move, piece types.Piece, game types.Game
 }
 
 func checkShogiPromote(move types.Move, piece types.Piece, game types.Game) error {
+	if !(piece.Type >= types.Fu && piece.Type <= types.Hi && piece.Type != types.Kin) {
+		return fmt.Errorf("Cannot promote this piece")
+	}
+
 	var rowStart, rowEnd int
 	if piece.Owner == 0 {
 		rowStart = 0
@@ -103,7 +107,7 @@ func checkMustPromoteLastTwoLines(move types.Move, piece types.Piece, game types
 		row1 = game.Board.Height - 2
 	}
 
-	if move.End.Y == row0 && move.End.Y == row1 {
+	if move.End.Y == row0 || move.End.Y == row1 {
 		return fmt.Errorf("Must promote and last row")
 	}
 
