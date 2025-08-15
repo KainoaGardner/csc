@@ -74,6 +74,8 @@ function GamePage() {
 
         const renderer = rendererRef.current!
         renderer.updateButtonScreen(game)
+        renderer.lastMoveTime = Date.now()
+        renderer.lastFrameTime = Date.now()
         break
       }
       case "move": {
@@ -82,6 +84,11 @@ function GamePage() {
         game.state = 2
         const fen = msg.data.fen
         game.updateGame(fen)
+
+        const renderer = rendererRef.current!
+        renderer.lastMoveTime = Date.now()
+        renderer.lastFrameTime = Date.now()
+
         lastFen = fen
 
         break
@@ -95,6 +102,7 @@ function GamePage() {
       }
       case "over": {
         const game = gameRef.current!
+        const renderer2D = rendererRef.current!
 
         const fen = msg.data.fen
         const state = msg.data.state
@@ -103,6 +111,7 @@ function GamePage() {
 
         game.updateGame(fen)
         game.updateOver(winner, reason, state)
+        renderer2D.updateButtonScreen(game)
         lastFen = fen
         break
       }

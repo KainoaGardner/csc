@@ -22,6 +22,7 @@ import {
   convertMoveToString,
   sendMoveMessage,
   PromoteTypeEnum,
+  checkVec2Equal,
   type PendingMove,
   type Message,
   type Annotation,
@@ -139,6 +140,9 @@ export class BoardRenderer2D {
 
   pendingMove: PendingMove | null = null
 
+  lastFrameTime = Date.now()
+  lastMoveTime = Date.now()
+
   resignPressed: boolean = false
 
   constructor(ctx: CanvasRenderingContext2D,
@@ -146,7 +150,6 @@ export class BoardRenderer2D {
     game: Game,
     handleNotif: (err: string) => void,
     sendMessage: (msg: Message<unknown>) => void) {
-
     this.ctx = ctx
     this.canvas = canvas
     this.UIRatio = this.canvas.width / 1000
@@ -156,7 +159,6 @@ export class BoardRenderer2D {
     this.pressResign = this.pressResign.bind(this)
     this.cancelResign = this.cancelResign.bind(this)
     this.confirmResign = this.confirmResign.bind(this)
-
 
     this.setPendingMove = this.setPendingMove.bind(this)
     this.sendPendingMove = this.sendPendingMove.bind(this)
@@ -559,7 +561,6 @@ export class BoardRenderer2D {
     this.ctx.fillStyle = "#FFF"
     this.ctx.strokeStyle = "#000"
 
-
     const whiteTimeString = convertSecondsToTimeString(game.time[0])
     const whiteTimeFontSize = fitTextToWidth(this.ctx, whiteTimeString, 90 * this.UIRatio, 50 * this.UIRatio, 5 * this.UIRatio)
     this.ctx.font = `${whiteTimeFontSize}px Arial Black`
@@ -571,7 +572,6 @@ export class BoardRenderer2D {
     this.ctx.font = `${blackTimeFontSize}px Arial Black`
     this.ctx.fillText(blackTimeString, this.tileSize / 2, this.tileSize / 2)
     this.ctx.strokeText(blackTimeString, this.tileSize / 2, this.tileSize / 2)
-
   }
 
   #drawReadyText(game: Game) {
@@ -815,13 +815,18 @@ export class BoardRenderer2D {
     if (selectedPieceType === "board") {
       const dir = getMoveDirection(game.userSide)
       const startPos = { x: selectedPiece.x, y: selectedPiece.y }
-      const gameCopy = copyGame(game)
-      gameCopy.turn = game.userSide
-      const possibleMoves = getPieceMoves(startPos, selectedPiece, gameCopy, dir)
-      filteredMoves = filterPossibleMoves(startPos, possibleMoves, gameCopy)
+      if (game.checkerJump === null || checkVec2Equal(startPos, game.checkerJump)) {
+        const gameCopy = copyGame(game)
+        gameCopy.turn = game.userSide
+        const possibleMoves = getPieceMoves(startPos, selectedPiece, gameCopy, dir)
+        filteredMoves = filterPossibleMoves(startPos, possibleMoves, gameCopy)
+      }
     } else {
-      filteredMoves = getPieceDrops(selectedPiece, game)
+      if (game.checkerJump === null) {
+        filteredMoves = getPieceDrops(selectedPiece, game)
+      }
     }
+
 
     if (game.userSide === 0) {
       this.ctx.fillStyle = "#FFF"
@@ -945,6 +950,7 @@ export class BoardRenderer2D {
       case 2:
         this.#annotationUpdate(game, input)
         this.#moveUpdate(game, input, sendMessage)
+        this.#timeUpdate(game)
         break
       case 3:
         this.#annotationUpdate(game, input)
@@ -959,6 +965,11 @@ export class BoardRenderer2D {
         button.update(input, game, this.updateButtonScreen)
       }
     }
+  }
+
+  #timeUpdate(game: Game) {
+    game.updateClientTime(this.lastMoveTime, this.lastFrameTime)
+    this.lastFrameTime = Date.now()
   }
 
   updateButtonScreen(game: Game) {

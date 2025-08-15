@@ -322,11 +322,11 @@ export function fitTextToWidth(ctx: CanvasRenderingContext2D, text: string, maxW
 
 
 export function convertSecondsToTimeString(time: number): string {
-  const sec = time % 60
+  const sec = Math.floor(time % 60)
   time = Math.floor(time / 60)
-  const min = time % 60
+  const min = Math.floor(time % 60)
   time = Math.floor(time / 60)
-  const hour = time % 60
+  const hour = Math.floor(time % 60)
 
   let secString = sec.toString()
   let minString = min.toString()

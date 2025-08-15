@@ -239,6 +239,32 @@ export class Game {
     this.#updateTime(parts[7])
   }
 
+  updateClientTime(lastMoveTime: number, lastFrameTime: number) {
+    if (this.state !== 2) { return }
+
+    const currTime = Date.now()
+    const timeSinceLastMoveMS = currTime - lastMoveTime
+
+    //time buffer
+    if (timeSinceLastMoveMS <= 2000) {
+      return
+    }
+
+    const dtMS = currTime - lastFrameTime
+    const dt = dtMS / 1000
+
+    if (this.turn === 0) {
+      if (this.time[0] - dt >= 0) {
+        this.time[0] -= dt
+      }
+    } else {
+      if (this.time[1] - dt >= 0) {
+        this.time[1] -= dt
+      }
+
+    }
+  }
+
   clearBoardPlace() {
     if (this.state !== 1) { return }
 
@@ -321,7 +347,5 @@ export class Game {
     sendDrawMessage(false, sendMessage)
     this.draw[this.userSide] = false
   }
-
-
-
 }
+

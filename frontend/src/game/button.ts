@@ -110,9 +110,12 @@ export class Button {
     ctx.fillText(this.subtext, this.x + this.width / 2, this.y + this.height / 2 + this.height / 4)
 
     //stroke
-    ctx.strokeStyle = strokeColor
-    ctx.lineWidth = this.strokeSize
-    ctx.strokeRect(this.x - this.width * (increaseSize - 1.0) / 2, this.y - this.height * (increaseSize - 1.0) / 2, this.width * increaseSize, this.height * increaseSize)
+
+    if (this.strokeSize !== 0) {
+      ctx.lineWidth = this.strokeSize
+      ctx.strokeStyle = strokeColor
+      ctx.strokeRect(this.x - this.width * (increaseSize - 1.0) / 2, this.y - this.height * (increaseSize - 1.0) / 2, this.width * increaseSize, this.height * increaseSize)
+    }
   }
 
   update(input: InputHandler, game: Game, updateButtonScreen: (game: Game) => void) {
@@ -230,7 +233,7 @@ function createWhiteButtons(canvas: HTMLCanvasElement,
     y: 0,
     width: 100 * UIRatio,
     height: 100 * UIRatio,
-    strokeSize: 0 * UIRatio,
+    strokeSize: 3 * UIRatio,
     fontSize: 25 * UIRatio,
     subFontSize: 13 * UIRatio,
     bgColor: "#ecf0f1",
@@ -407,7 +410,7 @@ function createBlackButtons(
     y: 0,
     width: 100 * UIRatio,
     height: 100 * UIRatio,
-    strokeSize: 0,
+    strokeSize: 3 * UIRatio,
     fontSize: 25 * UIRatio,
     subFontSize: 13 * UIRatio,
     bgColor: "#ecf0f1",

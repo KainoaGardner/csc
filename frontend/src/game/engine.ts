@@ -20,6 +20,10 @@ export function checkValidPieceMove(start: Vec2, end: Vec2, piece: Piece, game: 
     return false
   }
 
+  if (game.checkerJump !== null && !checkVec2Equal(start, game.checkerJump)) {
+    return false
+  }
+
   const dir = getMoveDirection(game.turn)
   const possibleMoves = getPieceMoves(start, piece, game, dir)
   const filteredMoves = filterPossibleMoves(start, possibleMoves, game)
@@ -670,6 +674,7 @@ function getCheckerMoves(pos: Vec2, piece: Piece, game: Game, dir: number): Vec2
     { x: 1, y: -1 * dir },
   ]
 
+  const inCheckerJump = game.checkerJump !== null && checkVec2Equal(pos, game.checkerJump)
   for (let i = 0; i < directions.length; i++) {
     const dir = directions[i]
 
@@ -682,9 +687,10 @@ function getCheckerMoves(pos: Vec2, piece: Piece, game: Game, dir: number): Vec2
     landPos.x += dir.x * 2
     landPos.y += dir.y * 2
 
+
     if (checkPositionInbounds(jumpPos, game)) {
       const jumpSpace = game.board[jumpPos.y][jumpPos.x]
-      if (jumpSpace === null) {
+      if (!inCheckerJump && jumpSpace === null) {
         result.push(jumpPos)
       }
 
@@ -711,6 +717,8 @@ function getCheckerKingMoves(pos: Vec2, piece: Piece, game: Game): Vec2[] {
     { x: 1, y: 1 },
   ]
 
+
+  const inCheckerJump = game.checkerJump !== null && checkVec2Equal(pos, game.checkerJump)
   for (let i = 0; i < directions.length; i++) {
     const dir = directions[i]
     const jumpPos = { x: pos.x, y: pos.y }
@@ -722,9 +730,10 @@ function getCheckerKingMoves(pos: Vec2, piece: Piece, game: Game): Vec2[] {
     landPos.x += dir.x * 2
     landPos.y += dir.y * 2
 
+
     if (checkPositionInbounds(jumpPos, game)) {
       const jumpSpace = game.board[jumpPos.y][jumpPos.x]
-      if (jumpSpace === null) {
+      if (!inCheckerJump && jumpSpace === null) {
         result.push(jumpPos)
       }
 
