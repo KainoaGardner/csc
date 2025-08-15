@@ -458,6 +458,7 @@ func getCheckerMoves(pos types.Vec2, piece types.Piece, game types.Game, dir int
 		{X: 1, Y: -1 * dir},
 	}
 
+	inCheckerJump := game.CheckerJump != nil && utils.CheckVec2Equal(pos, *game.CheckerJump)
 	for i := 0; i < len(directions); i++ {
 		dir := directions[i]
 
@@ -472,7 +473,8 @@ func getCheckerMoves(pos types.Vec2, piece types.Piece, game types.Game, dir int
 
 		if checkPositionInbounds(jumpPos, game) {
 			jumpSpace := game.Board.Board[jumpPos.Y][jumpPos.X]
-			if jumpSpace == nil {
+
+			if !inCheckerJump && jumpSpace == nil {
 				validMovePositions = append(validMovePositions, jumpPos)
 			}
 
@@ -499,6 +501,7 @@ func getCheckerKingMoves(pos types.Vec2, piece types.Piece, game types.Game) []t
 		{X: 1, Y: 1},
 	}
 
+	inCheckerJump := game.CheckerJump != nil && utils.CheckVec2Equal(pos, *game.CheckerJump)
 	for i := 0; i < len(directions); i++ {
 		dir := directions[i]
 		jumpPos := pos
@@ -512,7 +515,7 @@ func getCheckerKingMoves(pos types.Vec2, piece types.Piece, game types.Game) []t
 
 		if checkPositionInbounds(jumpPos, game) {
 			jumpSpace := game.Board.Board[jumpPos.Y][jumpPos.X]
-			if jumpSpace == nil {
+			if !inCheckerJump && jumpSpace == nil {
 				validMovePositions = append(validMovePositions, jumpPos)
 			}
 

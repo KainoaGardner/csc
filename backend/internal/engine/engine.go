@@ -137,7 +137,13 @@ func GetTurnFromID(game types.Game, userID string) (int, error) {
 }
 
 func SetupResignGame(game *types.Game, turn int) {
-	otherTurn := getEnemyTurnInt(*game)
+	var otherTurn int
+	if turn == 0 {
+		otherTurn = 1
+	} else {
+		otherTurn = 0
+	}
+
 	game.Winner = &otherTurn
 	game.Reason = "Resignation"
 	game.State = types.OverState

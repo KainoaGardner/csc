@@ -8,8 +8,11 @@ import (
 	"github.com/KainoaGardner/csc/internal/config"
 	"go.mongodb.org/mongo-driver/mongo"
 
+	"github.com/KainoaGardner/csc/internal/engine"
+	"github.com/KainoaGardner/csc/internal/websockets"
 	"log"
 	"net/http"
+	"time"
 )
 
 type APIServer struct {
@@ -40,6 +43,8 @@ func (s *APIServer) Run(client *mongo.Client, config config.Config) error {
 		handHandler.RegisterRoutes(r)
 
 	})
+
+	engine.StartGlobalTimeCheck(5*time.Second, client, config, websockets.GameOver)
 
 	log.Println("Listening on", s.addr)
 	return http.ListenAndServe(s.addr, r)

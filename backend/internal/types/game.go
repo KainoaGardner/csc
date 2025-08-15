@@ -191,6 +191,15 @@ var ChessPromoteCharToPiece = map[byte]int{
 	'Q': Queen,
 }
 
+var ShogiPieceToPromotePiece = map[int]int{
+	Fu:   To,
+	Kyou: NariKyou,
+	Kei:  NariKei,
+	Gin:  NariGin,
+	Kaku: Uma,
+	Hi:   Ryuu,
+}
+
 var FenPieceToString = map[int]string{
 	Pawn:        "CP",
 	Knight:      "CN",

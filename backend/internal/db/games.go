@@ -21,8 +21,8 @@ func CreateGame(client *mongo.Client, db config.DB, game *types.Game) (string, e
 	return game.ID.Hex(), nil
 }
 
-func ListAllGames(client *mongo.Client, db config.DB) ([]types.Game, error) {
-	var games []types.Game
+func ListAllGames(client *mongo.Client, db config.DB) ([]*types.Game, error) {
+	var games []*types.Game
 
 	collection := client.Database(db.Name).Collection(db.Collections.Games)
 

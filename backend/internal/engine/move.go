@@ -43,6 +43,7 @@ func MovePiece(move types.Move, game *types.Game) error {
 	if checkCheckerNextJumps(move.Start, move.End, *piece, *game) {
 		game.CheckerJump = &move.End
 	} else {
+		game.CheckerJump = nil
 		updateHalfMoveCount(piece, takePiece, game)
 		updateMoveCount(game)
 		game.Turn = getEnemyTurnInt(*game)
@@ -62,7 +63,6 @@ func doMovePiece(game *types.Game, move types.Move, piece *types.Piece, takePiec
 
 	updateEnPassantTakePosition(move, game, piece, dir)
 	updateEnPassantPosition(piece, move, game, dir)
-	updateRemoveCheckerTakePiece(move, game, piece, dir)
 
 	updateRemoveCheckerTakePiece(move, game, piece, dir)
 
@@ -344,9 +344,44 @@ func updateEndPosition(move types.Move, game *types.Game, piece *types.Piece, ta
 
 		takePiece.Moved = true
 	} else {
-		game.Board.Board[move.End.Y][move.End.X] = piece
+		placePiece := getPlacePiece(move, piece)
+		game.Board.Board[move.End.Y][move.End.X] = placePiece
 	}
 	piece.Moved = true
+}
+
+func getPlacePiece(move types.Move, piece *types.Piece) *types.Piece {
+	if move.Promote != nil {
+		if piece.Type == types.Pawn {
+			promotePiece := types.Piece{
+				Type:  *move.Promote,
+				Owner: piece.Owner,
+				Moved: true,
+			}
+			return &promotePiece
+		}
+		if piece.Type == types.Checker {
+			promotePiece := types.Piece{
+				Type:  types.CheckerKing,
+				Owner: piece.Owner,
+				Moved: true,
+			}
+			return &promotePiece
+		}
+		if piece.Type >= types.Fu && piece.Type <= types.Hi && piece.Type != types.Kin {
+			promoteType, ok := types.ShogiPieceToPromotePiece[piece.Type]
+			if ok {
+				promotePiece := types.Piece{
+					Type:  promoteType,
+					Owner: piece.Owner,
+					Moved: true,
+				}
+				return &promotePiece
+			}
+		}
+	}
+
+	return piece
 }
 
 func checkHalfMoveReset(piece *types.Piece, takePiece *types.Piece) bool {

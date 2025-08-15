@@ -227,7 +227,7 @@ func moveCase(gameID string, playerID string, msg types.IncomingMessage, client 
 	}
 
 	if game.State == types.OverState {
-		return gameOver(game, gameID, playerID, client, config)
+		return GameOver(game, gameID, playerID, client, config)
 
 	} else {
 		data := types.PostMoveResponse{
@@ -310,7 +310,7 @@ func readyCase(gameID string, playerID string, msg types.IncomingMessage, client
 			return false
 		}
 
-		return gameOver(game, gameID, playerID, client, config)
+		return GameOver(game, gameID, playerID, client, config)
 	} else {
 		data := types.ReadyResponse{
 			ID:    game.ID,
@@ -342,7 +342,7 @@ func drawCase(gameID string, playerID string, msg types.IncomingMessage, client 
 	}
 
 	if game.State == types.OverState {
-		return gameOver(game, gameID, playerID, client, config)
+		return GameOver(game, gameID, playerID, client, config)
 
 	} else {
 		data := map[string]interface{}{
@@ -367,16 +367,14 @@ func resignCase(gameID string, playerID string, client *mongo.Client, config con
 		return false
 	}
 
-	log.Println("Resign Case")
-
 	if game.State == types.OverState {
-		return gameOver(game, gameID, playerID, client, config)
+		return GameOver(game, gameID, playerID, client, config)
 	}
 
 	return false
 }
 
-func gameOver(game *types.Game, gameID string, playerID string, client *mongo.Client, config config.Config) bool {
+func GameOver(game *types.Game, gameID string, playerID string, client *mongo.Client, config config.Config) bool {
 	gameLog, err := db.FindGameLogFromGameID(client, config.DB, gameID)
 	if err != nil {
 		broadcastError(gameID, playerID, err)
@@ -420,6 +418,7 @@ func gameOver(game *types.Game, gameID string, playerID string, client *mongo.Cl
 		Data: data,
 	}
 	BroadcastToGame(gameID, response)
+	fmt.Println("SENT")
 
 	return true
 }
