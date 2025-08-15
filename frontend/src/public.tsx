@@ -35,7 +35,6 @@ function PublicJoin() {
       const data = await response.json();
       if (response.ok) {
         const result = []
-        console.log(data)
         for (let i = 0; i < data.data.length; i++) {
           const joinableGameData = {
             id: data.data[i]._id,

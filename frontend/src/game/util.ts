@@ -39,6 +39,12 @@ export const PlaceEnum = {
   move: 2,
 }
 
+export const WinnerEnum = {
+  white: 0,
+  black: 1,
+  tie: 2,
+}
+
 export const PromoteTypeEnum = {
   chess: 0,
   shogi: 1,
