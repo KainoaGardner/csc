@@ -192,3 +192,17 @@ type OutgoingMessage struct {
 type Error struct {
 	Error string `json:"error"`
 }
+
+type GameLogHistoryResponse struct {
+	ID primitive.ObjectID `bson:"_id,omitempty" json:"_id"`
+
+	Date time.Time `bson:"date" json:"date"`
+
+	MoveCount int `bson:"moveCount" json:"moveCount"`
+
+	Winner *int   `bson:"winner" json:"winner"`
+	Reason string `bson:"reason" json:"reason"`
+
+	WhiteID string `bson:"whiteID" json:"whiteID"`
+	BlackID string `bson:"blackID" json:"blackID"`
+}

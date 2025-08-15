@@ -394,6 +394,50 @@ func GameOver(game *types.Game, gameID string, playerID string, client *mongo.Cl
 		return false
 	}
 
+	whiteWon := 0
+	blackWon := 0
+	if *game.Winner == 0 {
+		whiteWon = 1
+	} else if *game.Winner == 1 {
+		blackWon = 1
+	}
+
+	whiteStats, err := db.FindUserStatsFromUserID(client, config.DB, game.WhiteID)
+	if err != nil {
+		broadcastError(gameID, playerID, err)
+		return false
+	}
+
+	whiteStatsUpdate := types.UpdateUserStats{
+		GamesPlayed: whiteStats.GamesPlayed + 1,
+		GamesWon:    whiteStats.GamesPlayed + whiteWon,
+		GameLog:     gameLog.ID.Hex(),
+	}
+
+	err = db.UpdateUserStats(client, config.DB, game.WhiteID, whiteStatsUpdate)
+	if err != nil {
+		broadcastError(gameID, playerID, err)
+		return false
+	}
+
+	blackStats, err := db.FindUserStatsFromUserID(client, config.DB, game.BlackID)
+	if err != nil {
+		broadcastError(gameID, playerID, err)
+		return false
+	}
+
+	blackStatsUpdate := types.UpdateUserStats{
+		GamesPlayed: blackStats.GamesPlayed + 1,
+		GamesWon:    blackStats.GamesPlayed + blackWon,
+		GameLog:     gameLog.ID.Hex(),
+	}
+
+	err = db.UpdateUserStats(client, config.DB, game.BlackID, blackStatsUpdate)
+	if err != nil {
+		broadcastError(gameID, playerID, err)
+		return false
+	}
+
 	_, err = db.DeleteGame(client, config.DB, gameID)
 	if err != nil {
 		broadcastError(gameID, playerID, err)
@@ -418,7 +462,6 @@ func GameOver(game *types.Game, gameID string, playerID string, client *mongo.Cl
 		Data: data,
 	}
 	BroadcastToGame(gameID, response)
-	fmt.Println("SENT")
 
 	return true
 }
