@@ -108,6 +108,7 @@ PieceTypeToPrice.set(PieceEnum.Hi, 35)
 PieceTypeToPrice.set(PieceEnum.Ou, 45)
 PieceTypeToPrice.set(PieceEnum.Checker, 10)
 
+
 export type Message<T = unknown> = {
   type: string;
   data: T;

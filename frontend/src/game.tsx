@@ -80,12 +80,14 @@ function GamePage() {
       }
       case "move": {
         const game = gameRef.current!
+        const renderer = rendererRef.current!
 
         game.state = 2
         const fen = msg.data.fen
+        const move = msg.data.move
         game.updateGame(fen)
+        renderer.updateLastMove(game, move)
 
-        const renderer = rendererRef.current!
         renderer.lastMoveTime = Date.now()
         renderer.lastFrameTime = Date.now()
 

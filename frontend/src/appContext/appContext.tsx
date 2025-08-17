@@ -11,6 +11,8 @@ interface AppContextType {
   setAccessToken: (token: string | null) => void
   gameID: string | null;
   setGameID: (id: string | null) => void
+  gameLogID: string | null;
+  setGameLogID: (id: string | null) => void
   userID: string | null;
   setUserID: (id: string | null) => void
 }
@@ -28,6 +30,7 @@ export type Page =
   "game" |
   "private" |
   "public" |
-  "test"
+  "test" |
+  "gameLog"
 
 export const AppContext = createContext<AppContextType | undefined>(undefined)

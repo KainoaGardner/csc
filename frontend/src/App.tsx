@@ -11,6 +11,8 @@ import PublicJoin from "./public.jsx";
 
 import Campign from "./campaign.jsx";
 
+import GameLog from "./gameLog.jsx";
+
 import Settings from "./settings.jsx";
 import User from "./user.js";
 import Error from "./error.jsx";
@@ -54,9 +56,7 @@ function App() {
 
 
       </div>
-
       <Tab page={page} />
-
     </>
   )
 }
@@ -87,6 +87,8 @@ function Tab({ page }: { page: Page }) {
       return <GamePage />
     case "test":
       return <Test />
+    case "gameLog":
+      return <GameLog />
     default:
       return <Home />
   }

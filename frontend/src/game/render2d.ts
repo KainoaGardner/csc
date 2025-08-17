@@ -1,4 +1,5 @@
 import { Game } from "./game.ts"
+import { GameLog } from "./gameLog.ts"
 import { Piece } from "./piece.ts"
 
 import {
@@ -23,6 +24,7 @@ import {
   sendMoveMessage,
   PromoteTypeEnum,
   checkVec2Equal,
+  convertStringToPosition,
   type PendingMove,
   type Message,
   type Annotation,
@@ -143,7 +145,11 @@ export class BoardRenderer2D {
   lastFrameTime = Date.now()
   lastMoveTime = Date.now()
 
+
+  lastMove: Annotation = { start: null, end: null }
+
   resignPressed: boolean = false
+
 
   constructor(ctx: CanvasRenderingContext2D,
     canvas: HTMLCanvasElement,
@@ -214,7 +220,6 @@ export class BoardRenderer2D {
     this.ctx.fillStyle = "#111"
     this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
 
-
     switch (game.state) {
       case 0: {
         this.#drawConnect()
@@ -233,8 +238,14 @@ export class BoardRenderer2D {
         break
       }
     }
-
     this.#drawButtons(game, input)
+  }
+
+  drawGameLog(game: Game, gameLog: GameLog, boardTheme: number, input: InputHandler) {
+    this.ctx.fillStyle = "#111"
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height)
+
+    this.#drawGameLog(game, gameLog, boardTheme, input)
 
   }
 
@@ -250,7 +261,6 @@ export class BoardRenderer2D {
     this.#drawBoard(game, boardTheme)
     this.#drawCover(game)
     this.#drawSpaceAnnotations()
-    this.#drawSelectedSpace(game)
     this.#drawPlaceSpace(game, input)
     this.#drawBoardPieces(game, input)
     if (!game.ready[game.userSide])
@@ -264,6 +274,7 @@ export class BoardRenderer2D {
     this.#drawSpaceAnnotations()
     this.#drawSelectedSpace(game)
     this.#drawPlaceSpace(game, input)
+    this.#drawLastMoveSpace()
     this.#drawTime(game)
     this.#drawDrawText(game)
     this.#drawTurnText(game)
@@ -282,6 +293,23 @@ export class BoardRenderer2D {
     this.#drawBoardPieces(game, input)
     this.#drawAnnotations()
     this.#drawOverMessage(game)
+  }
+
+  #drawGameLog(game: Game, gameLog: GameLog, boardTheme: number, input: InputHandler) {
+    this.#drawBoard(game, boardTheme)
+    this.#drawSpaceAnnotations()
+    this.#drawLastMoveSpace()
+    this.#drawTime(game)
+    this.#drawTurnText(game)
+
+    this.#drawMochigoma(game, input)
+    this.#drawBoardPieces(game, input)
+    this.#drawAnnotations()
+
+
+    if (gameLog.moveIndex === gameLog.boardStates.length) {
+      this.#drawOverMessage(game)
+    }
   }
 
   #drawBoard(game: Game, boardTheme: number) {
@@ -353,6 +381,21 @@ export class BoardRenderer2D {
     this.ctx.globalAlpha = 1.0
   }
 
+
+  #drawLastMoveSpace() {
+    if (this.lastMove.start === null || this.lastMove.end === null) return
+
+    this.ctx.globalAlpha = 0.5
+    this.ctx.fillStyle = "#f1c40f"
+
+    this.ctx.fillRect((this.lastMove.start.x + 1) * this.tileSize, (this.lastMove.start.y + 1) * this.tileSize, this.tileSize, this.tileSize)
+
+    this.ctx.fillStyle = "#c0392b"
+    this.ctx.fillRect((this.lastMove.end.x + 1) * this.tileSize, (this.lastMove.end.y + 1) * this.tileSize, this.tileSize, this.tileSize)
+
+
+    this.ctx.globalAlpha = 1.0
+  }
 
   #drawSingleSpaceAnnotation(anno: Annotation) {
     if (anno.start === null || anno.end === null) {
@@ -955,7 +998,9 @@ export class BoardRenderer2D {
       case 3:
         this.#annotationUpdate(game, input)
         break
-
+      case 4:
+        this.#annotationUpdate(game, input)
+        break
     }
   }
 
@@ -1253,5 +1298,22 @@ export class BoardRenderer2D {
     this.pendingMove = null
 
     this.updateButtonScreen(game)
+  }
+
+  updateLastMove(game: Game, moveString: string) {
+    this.lastMove = {
+      start: null,
+      end: null,
+    }
+
+    const move = moveString.split(",")
+    if (move.length === 2) {
+      const start = convertStringToPosition(move[0], game.height)
+      const end = convertStringToPosition(move[1], game.height)
+      this.lastMove = {
+        start: start,
+        end: end,
+      }
+    }
   }
 }

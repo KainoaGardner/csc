@@ -44,7 +44,7 @@ const emptyUserStats = {
 }
 
 function User() {
-  const { accessToken, setPage } = useApp()
+  const { accessToken, setPage, setGameLogID } = useApp()
   const [userData, setUserData] = useState<UserData>(emptyUserData)
   const [userStatsData, setUserStatsData] = useState<UserStats>(emptyUserStats)
   const [gameLogHistoryData, setGameLogHistoryData] = useState<GameLogHistory[]>([])
@@ -121,6 +121,10 @@ function User() {
     }
   }
 
+  const handleViewGameLog = (gameLogID: string) => {
+    setGameLogID(gameLogID)
+    setPage("gameLog")
+  }
 
 
   useEffect(() => {
@@ -157,7 +161,7 @@ function User() {
             <p>Move count: {gameLogs.moveCount}</p>
             <p>Winner: {checkWinner(gameLogs.whiteID, gameLogs.blackID, userData.userID, gameLogs.winner)}</p>
             <p>Reason: {gameLogs.reason}</p>
-            {/* <button onClick={() => postJoinGame(games.id)}>Join</button> */}
+            <button onClick={() => handleViewGameLog(gameLogs.id)}>Join</button>
           </li>
         ))}
       </ul>
