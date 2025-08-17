@@ -19,7 +19,6 @@ import Error from "./error.jsx";
 import Notif from "./notif.jsx"
 import Register from "./register.jsx";
 import Home from "./home.jsx";
-import "./App.css"
 
 import { useApp } from "./appContext/useApp.tsx"
 import type { Page } from "./appContext/appContext.tsx"

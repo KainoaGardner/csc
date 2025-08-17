@@ -1,12 +1,14 @@
 import API_URL from "./env.tsx"
 
 import { useApp, useErrorHandler, useNotifHandler } from "./appContext/useApp.tsx"
-import { useEffect, useRef } from "react"
+import { useState, useEffect, useRef } from "react"
 
 import { Game } from "./game/game.ts"
 import { GameLog } from "./game/gameLog.ts"
 import { InputHandler } from "./game/inputHandler.ts"
 import { BoardRenderer2D } from "./game/render2d.ts"
+
+import "./css/gameLog.css"
 
 type GameLogData = {
   id: string
@@ -22,11 +24,28 @@ type GameLogData = {
   reason: string
 }
 
+const emptyGameLogData = {
+  id: "",
+  date: new Date,
+  moveCount: 0,
+  moves: [],
+  boardStates: [],
+  boardHeight: 0,
+  boardWidth: 0,
+  boardPlaceLine: 0,
+
+  winner: 0,
+  reason: "",
+}
+
 function GameLogPage() {
   const { setPage, accessToken, gameLogID } = useApp()
   const { handleError } = useErrorHandler()
   const { handleNotif } = useNotifHandler()
 
+  const [gameLogData, setGameLogData] = useState<GameLogData>(emptyGameLogData)
+  const [viewableMoves, setViewableMoves] = useState<string[]>([])
+  const [moveIndex, setMoveIndex] = useState<number>(0)
 
   const sendMessage = () => {
   }
@@ -65,6 +84,8 @@ function GameLogPage() {
           winner: data.data.winner,
           reason: data.data.reason,
         }
+        setGameLogData(updatedGameLog)
+        handleMoveListUpdate(updatedGameLog.moves, 0)
         init(updatedGameLog)
       } else {
         handleError(data.error);
@@ -73,6 +94,40 @@ function GameLogPage() {
       console.log(error);
     }
   };
+
+
+  const handleMoveListUpdate = (moves: string[], moveIndex: number) => {
+    const result = []
+    for (let i = -1; i < 10; i++) {
+      if (moveIndex + i < 0) {
+        continue
+      }
+      if (moveIndex + i >= moves.length) {
+        break
+      }
+
+      const move = moves[moveIndex + i]
+      result.push(move)
+    }
+
+    setViewableMoves(result)
+  }
+
+  const handleNextMove = (gameLog: GameLog | null, game: Game | null, renderer: BoardRenderer2D | null) => {
+    if (gameLog === null || game === null || renderer === null) return
+
+    gameLog.nextMove(game, renderer)
+    setMoveIndex(gameLog.moveIndex)
+    handleMoveListUpdate(gameLog.moves, gameLog.moveIndex)
+  }
+
+  const handlePrevMove = (gameLog: GameLog | null, game: Game | null, renderer: BoardRenderer2D | null) => {
+    if (gameLog === null || game === null || renderer === null) return
+
+    gameLog.prevMove(game, renderer)
+    setMoveIndex(gameLog.moveIndex)
+    handleMoveListUpdate(gameLog.moves, gameLog.moveIndex)
+  }
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const frameRef = useRef<number | null>(null)
@@ -162,16 +217,40 @@ function GameLogPage() {
 
   return (
     <>
+      <button onClick={() => { setPage("userStats") }}>Back</button>
       <canvas ref={canvasRef} width={1000} height={1000}></canvas>
 
       <div>
         <div>
-          <button onClick={() => gameLogRef.current!.prevMove(gameRef.current!, rendererRef.current!)}>Prev</button>
-          <button onClick={() => gameLogRef.current!.nextMove(gameRef.current!, rendererRef.current!)}>Next</button>
+          <button onClick={() => handlePrevMove(gameLogRef.current, gameRef.current, rendererRef.current)}>Prev</button>
+          <button onClick={() => handleNextMove(gameLogRef.current, gameRef.current, rendererRef.current)}>Next</button>
         </div>
       </div>
+
+      <ul>
+        {viewableMoves.map((move, index) => (
+          <li key={index} className={checkCurrentMove(moveIndex, index) ? "moveSelected" : ""}>{getIndex(moveIndex, index)}: {move}</li>
+        ))}
+      </ul>
+
     </>
   );
+}
+
+function getIndex(moveIndex: number, index: number): number {
+  if (moveIndex === 0) {
+    return index
+  }
+
+  return moveIndex + index - 1
+}
+
+function checkCurrentMove(moveIndex: number, index: number): boolean {
+  if (moveIndex === 0) {
+    return index === 0
+  }
+
+  return index === 1
 }
 
 export default GameLogPage;

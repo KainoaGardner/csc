@@ -54,7 +54,6 @@ export class GameLog {
   }
 
   prevMove(game: Game, renderer: BoardRenderer2D) {
-    console.log(this.moves)
     if (this.moveIndex > 0) {
       this.moveIndex--
 
@@ -65,13 +64,11 @@ export class GameLog {
   }
 
   nextMove(game: Game, renderer: BoardRenderer2D) {
-    if (this.moveIndex < this.boardStates.length) {
+    if (this.moveIndex < this.boardStates.length - 1) {
       this.moveIndex++
 
       this.updateLastMove(game, renderer)
-
-      if (this.moveIndex < this.boardStates.length)
-        game.updateGame(this.boardStates[this.moveIndex])
+      game.updateGame(this.boardStates[this.moveIndex])
     }
   }
 

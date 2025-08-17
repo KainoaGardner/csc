@@ -307,7 +307,7 @@ export class BoardRenderer2D {
     this.#drawAnnotations()
 
 
-    if (gameLog.moveIndex === gameLog.boardStates.length) {
+    if (gameLog.moveIndex >= gameLog.boardStates.length - 1) {
       this.#drawOverMessage(game)
     }
   }

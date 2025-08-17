@@ -58,25 +58,10 @@ function PublicJoin() {
     }
   }
 
-  async function postJoinGame(code: string) {
-    try {
-      const url = API_URL + "game/" + code + "/join"
-      console.log(url)
-      const response = await fetchWithAuth(API_URL + "game/" + code + "/join", {
-        method: "POST",
-      })
 
-      const data = await response.json();
-      if (response.ok) {
-        handleNotif(data.message)
-        setGameID(data.data._id)
-        setPage("game")
-      } else {
-        handleError(data.error);
-      }
-    } catch (error) {
-      console.log(error);
-    }
+  const handleJoinGame = (gameID: string) => {
+    setGameID(gameID)
+    setPage("game")
   }
 
   useEffect(() => {
@@ -100,8 +85,8 @@ function PublicJoin() {
           <li key={games.id}>
             <p>Size: {games.width}x{games.height} Place Line: {games.placeLine}</p>
             <p>Money: {games.whiteMoney}/{games.blackMoney}</p>
-            <p>Time: {games.whiteTime}/{games.blackTime}</p>
-            <button onClick={() => postJoinGame(games.id)}>Join</button>
+            <p>Time: {games.whiteTime / 1000}/{games.blackTime / 1000}</p>
+            <button onClick={() => handleJoinGame(games.id)}>Join</button>
           </li>
         ))}
       </ul>
