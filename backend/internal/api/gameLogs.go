@@ -65,5 +65,5 @@ func (h *Handler) getGameLog(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	utils.WriteResponse(w, http.StatusOK, "Board", gameLog)
+	utils.WriteResponse(w, http.StatusOK, "Game log", gameLog)
 }

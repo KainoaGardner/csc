@@ -130,13 +130,16 @@ func (h *Handler) getAuthUserGameLogs(w http.ResponseWriter, r *http.Request) {
 
 	var data []types.GameLogHistoryResponse
 
+	fmt.Println(userStats.GameLogs)
 	minGameAmount := min(len(userStats.GameLogs), 5)
 	for i := 0; i < minGameAmount; i++ {
 		gameLogID := userStats.GameLogs[len(userStats.GameLogs)-1-i]
 		gameLog, err := db.FindGameLog(h.client, h.config.DB, gameLogID)
+
 		if err != nil {
-			utils.WriteError(w, http.StatusBadRequest, err)
-			return
+			continue
+			// utils.WriteError(w, http.StatusBadRequest, err)
+			// return
 		}
 
 		currData := types.GameLogHistoryResponse{

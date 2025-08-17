@@ -12,6 +12,10 @@ func SetupGameLog(game types.Game) *types.GameLog {
 	result.WhiteID = game.WhiteID
 	result.BlackID = game.BlackID
 
+	result.BoardHeight = game.Board.Height
+	result.BoardWidth = game.Board.Width
+	result.BoardPlaceLine = game.Board.PlaceLine
+
 	result.Moves = []string{}
 	result.BoardStates = []string{}
 
