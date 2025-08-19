@@ -38,20 +38,29 @@ function PrivateJoin() {
 
   return (
     <>
-      <h1>Join with code</h1>
-      <button onClick={() => { setPage("joinGame") }}>Back</button>
-      <hr />
+      <div className="flex flex-col items-start">
+        <h1 className="font-bold text-8xl text-gray-50 mb-5">Join With Code</h1>
 
-      <input
-        name="code"
-        value={code}
-        onChange={handleChange}
-        placeholder="Code"
-      />
+        <h2 className="font-bold text-3xl text-gray-50">Game Code</h2>
+        <input
+          className="textInput"
+          name="code"
+          value={code}
+          onChange={handleChange}
+          placeholder="Code"
+        />
 
-      <button
-        onClick={getJoinablePrivateGame}
-      >Submit</button>
+        <button
+          className="hover:bg-neutral-600 mt-3.5 text-2xl py-2 px-4 text-gray-50 border-neutral-400 bg-neutral-700 border-5"
+          onClick={getJoinablePrivateGame}
+        >Submit</button>
+
+
+        <hr className="border-none my-4" />
+        <button
+          className="btn w-2xl text-3xl"
+          onClick={() => { setPage("joinGame") }}>Back</button>
+      </div>
 
 
     </>

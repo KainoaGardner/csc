@@ -11,10 +11,16 @@ function Campaign() {
 
   return (
     <>
-      <h1>Campaign</h1>
-      <button onClick={() => { setPage("home") }}>Back</button>
-      <hr />
+      <div className="flex flex-col ">
+        <h1 className="font-bold text-8xl text-gray-50 mb-5">Campaign</h1>
+        <h1 className="font-bold text-6xl text-red-500 mb-5">Work in Progress</h1>
 
+        <hr className="border-none my-3" />
+        <button
+          className="btn w-2xl text-3xl"
+          onClick={() => { setPage("home") }}>Back</button>
+
+      </div>
     </>
   );
 }

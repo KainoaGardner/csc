@@ -22,6 +22,9 @@ function Test() {
   //   handleError("Not in a game")
   //   setPage("home")
   // }
+  //
+
+  const time = new Date();
 
   const handleMessage = (event: MessageEvent) => {
     const msg = JSON.parse(event.data)

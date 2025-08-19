@@ -88,106 +88,124 @@ function CreateGame() {
 
   return (
     <>
-      <h1>Create Game</h1>
-      <button onClick={() => { setPage("multiplayer") }}>Back</button>
-      <hr />
+      <div className="flex flex-col ">
+        <h1 className="font-bold text-8xl text-gray-50 mb-5">Create Game</h1>
 
-      <div>
-        <label>Width</label>
-        <input
-          type="number"
-          name="width"
-          value={gameConfig.width}
-          onChange={handleChange}
-          placeholder="8"
-          min={1}
-          max={20}
-        />
+        <div className="flex items-center">
+          <label className="font-bold text-3xl text-gray-50 mr-5 mb-2.5">Width</label>
+          <input
+            className="textInput text-3xl"
+            type="number"
+            name="width"
+            value={gameConfig.width}
+            onChange={handleChange}
+            placeholder="8"
+            min={1}
+            max={20}
+          />
 
-        <label>Height</label>
-        <input
-          type="number"
-          name="height"
-          value={gameConfig.height}
-          onChange={handleChange}
-          placeholder="8"
-          min={1}
-          max={20}
-        />
+          <label className="font-bold text-3xl text-gray-50 mx-5 mb-2.5">Height</label>
+          <input
+            className="textInput text-3xl"
+            type="number"
+            name="height"
+            value={gameConfig.height}
+            onChange={handleChange}
+            placeholder="8"
+            min={1}
+            max={20}
+          />
+        </div>
+
+        <div className="flex items-center">
+          <label className="font-bold text-3xl text-gray-50 mr-5 mb-2.5">White Money</label>
+          <input
+            className="textInput text-3xl"
+            type="number"
+            name="whiteMoney"
+            value={gameConfig.whiteMoney}
+            onChange={handleChange}
+            placeholder="300"
+            min={50}
+            max={100000}
+          />
+
+          <label className="font-bold text-3xl text-gray-50 mx-5 mb-2.5">Black Money</label>
+          <input
+            className="textInput text-3xl"
+            type="number"
+            name="blackMoney"
+            value={gameConfig.blackMoney}
+            onChange={handleChange}
+            placeholder="300"
+            min={50}
+            max={100000}
+          />
+        </div>
+
+        <div className="flex items-center">
+          <label className="font-bold text-3xl text-gray-50 mr-5 mb-2.5">White Time</label>
+          <input
+            className="textInput text-3xl"
+            type="number"
+            name="whiteTime"
+            value={gameConfig.whiteTime}
+            onChange={handleChange}
+            placeholder="600"
+            min={1}
+            max={100000}
+          />
+
+          <label className="font-bold text-3xl text-gray-50 mx-5 mb-2.5">Black Time</label>
+          <input
+            className="textInput text-3xl"
+            type="number"
+            name="blackTime"
+            value={gameConfig.blackTime}
+            onChange={handleChange}
+            placeholder="600"
+            min={1}
+            max={100000}
+          />
+        </div>
+
+        <div className="flex items-center">
+          <label className="font-bold text-3xl text-gray-50 mr-5 mb-2.5">Place Line</label>
+          <input
+            className="textInput text-3xl"
+            type="number"
+            name="placeLine"
+            value={gameConfig.placeLine}
+            onChange={handleChange}
+            placeholder={(gameConfig.height / 2).toString()}
+            min={1}
+            max={gameConfig.height - 1}
+          />
+        </div>
+
+        <div className="flex items-center">
+          <label className="font-bold text-3xl text-gray-50 mr-5 mb-2.5">Public</label>
+          <input
+            className="p-2 w-10 h-20 text-3xl"
+            type="checkbox"
+            name="public"
+            checked={gameConfig.public}
+            onChange={handleCheckBoxChange}
+          />
+        </div>
+
+        <button
+          className="btn w-2xl text-3xl"
+          onClick={postCreateGame}>Create</button>
+
+        <hr className="border-none my-4" />
+        <button
+          className="btn w-2xl text-3xl"
+          onClick={() => { setPage("multiplayer") }}>Back</button>
+
+
       </div>
 
-      <div>
-        <label>White Money</label>
-        <input
-          type="number"
-          name="whiteMoney"
-          value={gameConfig.whiteMoney}
-          onChange={handleChange}
-          placeholder="300"
-          min={50}
-          max={100000}
-        />
-
-        <label>Black Money</label>
-        <input
-          type="number"
-          name="blackMoney"
-          value={gameConfig.blackMoney}
-          onChange={handleChange}
-          placeholder="300"
-          min={50}
-          max={100000}
-        />
-      </div>
-
-      <div>
-        <label>White Time</label>
-        <input
-          type="number"
-          name="whiteTime"
-          value={gameConfig.whiteTime}
-          onChange={handleChange}
-          placeholder="600"
-          min={1}
-          max={100000}
-        />
-
-        <label>Black Time</label>
-        <input
-          type="number"
-          name="blackTime"
-          value={gameConfig.blackTime}
-          onChange={handleChange}
-          placeholder="600"
-          min={1}
-          max={100000}
-        />
-      </div>
-
-      <div>
-        <label>Place Line</label>
-        <input
-          type="number"
-          name="placeLine"
-          value={gameConfig.placeLine}
-          onChange={handleChange}
-          placeholder={(gameConfig.height / 2).toString()}
-          min={1}
-          max={gameConfig.height - 1}
-        />
-      </div>
-
-      <div>
-        <label>Public</label>
-        <input
-          type="checkbox"
-          name="public"
-          checked={gameConfig.public}
-          onChange={handleCheckBoxChange}
-        />
-      </div>
-
-      <button onClick={postCreateGame}>Create Game</button>
 
     </>
   );

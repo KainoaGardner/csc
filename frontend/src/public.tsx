@@ -76,20 +76,43 @@ function PublicJoin() {
 
   return (
     <>
-      <h1>Game List</h1>
-      <button onClick={() => { setPage("joinGame") }}>Back</button>
-      <hr />
 
-      <ul>
-        {joinGames.map(games => (
-          <li key={games.id}>
-            <p>Size: {games.width}x{games.height} Place Line: {games.placeLine}</p>
-            <p>Money: {games.whiteMoney}/{games.blackMoney}</p>
-            <p>Time: {games.whiteTime / 1000}/{games.blackTime / 1000}</p>
-            <button onClick={() => handleJoinGame(games.id)}>Join</button>
-          </li>
-        ))}
-      </ul>
+      <div className="flex flex-col items-start">
+        <h1 className="font-bold text-8xl text-gray-50 mb-5">Game List</h1>
+
+        <hr className="border-none my-4" />
+        <button
+          className="btn w-2xl text-3xl"
+          onClick={() => { setPage("joinGame") }}>Back</button>
+
+        <hr className="border-none my-4" />
+
+        <ul className="flex flex-col items-end">
+          {joinGames.map(games => (
+            <li
+              className="bg-neutral-700 border-5 border-neutral-400 py-4 px-4 flex items-start justify-between my-4 w-200"
+              key={games.id}>
+
+              <div>
+                <h2 className="font-bold text-3xl text-gray-50">Board Size</h2>
+                <h2 className="font-bold text-2xl text-neutral-400 mb-4">{games.placeLine}</h2>
+
+                <h2 className="font-bold text-3xl text-gray-50">Money</h2>
+                <h2 className="font-bold text-2xl text-neutral-400 mb-4">${games.whiteMoney}/${games.blackMoney}</h2>
+
+                <h2 className="font-bold text-3xl text-gray-50">Time</h2>
+                <h2 className="font-bold text-2xl text-neutral-400 mb-4">{games.whiteTime / 1000}/{games.blackTime / 1000}</h2>
+              </div>
+
+              <button
+                className="hover:bg-neutral-600 mt-0.5 text-2xl py-2 px-4 text-gray-50 border-neutral-400 bg-neutral-700 border-4"
+                onClick={() => handleJoinGame(games.id)}>Join</button>
+            </li>
+          ))}
+        </ul>
+
+      </div>
+
 
     </>
   );

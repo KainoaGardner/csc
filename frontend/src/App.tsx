@@ -20,42 +20,44 @@ import Notif from "./notif.jsx"
 import Register from "./register.jsx";
 import Home from "./home.jsx";
 
-import { useApp } from "./appContext/useApp.tsx"
+
+import { useApp, useLogoutHandler } from "./appContext/useApp.tsx"
 import type { Page } from "./appContext/appContext.tsx"
 
 function App() {
-  const { page, setPage, error, notif } = useApp();
+  const { accessToken, page, setPage, error, notif } = useApp();
+  const { handleLogout } = useLogoutHandler()
 
   return (
     <>
-      <Error error={error} />
-      <Notif notif={notif} />
+      <div className="flex flex-col h-full">
+        <Error error={error} />
+        <Notif notif={notif} />
 
-      <div className="nav">
-        <button
-          className={page === "home" ? "on navButton" : "navButton"}
-          onClick={() => setPage("home")}>
-          Home</button>
-        <button
-          className={page === "userStats" ? "on navButton" : "navButton"}
-          onClick={() => setPage("userStats")}>
-          User Stats</button>
-        <button
-          className={page === "login" ? "on navButton" : "navButton"}
-          onClick={() => setPage("login")}>
-          Login</button>
-        <button
-          className={page === "register" ? "on navButton" : "navButton"}
-          onClick={() => setPage("register")}>
-          Register</button>
-        <button
-          className={page === "test" ? "on navButton" : "navButton"}
-          onClick={() => setPage("test")}>
-          Test</button>
+        <div className="nav flex  flex-1 mx-1 mb-8">
+          <button
+            className={page === "home" ? "on navButton text-2xl" : "navButton text-2xl"}
+            onClick={() => setPage("home")}>
+            Home</button>
+          <button
+            className={page === "userStats" ? "on navButton text-2xl" : "navButton text-2xl"}
+            onClick={() => setPage("userStats")}>
+            User</button>
+          <LogInOutButton page={page} setPage={setPage} accessToken={accessToken} handleLogout={handleLogout} />
+          <button
+            className={page === "register" ? "on navButton text-2xl" : "navButton text-2xl"}
+            onClick={() => setPage("register")}>
+            Register</button>
+          <button
+            className={page === "test" ? "on navButton text-2xl" : "navButton text-2xl"}
+            onClick={() => setPage("test")}>
+            Test</button>
+        </div>
 
-
+        <div className="flex-8">
+          <Tab page={page} />
+        </div>
       </div>
-      <Tab page={page} />
     </>
   )
 }
@@ -90,6 +92,31 @@ function Tab({ page }: { page: Page }) {
       return <GameLog />
     default:
       return <Home />
+  }
+}
+
+function LogInOutButton(
+  {
+    page,
+    setPage,
+    accessToken,
+    handleLogout
+  }: {
+    page: string,
+    setPage: (page: Page) => void,
+    accessToken: string | null,
+    handleLogout: () => void
+  }) {
+  if (accessToken === null) {
+    return <button
+      className={page === "login" ? "on navButton text-2xl" : "navButton text-2xl"}
+      onClick={() => setPage("login")}>
+      Login</button>
+  } else {
+    return <button
+      className={page === "logout" ? "on navButton text-2xl" : "navButton text-2xl"}
+      onClick={handleLogout}>
+      Logout</button>
   }
 }
 

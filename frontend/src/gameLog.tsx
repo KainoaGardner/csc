@@ -233,6 +233,14 @@ function GameLogPage() {
         ))}
       </ul>
 
+      <div className="flex flex-col ">
+        <hr className="border-none my-4" />
+        <button
+          className="btn w-2xl text-3xl"
+          onClick={() => { setPage("userStats") }}>Back</button>
+
+      </div>
+
     </>
   );
 }

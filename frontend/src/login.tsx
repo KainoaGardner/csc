@@ -79,26 +79,34 @@ function Login() {
 
   return (
     <>
-      <h1>Login</h1>
-      <hr />
 
-      <input
-        name="username"
-        value={formData.username}
-        onChange={handleChange}
-        placeholder="Username"
-      />
-      <input
-        type="password"
-        name="password"
-        value={formData.password}
-        onChange={handleChange}
-        placeholder="Password"
-      />
+      <div className="flex flex-col items-start">
+        <h1 className="font-bold text-8xl text-gray-50 mb-10">Login</h1>
 
-      <button
-        onClick={handleSubmit}
-      >Submit</button>
+        <h2 className="font-bold text-3xl text-gray-50">Username</h2>
+        <input
+          className="textInput"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          placeholder="Username"
+        />
+
+        <h2 className="font-bold text-3xl text-gray-50">Password</h2>
+        <input
+          className="textInput"
+          type="password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="Password"
+        />
+
+        <button
+          className="hover:bg-neutral-600 mt-3.5 text-2xl py-2 px-4 text-gray-50 border-neutral-400 bg-neutral-700 border-5"
+          onClick={handleSubmit}
+        >Submit</button>
+      </div>
 
     </>
   );

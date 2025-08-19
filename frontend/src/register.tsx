@@ -43,7 +43,6 @@ function Register() {
     }
   }
 
-
   const postUser = async () => {
     const postData = {
       username: formData.username,
@@ -76,40 +75,53 @@ function Register() {
 
   return (
     <>
-      <h1>Register</h1>
-      <hr />
+      <div className="flex flex-col items-start">
+        <h1 className="font-bold text-8xl text-gray-50 mb-10">Register</h1>
 
-      <input
-        name="username"
-        value={formData.username}
-        onChange={handleChange}
-        placeholder="Username"
-      />
-      <input
-        name="email"
-        value={formData.email}
-        onChange={handleChange}
-        placeholder="Email"
-      />
-      <input
-        type="password"
-        name="password"
-        value={formData.password}
-        onChange={handleChange}
-        placeholder="Password"
-      />
-      <input
-        type="password"
-        name="passwordConfirm"
-        value={formData.passwordConfirm}
-        onChange={handleChange}
-        placeholder="Confirm Password"
-      />
+        <h2 className="font-bold text-3xl text-gray-50">Username</h2>
+        <input
+          className="textInput"
+          name="username"
+          value={formData.username}
+          onChange={handleChange}
+          placeholder="Username"
+        />
+
+        <h2 className="font-bold text-3xl text-gray-50">Email</h2>
+        <input
+          className="textInput"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
+          placeholder="Email"
+        />
+
+        <h2 className="font-bold text-3xl text-gray-50">Password</h2>
+        <input
+          className="textInput"
+          type="password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
+          placeholder="Password"
+        />
+
+        <h2 className="font-bold text-3xl text-gray-50">Confirm Password</h2>
+        <input
+          className="textInput"
+          type="password"
+          name="passwordConfirm"
+          value={formData.passwordConfirm}
+          onChange={handleChange}
+          placeholder="Confirm Password"
+        />
 
 
-      <button
-        onClick={handleSubmit}
-      >Submit</button>
+        <button
+          className="hover:bg-neutral-600 mt-3.5 text-2xl py-2 px-4 text-gray-50 border-neutral-400 bg-neutral-700 border-5"
+          onClick={handleSubmit}
+        >Submit</button>
+      </div>
 
     </>
   );

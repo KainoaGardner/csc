@@ -2,7 +2,7 @@ import API_URL from "./env.tsx"
 import { useState, useEffect } from "react"
 import { useFetchWithAuth } from "./apiCalls/api.tsx"
 
-import { useApp, useErrorHandler, useLogoutHandler } from "./appContext/useApp.tsx"
+import { useApp, useErrorHandler } from "./appContext/useApp.tsx"
 
 import { WinnerEnum } from "./game/util.ts"
 
@@ -51,7 +51,6 @@ function User() {
 
   const fetchWithAuth = useFetchWithAuth()
   const { handleError } = useErrorHandler()
-  const { handleLogout } = useLogoutHandler()
 
   async function getUser() {
     try {
@@ -141,30 +140,63 @@ function User() {
 
   return (
     <>
-      <h1>User</h1>
+      <div className="flex items-start">
+        <div className="flex-none">
+          <h1 className="font-bold text-8xl text-gray-50 mb-10">User</h1>
 
-      <button onClick={handleLogout}>Logout</button>
-      <hr />
+          <h2 className="font-bold text-4xl text-gray-50">Username</h2>
+          <h2 className="font-bold text-3xl text-neutral-400 mb-4">{userData.username}</h2>
 
-      <h2>Username: {userData.username}</h2>
-      <h2>Email: {userData.email}</h2>
-      <h2>Account Created: {userData.time}</h2>
+          <h2 className="font-bold text-4xl text-gray-50">Email</h2>
+          <h2 className="font-bold text-3xl text-neutral-400 mb-4">{userData.email}</h2>
 
-      <h3>Games Played: {userStatsData.gamesPlayed}</h3>
-      <h3>Games Won: {userStatsData.gamesWon}</h3>
+          <h2 className="font-bold text-4xl text-gray-50">Account Created</h2>
+          <h2 className="font-bold text-3xl text-neutral-400 mb-4">{userData.time}</h2>
 
-      <hr />
-      <ul>
-        {gameLogHistoryData.map(gameLogs => (
-          <li key={gameLogs.id}>
-            <p>Date: {gameLogs.date.toString()}</p>
-            <p>Move count: {gameLogs.moveCount}</p>
-            <p>Winner: {checkWinner(gameLogs.whiteID, gameLogs.blackID, userData.userID, gameLogs.winner)}</p>
-            <p>Reason: {gameLogs.reason}</p>
-            <button onClick={() => handleViewGameLog(gameLogs.id)}>Join</button>
-          </li>
-        ))}
-      </ul>
+          <h2 className="font-bold text-4xl text-gray-50">Games Played</h2>
+          <h2 className="font-bold text-4xl text-neutral-400 mb-4">{userStatsData.gamesPlayed}</h2>
+
+          <h2 className="font-bold text-4xl text-gray-50">Games Won</h2>
+          <h2 className="font-bold text-4xl text-neutral-400 mb-4">{userStatsData.gamesWon}</h2>
+        </div>
+
+        <div className="flex-1 flex justify-end">
+          <div>
+            <h1 className="font-bold text-8xl text-gray-50 mb-10 text-right">Recent Games</h1>
+            <ul className="flex flex-col items-end">
+              {gameLogHistoryData.map(gameLogs => (
+                <li
+                  className="bg-neutral-700 border-5 border-neutral-400 py-4 px-4 flex items-start justify-between my-4 w-200"
+                  key={gameLogs.id}
+                >
+                  <div>
+                    <h2 className=
+                      {getWinnerCSS(checkWinner(gameLogs.whiteID, gameLogs.blackID, userData.userID, gameLogs.winner))}
+                    >{checkWinner(gameLogs.whiteID, gameLogs.blackID, userData.userID, gameLogs.winner)}</h2>
+
+                    <h2 className="font-bold text-3xl text-gray-50">Date</h2>
+                    <h2 className="font-bold text-2xl text-neutral-400 mb-4">{new Date(gameLogs.date).toLocaleString()}</h2>
+
+                    <h2 className="font-bold text-3xl text-gray-50">Move Count</h2>
+                    <h2 className="font-bold text-3xl text-neutral-400 mb-4">{gameLogs.moveCount}</h2>
+
+                    {/* <h2 className="font-bold text-3xl text-gray-50">Winner</h2> */}
+
+
+
+                    <h2 className="font-bold text-3xl text-gray-50">Reason</h2>
+                    <h2 className="font-bold text-3xl text-neutral-400 mb-4">{gameLogs.reason}</h2>
+                  </div>
+
+                  <button
+                    className="hover:bg-neutral-600 mt-0.5 text-2xl py-2 px-4 text-gray-50 border-neutral-400 bg-neutral-700 border-4"
+                    onClick={() => handleViewGameLog(gameLogs.id)}>View</button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
     </>
   );
 }
@@ -184,6 +216,18 @@ function checkWinner(whiteID: string, blackID: string, userID: string, winner: n
   }
 
   return "Loss"
+}
+
+function getWinnerCSS(winner: string): string {
+  if (winner === "Win") {
+    return "font-bold text-4xl text-green-300 mb-2"
+  }
+
+  if (winner === "Loss") {
+    return "font-bold text-4xl text-red-300 mb-2"
+  }
+
+  return "font-bold text-4xl text-yellow-300 mb-2"
 }
 
 
