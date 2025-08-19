@@ -17,6 +17,7 @@ import {
   fitTextToWidth,
   convertSecondsToTimeString,
   checkEqualAnnotation,
+  convertNumberToLowercase,
   getAnnotationType,
   AnnotationEnum,
   sendResignMessage,
@@ -265,7 +266,9 @@ export class BoardRenderer2D {
     this.#drawBoardPieces(game, input)
     if (!game.ready[game.userSide])
       this.#drawShopPieces(game, input)
+
     this.#drawAnnotations()
+    this.#drawGridNumbers(game)
     this.#drawReadyText(game)
   }
 
@@ -282,6 +285,7 @@ export class BoardRenderer2D {
     this.#drawMochigoma(game, input)
     this.#drawBoardPieces(game, input)
     this.#drawAnnotations()
+    this.#drawGridNumbers(game)
     this.#drawMovableSpaces(game)
   }
 
@@ -292,6 +296,7 @@ export class BoardRenderer2D {
     this.#drawMochigoma(game, input)
     this.#drawBoardPieces(game, input)
     this.#drawAnnotations()
+    this.#drawGridNumbers(game)
     this.#drawOverMessage(game)
   }
 
@@ -304,6 +309,7 @@ export class BoardRenderer2D {
 
     this.#drawMochigoma(game, input)
     this.#drawBoardPieces(game, input)
+    this.#drawGridNumbers(game)
     this.#drawAnnotations()
 
 
@@ -335,6 +341,36 @@ export class BoardRenderer2D {
         this.ctx.fillRect(xStart + j * this.tileSize, yStart + i * this.tileSize, this.tileSize, this.tileSize)
       }
     }
+  }
+
+  #drawGridNumbers(game: Game) {
+    this.ctx.textAlign = "center"
+    this.ctx.textBaseline = "middle";
+    this.ctx.lineWidth = 1 * this.UIRatio;
+    this.ctx.fillStyle = "#FFF"
+    this.ctx.strokeStyle = "#000"
+
+    this.ctx.globalAlpha = 0.8
+
+    const xStart = this.canvas.width / 2 - this.tileSize * (game.width / 2)
+    const yStart = this.canvas.height / 2 - this.tileSize * (game.height / 2)
+
+
+    for (let i = 0; i < game.height; i++) {
+      const yNumber = (game.height - i).toString()
+      this.ctx.font = `${30}px Arial Black`
+      this.ctx.fillText(yNumber, xStart + 10 * this.UIRatio, yStart + i * this.tileSize + 20 * this.UIRatio)
+      this.ctx.strokeText(yNumber, xStart + 10 * this.UIRatio, yStart + i * this.tileSize + 20 * this.UIRatio)
+    }
+
+    for (let i = 0; i < game.width; i++) {
+      const yNumber = convertNumberToLowercase(i + 1).toString()
+      this.ctx.font = `${30}px Arial Black`
+      this.ctx.fillText(yNumber, xStart + (i + 1) * this.tileSize - 10 * this.UIRatio, yStart + game.height * this.tileSize - 10 * this.UIRatio)
+      this.ctx.strokeText(yNumber, xStart + (i + 1) * this.tileSize - 10 * this.UIRatio, yStart + + game.height * this.tileSize - 10 * this.UIRatio)
+    }
+
+    this.ctx.globalAlpha = 1.0
   }
 
   #drawAnnotations() {

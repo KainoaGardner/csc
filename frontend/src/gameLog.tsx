@@ -8,7 +8,6 @@ import { GameLog } from "./game/gameLog.ts"
 import { InputHandler } from "./game/inputHandler.ts"
 import { BoardRenderer2D } from "./game/render2d.ts"
 
-import "./css/gameLog.css"
 
 type GameLogData = {
   id: string
@@ -97,17 +96,22 @@ function GameLogPage() {
 
 
   const handleMoveListUpdate = (moves: string[], moveIndex: number) => {
+    const moveSet = Math.floor(moveIndex / 10)
+
     const result = []
-    for (let i = -1; i < 10; i++) {
+    for (let i = 0; i < 10; i++) {
       if (moveIndex + i < 0) {
         continue
       }
-      if (moveIndex + i >= moves.length) {
-        break
-      }
 
-      const move = moves[moveIndex + i]
-      result.push(move)
+      const index = moveSet * 10 + i
+
+      if (index >= moves.length) {
+        result.push("Game over")
+      } else {
+        const move = moves[index]
+        result.push(move)
+      }
     }
 
     setViewableMoves(result)
@@ -217,48 +221,53 @@ function GameLogPage() {
 
   return (
     <>
-      <button onClick={() => { setPage("userStats") }}>Back</button>
-      <canvas ref={canvasRef} width={1000} height={1000}></canvas>
 
-      <div>
+
+
+      <div className="flex justify-between">
         <div>
-          <button onClick={() => handlePrevMove(gameLogRef.current, gameRef.current, rendererRef.current)}>Prev</button>
-          <button onClick={() => handleNextMove(gameLogRef.current, gameRef.current, rendererRef.current)}>Next</button>
+          <canvas ref={canvasRef} width={1000} height={1000}></canvas>
         </div>
+        <div>
+          <h1 className="font-bold text-right text-8xl text-gray-50 mb-10">Moves</h1>
+          <ul className="bg-neutral-800">
+            {viewableMoves.map((move, index) => (
+              <li key={index}
+                className={checkCurrentMove(moveIndex, index) ? "text-center text-4xl bg-neutral-600 text-gray-50" : "text-center text-4xl text-gray-50"}
+              >{getIndex(moveIndex, index)}: {move}</li>
+            ))}
+          </ul>
+
+          <div className="flex-col items-center">
+            <div className="flex justify-center">
+              <button
+                className="btn w-full text-3xl"
+                onClick={() => handlePrevMove(gameLogRef.current, gameRef.current, rendererRef.current)}>Prev</button>
+              <button
+                className="btn w-full text-3xl"
+                onClick={() => handleNextMove(gameLogRef.current, gameRef.current, rendererRef.current)}>Next</button>
+            </div>
+
+            <hr className="border-none my-4" />
+            <button
+              className="btn w-2xl text-3xl"
+              onClick={() => { setPage("userStats") }}>Back</button>
+          </div>
+
+        </div>
+
       </div>
-
-      <ul>
-        {viewableMoves.map((move, index) => (
-          <li key={index} className={checkCurrentMove(moveIndex, index) ? "moveSelected" : ""}>{getIndex(moveIndex, index)}: {move}</li>
-        ))}
-      </ul>
-
-      <div className="flex flex-col ">
-        <hr className="border-none my-4" />
-        <button
-          className="btn w-2xl text-3xl"
-          onClick={() => { setPage("userStats") }}>Back</button>
-
-      </div>
-
     </>
   );
 }
 
 function getIndex(moveIndex: number, index: number): number {
-  if (moveIndex === 0) {
-    return index
-  }
-
-  return moveIndex + index - 1
+  return Math.floor(moveIndex / 10) * 10 + index
 }
 
 function checkCurrentMove(moveIndex: number, index: number): boolean {
-  if (moveIndex === 0) {
-    return index === 0
-  }
-
-  return index === 1
+  const realIndex = Math.floor(moveIndex / 10) * 10 + index
+  return moveIndex === realIndex
 }
 
 export default GameLogPage;
