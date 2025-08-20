@@ -1,6 +1,7 @@
 import { Game } from "./game.ts"
 import { BoardRenderer2D } from "./render2d.ts"
 import { convertStringToPosition } from "./util.ts"
+import { Sounds, playAudio } from "../sounds.ts"
 
 export class GameLog {
   id: string
@@ -57,6 +58,7 @@ export class GameLog {
     if (this.moveIndex > 0) {
       this.moveIndex--
 
+      playAudio(Sounds.get("place")!)
       this.updateLastMove(game, renderer)
 
       game.updateGame(this.boardStates[this.moveIndex])
@@ -67,6 +69,7 @@ export class GameLog {
     if (this.moveIndex < this.boardStates.length - 1) {
       this.moveIndex++
 
+      playAudio(Sounds.get("place")!)
       this.updateLastMove(game, renderer)
       game.updateGame(this.boardStates[this.moveIndex])
     }

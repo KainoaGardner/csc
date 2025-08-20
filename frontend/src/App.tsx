@@ -48,6 +48,7 @@ function App() {
             className={page === "register" ? "on navButton text-2xl" : "navButton text-2xl"}
             onClick={() => setPage("register")}>
             Register</button>
+
         </div>
 
         <div className="flex-8">

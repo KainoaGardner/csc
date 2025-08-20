@@ -5,6 +5,8 @@ import { InputHandler } from "./inputHandler.ts"
 import { Game } from "./game.ts"
 import { checkValidPieceMove, checkPieceOnBoard, checkValidDropMove, getEnemyTurnInt, checkPromote, checkMustPromote } from "./engine.ts"
 
+import { Sounds, playAudio } from "../sounds.ts"
+
 export class Piece {
   x: number
   y: number
@@ -102,6 +104,8 @@ export class Piece {
             game.board[placeY][placeX] = placePiece
 
             const positionString = convertPositionToString({ x: placeX, y: placeY }, game.height)
+
+            playAudio(Sounds.get("place")!)
             sendPlaceMessage(positionString, "", this.type, PlaceEnum.create, sendMessage)
 
           } else {
@@ -113,6 +117,7 @@ export class Piece {
             this.x = placeX
             this.y = placeY
 
+            playAudio(Sounds.get("place")!)
             sendPlaceMessage(positionString, fromString, this.type, PlaceEnum.move, sendMessage)
           }
         }
@@ -126,6 +131,7 @@ export class Piece {
           game.money[game.userSide] += price
           game.board[this.y][this.x] = null
 
+          playAudio(Sounds.get("place")!)
           const positionString = convertPositionToString({ x: this.x, y: this.y }, game.height)
           sendPlaceMessage(positionString, "", this.type, PlaceEnum.delete, sendMessage)
         }
@@ -168,6 +174,8 @@ export class Piece {
                 Drop: null,
                 Promote: 0,
               }
+
+              playAudio(Sounds.get("place")!)
               const moveString = convertMoveToString(move, game.height)
               sendMoveMessage(moveString, sendMessage)
               game.turn = getEnemyTurnInt(game)
@@ -179,6 +187,7 @@ export class Piece {
                 Promote: null,
               }
 
+              playAudio(Sounds.get("place")!)
               setPendingMove(move, PromoteTypeEnum.chess, game)
             }
           } else { //shogi promote not required can choose
@@ -189,6 +198,7 @@ export class Piece {
               Promote: null,
             }
 
+            playAudio(Sounds.get("place")!)
             setPendingMove(move, PromoteTypeEnum.shogi, game)
           }
         } else {
@@ -199,6 +209,8 @@ export class Piece {
             Promote: null,
           }
 
+
+          playAudio(Sounds.get("place")!)
           const moveString = convertMoveToString(move, game.height)
           sendMoveMessage(moveString, sendMessage)
           game.turn = getEnemyTurnInt(game)
@@ -233,6 +245,7 @@ export class Piece {
           Promote: null,
         }
 
+        playAudio(Sounds.get("place")!)
         const moveString = convertMoveToString(move, game.height)
         sendMoveMessage(moveString, sendMessage)
 

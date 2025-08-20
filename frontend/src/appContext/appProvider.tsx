@@ -11,9 +11,10 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [gameID, setGameID] = useState<string | null>(null)
   const [gameLogID, setGameLogID] = useState<string | null>(null)
   const [userID, setUserID] = useState<string | null>(null)
+  const [volume, setVolume] = useState<number>(50)
 
   return (
-    <AppContext.Provider value={{ page, setPage, error, setError, notif, setNotif, accessToken, setAccessToken, gameID, setGameID, gameLogID, setGameLogID, userID, setUserID }}>
+    <AppContext.Provider value={{ page, setPage, error, setError, notif, setNotif, accessToken, setAccessToken, gameID, setGameID, gameLogID, setGameLogID, userID, setUserID, volume, setVolume }}>
       {children}
     </AppContext.Provider>
   )

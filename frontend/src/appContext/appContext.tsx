@@ -15,6 +15,8 @@ interface AppContextType {
   setGameLogID: (id: string | null) => void
   userID: string | null;
   setUserID: (id: string | null) => void
+  volume: number;
+  setVolume: (volume: number) => void
 }
 
 export type Page =
