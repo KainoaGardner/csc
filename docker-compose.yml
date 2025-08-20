@@ -1,0 +1,39 @@
+services:
+  backend:
+    image: csc-backend
+    pull_policy: never
+    container_name: csc-backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      MONGODB_URI: "mongodb://mongodb:27017"
+      MONGODB_DB: "chess"
+      MONGODB_USERS_COLLECTION: "users"
+      MONGODB_USER_STATS_COLLECTION: "userStats"
+      MONGODB_GAMES_COLLECTION: "games"
+      MONGODB_GAME_LOGS_COLLECTION: "gameLogs"
+      JWT_ACCESS_KEY: ${JWT_ACCESS_KEY}
+      JWT_REFRESH_KEY: ${JWT_REFRESH_KEY}
+      JWT_PASSWORD_REFRESH_KEY: ${JWT_PASSWORD_REFRESH_KEY}
+      PUBLIC_HOST: "0.0.0.0"
+      PORT: "8080"
+      EMAIL_APP_PASSWORD: ${EMAIL_APP_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM}
+    ports:
+      - "8000:8080"
+    depends_on:
+      - mongodb
+
+
+  mongodb:
+    container_name: mongodb
+    image: mongo:6
+    restart: always
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+
+volumes:
+  mongo_data:
