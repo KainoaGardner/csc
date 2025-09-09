@@ -10,10 +10,12 @@
 Multiplayer mix of Chess Shogi and Checkers where players have a budget to buy and place pieces before playing
 
 
+
 <img src=".github/csc.png"
      alt="Image"
      style="float: left; margin-right: 10px; margin-bottom: 50px; height: 400px" />
 
+<hr>
 <h2>Pieces</h2>
 
 #### Chess
@@ -45,22 +47,34 @@ Multiplayer mix of Chess Shogi and Checkers where players have a budget to buy a
 > - Checker
 > - Checker King
 
-<h2>Set up game Rules</h3>
+
+
+<hr>
+<h2>Gameplay</h2>
+
+<h3>Set up game Rules</h3>
+
 <img src=".github/create.png"
      alt="Image"
      style="float: left; margin-right: 10px; margin-bottom: 50px; height: 300px" />
 
+
 <h3>Buy pieces from the shop to set up your side of the board.</h3>
+
 <img src=".github/setup.png"
      alt="Image"
      style="float: left; margin-right: 10px; margin-bottom: 50px; height: 300px" />
+     
 
 <h3>Battle the opponent until a winner emerges.</h3>
+
 <img src=".github/checkmate.png"
      alt="Image"
      style="float: left; margin-right: 10px; margin-bottom: 50px; height: 300px" />
+     
 
-<h2>Game logs and Replays</h2>
+<h3>Game logs and Replays</h3>
+
 <img src=".github/replay.png"
      alt="Image"
      style="float: left; margin-right: 10px; margin-bottom: 50px; height: 300px" />
