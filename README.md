@@ -16,6 +16,7 @@ Multiplayer mix of Chess Shogi and Checkers where players have a budget to buy a
      style="float: left; margin-right: 10px; height: 500px" />
 
 <h3>Pieces</h3>
+
 #### Chess
 > - Pawn
 > - Knight
