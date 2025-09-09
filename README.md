@@ -1,12 +1,46 @@
+<h1 align="left">CSC (Chess Shogi Checkers)</h1>
+
+<http://kainoagardner.xyz/csc>
+     
 <img src=".github/cscTitle.png"
      alt="Image"
      style="float: left; margin-right: 10px; height: 300px" />
-     
-<h1 align="left">CSC (Chess Shogi Checkers)</h1>
+
+
 Multiplayer mix of Chess Shogi and Checkers where players have a budget to buy and place pieces before playing
 
-<http://kainoagardner.xyz/csc>
+
 
 <img src=".github/csc.png"
      alt="Image"
      style="float: left; margin-right: 10px; height: 500px" />
+
+<h3>Pieces</h3>
+#### Chess
+> - Pawn
+> - Knight
+> - Bishop
+> - Rook
+> - Queen
+> - King
+
+#### Shogi
+> - Fu 歩兵
+> - Kyou 香車
+> - Kei 桂馬
+> - Gin 銀将
+> - Kin 金将
+> - Kaku 角行
+> - Hi 飛車
+> - Ou 王将/玉将
+
+> - Tokin と金
+> - NariKyou 成香
+> - NariKei 成桂
+> - NariGin 成銀
+> - Uma 竜馬
+> - Ryuu 竜王
+
+#### Checkers
+> - Checker
+> - Checker King
