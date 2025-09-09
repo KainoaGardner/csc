@@ -1,4 +1,4 @@
-<img src=".github/csc.png"
+<img src=".github/cscTitle.png"
      alt="Image"
      style="float: left; margin-right: 10px; height: 300px" />
      
