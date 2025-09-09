@@ -46,20 +46,23 @@ Multiplayer mix of Chess Shogi and Checkers where players have a budget to buy a
 > - Checker King
 
 <h2>Set up game Rules</h3>
-<img src=".github/setup.png"
+<img src=".github/create.png"
      alt="Image"
      style="float: left; margin-right: 10px; margin-bottom: 50px; height: 400px" />
 
 <h3>Buy pieces from the shop to set up your side of the board.</h3>
-<img src=".github/checkmate.png"
+<img src=".github/setup.png"
      alt="Image"
      style="float: left; margin-right: 10px; margin-bottom: 50px; height: 400px" />
 
 <h3>Battle the opponent until a winner emerges.</h3>
-<img src=".github/replay.png"
+<img src=".github/checkmate.png"
      alt="Image"
      style="float: left; margin-right: 10px; margin-bottom: 50px; height: 400px" />
 
 <h2>Game logs and Replays</h2>
+<img src=".github/replay.png"
+     alt="Image"
+     style="float: left; margin-right: 10px; margin-bottom: 50px; height: 400px" />
 
 
